@@ -1,5 +1,6 @@
 from io import BytesIO
 from decimal import Decimal
+from datetime import datetime
 from docxtpl import DocxTemplate
 
 
@@ -21,6 +22,11 @@ def _fmt_doc(doc: str) -> str:
     return doc
 
 
+def _digits(v: str) -> str:
+    """Remove caracteres não-numéricos de strings de documentos"""
+    return "".join(c for c in str(v or "") if c.isdigit())
+
+
 # -------------------------------------------------
 # Render principal
 # -------------------------------------------------
@@ -32,22 +38,12 @@ def render_termo_cessao_docx(
     titulos,
     dados_operacao: dict
 ) -> bytes:
-    """
-    Gera DOCX em memória — NÃO salva em disco.
-
-    partes → CpvPartes
-    titulos → list[CpvTitulo]
-    dados_operacao → dict com:
-        data_contrato
-        preco_aquisicao
-        banco
-        agencia
-        conta
-        cessionario_nome
-        cessionario_doc
-    """
 
     doc = DocxTemplate(template_path)
+
+    # =============================
+    # Títulos → tabela
+    # =============================
 
     total = sum(t.valor for t in titulos)
 
@@ -62,27 +58,60 @@ def render_termo_cessao_docx(
             "numero": t.numero_titulo,
         })
 
-    context = {
-        # -------- Partes --------
+    # =============================
+    # Base context — dados_operacao
+    # =============================
+
+    context = dict(dados_operacao)   # <<< pega TODOS campos do form
+
+    # =============================
+    # Data atual (quando clicou gerar)
+    # =============================
+    
+    context["data_atual"] = datetime.now().strftime("%d/%m/%Y")
+
+    # =============================
+    # Formata campos conhecidos
+    # =============================
+
+    if context.get("preco_aquisicao"):
+        context["preco_aquisicao"] = _fmt_money(context["preco_aquisicao"])
+
+    # datas → string bonita
+    for campo_data in [
+        "data_aquisicao",
+        "data_contrato"
+    ]:
+        if context.get(campo_data):
+            context[campo_data] = context[campo_data].strftime("%d/%m/%Y")
+
+    # docs - formatação automática dos novos campos
+    campos_doc = [
+        "cessionario_doc", "emitente_cnpj", "cessionario_cnpj", 
+        "emitente_cpf", "cessionario_cpf", "testemunha1_cpf", "testemunha2_cpf"
+    ]
+    
+    for campo in campos_doc:
+        if context.get(campo):
+            context[campo] = _fmt_doc(_digits(context[campo]))
+
+    # =============================
+    # Partes fixas
+    # =============================
+
+    context.update({
         "cedente_nome": partes.cedente_nome,
         "cedente_doc": _fmt_doc(partes.cedente_doc),
         "sacado_nome": partes.sacado_nome,
         "sacado_doc": _fmt_doc(partes.sacado_doc),
 
-        # -------- Operação --------
-        "data_contrato": dados_operacao.get("data_contrato"),
-        "preco_aquisicao": _fmt_money(dados_operacao.get("preco_aquisicao", Decimal("0"))),
-        "banco": dados_operacao.get("banco"),
-        "agencia": dados_operacao.get("agencia"),
-        "conta": dados_operacao.get("conta"),
-
-        "cessionario_nome": dados_operacao.get("cessionario_nome"),
-        "cessionario_doc": _fmt_doc(dados_operacao.get("cessionario_doc", "")),
-
-        # -------- Títulos --------
         "titulos": tabela,
-        "total": _fmt_money(total),
-    }
+        "valor_total": _fmt_money(total),
+    })
+
+    # =============================
+    # Render
+    # =============================
 
     doc.render(context)
 

@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% block title %}CPV — Cessão{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h2 class="mb-4">📑 CPV — Geração de Termo de Cessão</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- =========================================
+            CARD — TÍTULOS / LASTRO
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">📥 Títulos (Lastro)</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Importar XML NF-e</label>
+                        <input type="file" name="xml_file" class="form-control">
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end gap-2">
+                        <button name="acao" value="parse_xml"
+                                formnovalidate
+                                class="btn btn-primary">
+                            📥 Importar XML
+                        </button>
+
+                        <button name="acao" value="add_linha"
+                                formnovalidate
+                                class="btn btn-outline-secondary">
+                            ➕ Linha Manual
+                        </button>
+                    </div>
+                </div>
+
+                {{ titulos_formset.management_form }}
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Sacado</th>
+                                <th>Documento</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                                <th>Tipo</th>
+                                <th>Excluir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in titulos_formset %}
+                            <tr>
+                                <td>{{ f.numero }}</td>
+                                <td>{{ f.sacado_nome }}</td>
+                                <td>{{ f.sacado_doc }}</td>
+                                <td>{{ f.valor }}</td>
+                                <td>{{ f.vencimento }}</td>
+                                <td>{{ f.tipo }}</td>
+                                <td class="text-center">{{ f.excluir }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — DADOS DA CESSÃO
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏦 Dados da Cessão</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Data Aquisição</label>
+                        {{ cessao_form.data_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Preço Aquisição</label>
+                        {{ cessao_form.preco_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Banco Aquisição</label>
+                        {{ cessao_form.banco_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Agência Aquisição</label>
+                        {{ cessao_form.agencia_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Conta Aquisição</label>
+                        {{ cessao_form.conta_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Banco Fundo</label>
+                        {{ cessao_form.banco_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Agência Fundo</label>
+                        {{ cessao_form.agencia_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Conta Fundo</label>
+                        {{ cessao_form.conta_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Data Contrato</label>
+                        {{ cessao_form.data_contrato }}
+                    </div>
+
+                </div>
+
+                <div class="text-end mt-4">
+                    <button name="acao" value="gerar"
+                            class="btn btn-success btn-lg px-4">
+                        📄 Gerar Termo DOCX
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — EMITENTE / CEDENTE
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏢 Emitente / Cedente</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Razão Social</label>
+                        {{ cessao_form.emitente_razao_social }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CNPJ/ME</label>
+                        {{ cessao_form.emitente_cnpj }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Representante</label>
+                        {{ cessao_form.emitente_representante }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.emitente_cpf }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail</label>
+                        {{ cessao_form.emitente_email }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Cargo</label>
+                        {{ cessao_form.emitente_cargo }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Endereço</label>
+                        {{ cessao_form.emitente_endereco }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — CESSIONÁRIO / CREDOR
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏦 Cessionário / Credor</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Razão Social</label>
+                        {{ cessao_form.cessionario_razao_social }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CNPJ/ME</label>
+                        {{ cessao_form.cessionario_cnpj }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Representante</label>
+                        {{ cessao_form.cessionario_representante }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.cessionario_cpf }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail</label>
+                        {{ cessao_form.cessionario_email }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Cargo</label>
+                        {{ cessao_form.cessionario_cargo }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Endereço</label>
+                        {{ cessao_form.cessionario_endereco }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — TESTEMUNHAS
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">👥 Testemunhas</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-12">
+                        <h6 class="text-muted">Testemunha 1</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Nome</label>
+                        {{ cessao_form.testemunha1_nome }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.testemunha1_cpf }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <hr class="my-3">
+                        <h6 class="text-muted">Testemunha 2</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Nome</label>
+                        {{ cessao_form.testemunha2_nome }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.testemunha2_cpf }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <button name="acao" value="gerar"
+                    class="btn btn-success btn-lg px-5">
+                📄 Gerar Termo DOCX
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+// =====================================================
+// MÁSCARAS PARA CPF E CNPJ DOS NOVOS CAMPOS
+// =====================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Função para aplicar máscara de CPF
+    function aplicarMascaraCPF(campo) {
+        campo.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+            
+            // Limita a 11 dígitos
+            if (valor.length > 11) {
+                valor = valor.substring(0, 11);
+            }
+            
+            // Aplica máscara
+            if (valor.length <= 11) {
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = valor;
+        });
+    }
+    
+    // Função para aplicar máscara de CNPJ
+    function aplicarMascaraCNPJ(campo) {
+        campo.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+            
+            // Limita a 14 dígitos
+            if (valor.length > 14) {
+                valor = valor.substring(0, 14);
+            }
+            
+            // Aplica máscara
+            if (valor.length <= 14) {
+                valor = valor.replace(/(\d{2})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1/$2');
+                valor = valor.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = valor;
+        });
+    }
+    
+    // Aplicar máscaras nos campos de CPF
+    const camposCPF = [
+        'id_emitente_cpf',
+        'id_cessionario_cpf', 
+        'id_testemunha1_cpf',
+        'id_testemunha2_cpf'
+    ];
+    
+    camposCPF.forEach(function(id) {
+        const campo = document.getElementById(id);
+        if (campo) {
+            aplicarMascaraCPF(campo);
+        }
+    });
+    
+    // Aplicar máscaras nos campos de CNPJ
+    const camposCNPJ = [
+        'id_emitente_cnpj',
+        'id_cessionario_cnpj'
+    ];
+    
+    camposCNPJ.forEach(function(id) {
+        const campo = document.getElementById(id);
+        if (campo) {
+            aplicarMascaraCNPJ(campo);
+        }
+    });
+    
+});
+</script>
+
+{% endblock %}

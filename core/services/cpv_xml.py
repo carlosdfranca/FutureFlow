@@ -66,15 +66,69 @@ def _all(elem: ET.Element, path: str, ns: dict[str, str]) -> list[ET.Element]:
     return list(elem.findall(path, ns))
 
 
+def _safe_find(elem: ET.Element, tag_name: str, ns: dict[str, str]) -> ET.Element | None:
+    """
+    Busca elemento tentando primeiro sem namespace, depois com namespace se disponível.
+    """
+    # Primeiro tenta sem namespace
+    found = elem.find(tag_name)
+    if found is not None:
+        return found
+    
+    # Se tem namespace available, tenta com prefixo
+    if ns and 'nfe' in ns:
+        found = elem.find(f"nfe:{tag_name}", ns)
+        if found is not None:
+            return found
+    
+    return None
+
+
+def _safe_findall(elem: ET.Element, tag_name: str, ns: dict[str, str]) -> list[ET.Element]:
+    """
+    Busca todos os elementos tentando primeiro sem namespace, depois com namespace se disponível.
+    """
+    # Primeiro tenta sem namespace
+    found = elem.findall(tag_name)
+    if found:
+        return found
+    
+    # Se tem namespace available, tenta com prefixo
+    if ns and 'nfe' in ns:
+        found = elem.findall(f"nfe:{tag_name}", ns)
+        if found:
+            return found
+    
+    return []
+
+
+def _safe_find_text(elem: ET.Element, tag_name: str, ns: dict[str, str]) -> str:
+    """
+    Busca texto de um elemento tentando primeiro sem namespace, depois com namespace.
+    """
+    found = _safe_find(elem, tag_name, ns)
+    if found is not None and found.text:
+        return found.text.strip()
+    return ""
+
+
 def _infer_namespace(root: ET.Element) -> dict[str, str]:
     """
     NF-e normalmente usa namespace como:
       {http://www.portalfiscal.inf.br/nfe}
     Este helper tenta capturar e retornar um dict pro ElementTree.
     """
+    # Primeiro, tenta pela tag do root
     m = re.match(r"\{(.+)\}", root.tag)
     if m:
         return {"nfe": m.group(1)}
+    
+    # Se não encontrou, procura recursivamente por elementos com namespace
+    for elem in root.iter():
+        m = re.match(r"\{(.+)\}", elem.tag)
+        if m:
+            return {"nfe": m.group(1)}
+    
     return {}
 
 
@@ -123,65 +177,63 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
     ns = _infer_namespace(root)
 
     # Achar o nó infNFe (pode estar em nfeProc/NFe/infNFe etc.)
-    # Tentativas sem e com namespace.
-    infnfe = None
-
-    # sem namespace
     infnfe = root.find(".//infNFe")
-    if infnfe is None and ns:
+    if infnfe is None and ns and 'nfe' in ns:
         infnfe = root.find(".//nfe:infNFe", ns)
 
     if infnfe is None:
         raise ValueError("XML não contém infNFe (não parece ser uma NF-e válida).")
 
-    # nós principais
-    emit = infnfe.find("emit") or (infnfe.find("nfe:emit", ns) if ns else None)
-    dest = infnfe.find("dest") or (infnfe.find("nfe:dest", ns) if ns else None)
-    ide = infnfe.find("ide") or (infnfe.find("nfe:ide", ns) if ns else None)
-    cobr = infnfe.find("cobr") or (infnfe.find("nfe:cobr", ns) if ns else None)
+    # nós principais usando funções seguras
+    emit = _safe_find(infnfe, "emit", ns)
+    dest = _safe_find(infnfe, "dest", ns)
+    ide = _safe_find(infnfe, "ide", ns)
+    cobr = _safe_find(infnfe, "cobr", ns)
 
     if emit is None or dest is None:
         raise ValueError("XML NF-e sem tags emit/dest.")
 
-    cedente_nome = _find_first_text(emit, ["xNome", "nfe:xNome"], ns)
-    cedente_cnpj = _digits(_find_first_text(emit, ["CNPJ", "nfe:CNPJ"], ns))
+    cedente_nome = _safe_find_text(emit, "xNome", ns)
+    cedente_cnpj = _digits(_safe_find_text(emit, "CNPJ", ns))
 
-    sacado_nome = _find_first_text(dest, ["xNome", "nfe:xNome"], ns)
-    sacado_doc = _digits(_find_first_text(dest, ["CNPJ", "nfe:CNPJ", "CPF", "nfe:CPF"], ns))
+    sacado_nome = _safe_find_text(dest, "xNome", ns)
+    # Tenta CNPJ primeiro, depois CPF
+    sacado_doc = (_digits(_safe_find_text(dest, "CNPJ", ns)) or 
+                  _digits(_safe_find_text(dest, "CPF", ns)))
 
     numero_nota = ""
     data_emissao = ""
     if ide is not None:
-        numero_nota = _find_first_text(ide, ["nNF", "nfe:nNF"], ns)
+        numero_nota = _safe_find_text(ide, "nNF", ns)
         # dhEmi é comum, mas algumas versões usam dEmi
-        data_emissao = _find_first_text(ide, ["dhEmi", "nfe:dhEmi", "dEmi", "nfe:dEmi"], ns)
-        # se vier com timezone "2026-02-05T00:00:00-03:00" mantém string (você pode normalizar depois)
-        data_emissao = (data_emissao or "").strip()
+        data_emissao = (_safe_find_text(ide, "dhEmi", ns) or 
+                       _safe_find_text(ide, "dEmi", ns))
+        data_emissao = data_emissao.strip()
 
     # Total por produtos (fallback)
     # somar det/prod/vProd
-    det_nodes = _all(infnfe, "det", ns) or (_all(infnfe, "nfe:det", ns) if ns else [])
+    det_nodes = _safe_findall(infnfe, "det", ns)
     soma_vprod = Decimal("0")
     for det in det_nodes:
-        prod = det.find("prod") or (det.find("nfe:prod", ns) if ns else None)
+        prod = _safe_find(det, "prod", ns)
         if prod is None:
             continue
-        vprod = _find_first_text(prod, ["vProd", "nfe:vProd"], ns)
+        vprod = _safe_find_text(prod, "vProd", ns)
         soma_vprod += _to_decimal(vprod)
 
     # Duplicatas (cobr/dup)
     dup_nodes: list[ET.Element] = []
     if cobr is not None:
-        dup_nodes = _all(cobr, "dup", ns) or (_all(cobr, "nfe:dup", ns) if ns else [])
+        dup_nodes = _safe_findall(cobr, "dup", ns)
 
     titulos: list[CpvTitulo] = []
 
     if dup_nodes:
         for dup in dup_nodes:
-            d_venc = _find_first_text(dup, ["dVenc", "nfe:dVenc"], ns).strip()
+            d_venc = _safe_find_text(dup, "dVenc", ns)
             # valor da duplicata pode ser vDup; se não existir, deixa 0 e a tela decide
-            v_dup = _to_decimal(_find_first_text(dup, ["vDup", "nfe:vDup"], ns))
-            n_dup = _find_first_text(dup, ["nDup", "nfe:nDup"], ns).strip()
+            v_dup = _to_decimal(_safe_find_text(dup, "vDup", ns))
+            n_dup = _safe_find_text(dup, "nDup", ns)
 
             titulos.append(
                 CpvTitulo(
