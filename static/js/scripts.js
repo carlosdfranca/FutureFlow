@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         colors: ['#0984e3']
     };
-    new ApexCharts(document.querySelector("#grafico-patrimonio"), optionsPatrimonio).render();
+    if (document.querySelector("#grafico-patrimonio"))
+        new ApexCharts(document.querySelector("#grafico-patrimonio"), optionsPatrimonio).render();
 
     // ===============================
     // Gráfico de Linha - Captação Líquida
@@ -120,7 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         colors: ['#00cec9']
     };
-    new ApexCharts(document.querySelector("#grafico-captacao"), optionsCaptacao).render();
+    if (document.querySelector("#grafico-captacao"))
+        new ApexCharts(document.querySelector("#grafico-captacao"), optionsCaptacao).render();
 
     // ===============================
     // Donut - Patrimônio por Classe de Ativos
@@ -153,7 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     };
-    new ApexCharts(document.querySelector("#grafico-classe-ativos"), optionsClasseAtivos).render();
+    if (document.querySelector("#grafico-classe-ativos"))
+        new ApexCharts(document.querySelector("#grafico-classe-ativos"), optionsClasseAtivos).render();
 
     // ===============================
     // Donut - Patrimônio por Tipo de Produto
@@ -186,5 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     };
-    new ApexCharts(document.querySelector("#grafico-tipo-produto"), optionsTipoProduto).render();
+    if (document.querySelector("#grafico-tipo-produto"))
+        new ApexCharts(document.querySelector("#grafico-tipo-produto"), optionsTipoProduto).render();
 });

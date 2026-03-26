@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Nosso CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <!-- Nosso JS -->
@@ -15,61 +19,92 @@
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
-<body class="bg-light">
+<body>
     <!-- Navbar principal -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{% url 'home' %}">FIDC Gestão</a>
-            {% if user.is_authenticated %}
-    
-                {# SUPERUSER sempre vê o dropdown #}
-                {% if user.is_superuser %}
-                    {% include "partials/dropdown_empresas.html" %}
-                
-                {# Usuário comum só vê se tiver mais de uma empresa #}
-                {% elif empresas_qtd > 1 %}
-                    {% include "partials/dropdown_empresas.html" %}
-                {% endif %}
+    <nav class="site-nav">
+        <div class="site-nav__inner">
 
+            <!-- Brand -->
+            <a class="site-nav__brand" href="{% url 'home' %}">
+                <div class="site-nav__brand-icon">
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                </div>
+                <span>FIDC <strong>Gestão</strong></span>
+            </a>
+
+            <!-- Company selector -->
+            {% if user.is_authenticated %}
+                {% if user.is_superuser or empresas_qtd > 1 %}
+                    <div class="site-nav__empresa">
+                        {% include "partials/dropdown_empresas.html" %}
+                    </div>
+                {% endif %}
             {% endif %}
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'limites' %}active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'lastro' %}active{% endif %}" href="{% url 'lastro' %}">Lastro & Cessões</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'risco' %}active{% endif %}" href="{% url 'risco' %}">Risco</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'relatorios' %}active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'conformidade' %}active{% endif %}" href="{% url 'conformidade' %}">Conformidade</a></li>
-                    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'integracoes' %}active{% endif %}" href="{% url 'integracoes' %}">Integrações</a></li>
+            <!-- Hamburger (mobile) -->
+            <button class="site-nav__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Links principais -->
+            <div class="collapse site-nav__links" id="navbarNav">
+                <ul class="site-nav__menu">
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'lastro' %}is-active{% endif %}" href="{% url 'lastro' %}">Lastro &amp; Cessões</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'risco' %}is-active{% endif %}" href="{% url 'risco' %}">Risco</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'conformidade' %}is-active{% endif %}" href="{% url 'conformidade' %}">Conformidade</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'integracoes' %}is-active{% endif %}" href="{% url 'integracoes' %}">Integrações</a></li>
+
+                    <!-- Fundos dropdown -->
+                    <li class="site-nav__dropdown-wrap">
+                        <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bank"></i>Fundos
+                            <i class="bi bi-chevron-down site-nav__chevron"></i>
+                        </a>
+                        <ul class="site-nav__dropdown dropdown-menu">
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-list-ul"></i>Ver Fundos</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}"><i class="bi bi-plus-lg"></i>Novo Fundo</a></li>
+                            <li class="site-nav__dropdown-divider"></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_resgate' %}"><i class="bi bi-dash-circle"></i>Novo Resgate</a></li>
+                        </ul>
+                    </li>
                 </ul>
-                <ul class="navbar-nav ms-auto">
+
+                <!-- User menu -->
+                <div class="site-nav__user">
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="site-nav__dropdown-wrap">
+                            <a class="site-nav__user-btn" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 {% if user.profile_image %}
-                                    <img src="{{ user.profile_image.url }}" alt="profile" class="rounded-circle me-2" width="32" height="32">
+                                    <img src="{{ user.profile_image.url }}" alt="avatar" class="site-nav__avatar">
                                 {% else %}
-                                    <i class="bi bi-person-circle me-2"></i>
+                                    <span class="site-nav__avatar-fallback">
+                                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                    </span>
                                 {% endif %}
-                                {{ user.first_name }} {{ user.last_name }}
+                                <span class="site-nav__username">{{ user.first_name }}</span>
+                                <i class="bi bi-chevron-down site-nav__chevron"></i>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{% url 'profile' %}">Editar Perfil</a></li>
+                            <ul class="site-nav__dropdown site-nav__dropdown--end dropdown-menu">
+                                <li><a class="site-nav__dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person"></i>Editar Perfil</a></li>
+                                <li class="site-nav__dropdown-divider"></li>
                                 <li>
-                                    <form method="post" action="{% url 'logout' %}">
+                                    <form method="post" action="{% url 'logout' %}" style="margin:0;">
                                         {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">Logout</button>
+                                        <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
+                                            <i class="bi bi-box-arrow-right"></i>Logout
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
-                        </li>
+                        </div>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
-                        </li>
+                        <a class="site-nav__link" href="{% url 'login' %}">Login</a>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -93,5 +128,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

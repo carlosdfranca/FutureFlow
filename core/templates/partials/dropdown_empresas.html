@@ -1,6 +1,7 @@
-<form method="post" action="{% url 'trocar_empresa' %}" class="d-flex align-items-center ms-3">
+<form method="post" action="{% url 'trocar_empresa' %}" class="site-nav__empresa-form">
     {% csrf_token %}
-    <select name="empresa_id" class="form-select form-select-sm" onchange="this.form.submit()">
+    <i class="bi bi-building site-nav__empresa-icon"></i>
+    <select name="empresa_id" class="site-nav__empresa-select" onchange="this.form.submit()">
         {% for emp in empresas_disponiveis %}
             <option value="{{ emp.id }}"
                 {% if request.empresa_ativa and request.empresa_ativa.id == emp.id %}
@@ -11,4 +12,5 @@
             </option>
         {% endfor %}
     </select>
+    <i class="bi bi-chevron-down site-nav__empresa-chevron"></i>
 </form>
