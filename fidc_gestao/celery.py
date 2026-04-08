@@ -17,10 +17,10 @@ app.autodiscover_tasks()
 # Configuração do Celery Beat (agendador)
 app.conf.beat_schedule = {
     # Calcular cotas todos os dias às 23h
-    'calcular-cotas-diarias-23h': {
-        'task': 'fundos.tasks.calcular_cotas_diarias',
-        'schedule': crontab(hour=23, minute=0),
-    },
+    # 'calcular-cotas-diarias-23h': {  # DESATIVADO
+    #     'task': 'fundos.tasks.calcular_cotas_diarias',
+    #     'schedule': crontab(hour=23, minute=0),
+    # },
     
     # Efetivar movimentações todos os dias às 8h
     'efetivar-movimentacoes-8h': {
@@ -35,10 +35,10 @@ app.conf.beat_schedule = {
     },
     
     # Verificar inadimplência a cada 1 hora
-    'verificar-inadimplencia-1h': {
-        'task': 'fundos.tasks.verificar_inadimplencia',
-        'schedule': crontab(minute=0),  # A cada hora cheia
-    },
+    # 'verificar-inadimplencia-1h': {  # DESATIVADO
+    #     'task': 'fundos.tasks.verificar_inadimplencia',
+    #     'schedule': crontab(minute=0),  # A cada hora cheia
+    # },
 }
 
 # Timezone
