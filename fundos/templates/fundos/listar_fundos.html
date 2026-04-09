@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Fundos de Investimento{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner (full-width) -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <i class="bi bi-bank me-1"></i>Gestão de Fundos
+            </p>
+            <h1 class="page-hero__title">Fundos de Investimento</h1>
+            <p class="page-hero__subtitle">
+                {% if request.empresa_ativa %}{{ request.empresa_ativa.nome }}{% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem; font-size:0.9rem;">
+                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+    <!-- Fund Cards -->
+    {% if fundos %}
+        <div class="fundo-grid">
+            {% for fundo in fundos %}
+            <div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}">
+                <div class="fundo-card__topbar"></div>
+                <div class="fundo-card__header">
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if fundo.tipo_fundo == 'FIDC' %}
+                            <span class="badge-tipo-fidc">{{ fundo.get_tipo_fundo_display }}</span>
+                        {% elif fundo.tipo_fundo == 'FII' %}
+                            <span class="badge-tipo-fii">{{ fundo.get_tipo_fundo_display }}</span>
+                        {% else %}
+                            <span class="badge-tipo-fip">{{ fundo.get_tipo_fundo_display }}</span>
+                        {% endif %}
+                    </div>
+                    {% if fundo.ativo %}
+                        <span class="badge-ativo">Ativo</span>
+                    {% else %}
+                        <span class="badge-inativo">Inativo</span>
+                    {% endif %}
+                </div>
+
+                <div class="fundo-card__body">
+                    <p class="fundo-card__name">{{ fundo.razao_social }}</p>
+                    {% if fundo.nome_comercial %}
+                        <p class="fundo-card__alias">{{ fundo.nome_comercial }}</p>
+                    {% endif %}
+
+                    <ul class="fundo-card__meta">
+                        <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj }}</li>
+                        {% if fundo.codigo_anbima %}
+                        <li><i class="bi bi-tag"></i><strong>ANBIMA</strong>&nbsp;{{ fundo.codigo_anbima }}</li>
+                        {% endif %}
+                        <li><i class="bi bi-calendar3"></i><strong>Constituição</strong>&nbsp;{{ fundo.data_constituicao|date:"d/m/Y" }}</li>
+                        {% if fundo.taxa_administracao %}
+                        <li><i class="bi bi-percent"></i><strong>Taxa Adm.</strong>&nbsp;{{ fundo.taxa_administracao }}% a.a.</li>
+                        {% endif %}
+                        {% if fundo.taxa_gestao %}
+                        <li><i class="bi bi-graph-up"></i><strong>Taxa Gestão</strong>&nbsp;{{ fundo.taxa_gestao }}% a.a.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="fundo-card__footer">
+                    <a href="{% url 'fundos:editar_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+                    <a href="{% url 'fundos:calcular_cota_manual' fundo_id=fundo.id %}" class="btn btn-primary-ds">
+                        <i class="bi bi-calculator me-1"></i>Calcular Cota
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="empty-state-modern">
+            <div class="empty-state-modern__icon-wrap">
+                <i class="bi bi-bank"></i>
+            </div>
+            <p class="empty-state-modern__title">Nenhum fundo cadastrado</p>
+            <p class="empty-state-modern__text">Adicione o primeiro fundo de investimento para esta empresa.</p>
+            <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
+                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

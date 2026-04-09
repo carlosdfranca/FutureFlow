@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Fundo — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="page-hero page-hero--compact">
+    <div class="page-hero__inner">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'fundos:listar_fundos' %}" class="btn-back" title="Voltar">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <p class="page-hero__label"><i class="bi bi-pencil-square me-1"></i>Editar Fundo</p>
+                <h1 class="page-hero__title" style="font-size:1.5rem;">{{ fundo.razao_social }}</h1>
+                <p class="page-hero__subtitle">{{ empresa.nome }}</p>
+            </div>
+        </div>
+        <div>
+            {% if fundo.ativo %}
+                <span class="badge-ativo" style="font-size:0.75rem; padding:5px 12px;">Ativo</span>
+            {% else %}
+                <span class="badge-inativo" style="font-size:0.75rem; padding:5px 12px;">Inativo</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5" style="max-width: 860px;">
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3 mb-4">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <!-- Identificação -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div>
+                    <h2 class="form-section__title">Identificação</h2>
+                    <p class="form-section__subtitle">Dados cadastrais e registro do fundo</p>
+                </div>
+            </div>
+            <div class="form-section__body">
+
+                <div class="form-field form-field--full">
+                    <label class="form-field__label">Razão Social <span class="form-field__required">*</span></label>
+                    {{ form.razao_social }}
+                    {% if form.razao_social.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.razao_social.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Nome Comercial</label>
+                        {{ form.nome_comercial }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Tipo de Fundo <span class="form-field__required">*</span></label>
+                        {{ form.tipo_fundo }}
+                        {% if form.tipo_fundo.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.tipo_fundo.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-field form-field--span2">
+                        <label class="form-field__label">CNPJ <span class="form-field__required">*</span></label>
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.cnpj.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Código ANBIMA</label>
+                        {{ form.codigo_anbima }}
+                        {% if form.codigo_anbima.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.codigo_anbima.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Data de Constituição <span class="form-field__required">*</span></label>
+                        {{ form.data_constituicao }}
+                        {% if form.data_constituicao.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.data_constituicao.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Configurações -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon form-section__icon--amber">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <div>
+                    <h2 class="form-section__title">Configurações Operacionais</h2>
+                    <p class="form-section__subtitle">Cotização, liquidação e horário de corte</p>
+                </div>
+            </div>
+            <div class="form-section__body">
+                <div class="form-row-3">
+                    <div class="form-field">
+                        <label class="form-field__label">Tipo de Cotização</label>
+                        {{ form.tipo_cotizacao }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Prazo de Liquidação <span class="form-field__hint">(dias úteis)</span></label>
+                        {{ form.prazo_liquidacao }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Horário de Corte</label>
+                        {{ form.horario_corte }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taxas -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon form-section__icon--green">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div>
+                    <h2 class="form-section__title">Taxas</h2>
+                    <p class="form-section__subtitle">Remuneração anual sobre o patrimônio</p>
+                </div>
+            </div>
+            <div class="form-section__body">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa de Administração <span class="form-field__hint">a.a.</span></label>
+                        <div class="input-suffix-wrap">
+                            {{ form.taxa_administracao }}
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa de Gestão <span class="form-field__hint">a.a.</span></label>
+                        <div class="input-suffix-wrap">
+                            {{ form.taxa_gestao }}
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function maskCNPJ(v) {
+        const d = v.replace(/\D/g, '').slice(0, 14);
+        if (d.length <= 2)  return d;
+        if (d.length <= 5)  return d.slice(0,2) + '.' + d.slice(2);
+        if (d.length <= 8)  return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5);
+        if (d.length <= 12) return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8);
+        return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8,12) + '-' + d.slice(12);
+    }
+    var el = document.getElementById('id_cnpj');
+    if (!el) return;
+    el.maxLength = 18;  // garante independente do que Django renderizou
+    if (el.value) el.value = maskCNPJ(el.value);
+    el.addEventListener('input', function () {
+        var pos = this.selectionStart, prev = this.value.length;
+        this.value = maskCNPJ(this.value);
+        var diff = this.value.length - prev;
+        this.setSelectionRange(pos + diff, pos + diff);
+    });
+})();
+</script>
+{% endblock %}

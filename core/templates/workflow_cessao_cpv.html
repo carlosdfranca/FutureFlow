@@ -1,0 +1,742 @@
+{% extends "base.html" %}
+{% block title %}CPV — Cessão{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h2 class="mb-4">📑 CPV — Geração de Termo de Cessão</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- =========================================
+            CARD — TÍTULOS / LASTRO
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">📥 Títulos (Lastro)</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Importar XML NF-e</label>
+                        <input type="file" name="xml_file" class="form-control">
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end gap-2">
+                        <button name="acao" value="parse_xml"
+                                formnovalidate
+                                class="btn btn-primary">
+                            📥 Importar XML
+                        </button>
+
+                        <button name="acao" value="add_linha"
+                                formnovalidate
+                                class="btn btn-outline-secondary">
+                            ➕ Linha Manual
+                        </button>
+                    </div>
+                </div>
+
+                {{ titulos_formset.management_form }}
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle modern-table">
+                        <thead class="table-header-modern">
+                            <tr>
+                                <th class="col-numero"><i class="bi bi-hash me-1"></i>№</th>
+                                <th class="col-sacado"><i class="bi bi-person me-1"></i>Sacado</th>
+                                <th class="col-documento"><i class="bi bi-file-earmark-text me-1"></i>Doc</th>
+                                <th class="col-valor"><i class="bi bi-currency-dollar me-1"></i>Valor</th>
+                                <th class="col-vencimento"><i class="bi bi-calendar me-1"></i>Vencimento</th>
+                                <th class="col-tipo"><i class="bi bi-tag me-1"></i>Tipo</th>
+                                <th class="col-acoes"><i class="bi bi-gear me-1"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in titulos_formset %}
+                            <tr id="linha-{{ forloop.counter0 }}" class="table-row-modern">
+                                <td class="fw-semibold text-primary col-numero">{{ f.numero }}</td>
+                                <td class="text-truncate col-sacado">{{ f.sacado_nome }}</td>
+                                <td class="font-monospace text-muted col-documento">{{ f.sacado_doc }}</td>
+                                <td class="text-success fw-bold col-valor">{{ f.valor }}</td>
+                                <td class="text-info col-vencimento">{{ f.vencimento }}</td>
+                                <td class="col-tipo"><span class="text-secondary">{{ f.tipo }}</span></td>
+                                <td class="text-center col-acoes">
+                                    <button type="button" 
+                                            class="btn btn-outline-danger btn-sm modern-delete-btn" 
+                                            onclick="excluirLinha({{ forloop.counter0 }})"
+                                            title="Excluir linha">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — DADOS DA CESSÃO
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏦 Dados da Cessão</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Data Aquisição</label>
+                        {{ cessao_form.data_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Preço Aquisição</label>
+                        {{ cessao_form.preco_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Banco Aquisição</label>
+                        {{ cessao_form.banco_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Agência Aquisição</label>
+                        {{ cessao_form.agencia_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Conta Aquisição</label>
+                        {{ cessao_form.conta_aquisicao }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Banco Fundo</label>
+                        {{ cessao_form.banco_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Agência Fundo</label>
+                        {{ cessao_form.agencia_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Conta Fundo</label>
+                        {{ cessao_form.conta_fundo }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Data Contrato</label>
+                        {{ cessao_form.data_contrato }}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — EMITENTE / CEDENTE
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏢 Emitente / Cedente</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Razão Social</label>
+                        {{ cessao_form.emitente_razao_social }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CNPJ/ME</label>
+                        {{ cessao_form.emitente_cnpj }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Representante</label>
+                        {{ cessao_form.emitente_representante }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.emitente_cpf }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail</label>
+                        {{ cessao_form.emitente_email }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Cargo</label>
+                        {{ cessao_form.emitente_cargo }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Endereço</label>
+                        {{ cessao_form.emitente_endereco }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — CESSIONÁRIO / CREDOR
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">🏦 Cessionário / Credor</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Razão Social</label>
+                        {{ cessao_form.cessionario_razao_social }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CNPJ/ME</label>
+                        {{ cessao_form.cessionario_cnpj }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Representante</label>
+                        {{ cessao_form.cessionario_representante }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.cessionario_cpf }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail</label>
+                        {{ cessao_form.cessionario_email }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Cargo</label>
+                        {{ cessao_form.cessionario_cargo }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Endereço</label>
+                        {{ cessao_form.cessionario_endereco }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — SACADO
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">👤 Sacado</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Razão Social</label>
+                        {{ cessao_form.sacado_razao_social }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CNPJ/ME</label>
+                        {{ cessao_form.sacado_cnpj }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Representante</label>
+                        {{ cessao_form.sacado_representante }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.sacado_cpf }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail</label>
+                        {{ cessao_form.sacado_email }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Cargo</label>
+                        {{ cessao_form.sacado_cargo }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Endereço</label>
+                        {{ cessao_form.sacado_endereco }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            CARD — TESTEMUNHAS
+        ========================================== -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark border-0">
+                <h5 class="mb-0">👥 Testemunhas</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-12">
+                        <h6 class="text-muted">Testemunha 1</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Nome</label>
+                        {{ cessao_form.testemunha1_nome }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.testemunha1_cpf }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <hr class="my-3">
+                        <h6 class="text-muted">Testemunha 2</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Nome</label>
+                        {{ cessao_form.testemunha2_nome }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">CPF/MF</label>
+                        {{ cessao_form.testemunha2_cpf }}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =========================================
+            AÇÕES FINAIS
+        ========================================== -->
+
+        <div class="action-buttons-section mb-4">
+            <div class="row g-3 justify-content-center">
+                <div class="col-md-4 col-lg-3">
+                    <button name="acao" value="gerar"
+                            class="btn modern-btn modern-btn-primary w-100">
+                        <div class="btn-content">
+                            <div class="btn-icon">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div class="btn-text">
+                                <div class="btn-title">Gerar Termo de Cessão</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="col-md-4 col-lg-3">
+                    <button name="acao" value="gerar_confirmacao"
+                            class="btn modern-btn modern-btn-secondary w-100">
+                        <div class="btn-content">
+                            <div class="btn-icon">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div class="btn-text">
+                                <div class="btn-title">Gerar Termo de Confirmação</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<style>
+/* =====================================================
+   ESTILOS MODERNOS PARA A TABELA
+===================================================== */
+
+.modern-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border: none;
+}
+
+.table-header-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.table-header-modern th {
+    border: none;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.table-row-modern {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.table-row-modern:hover {
+    background-color: #f8f9ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modern-table tbody td {
+    padding: 1rem 0.75rem;
+    border-top: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.modern-delete-btn {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 2px solid #dc3545;
+}
+
+.modern-delete-btn:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+}
+
+/* Animação de remoção */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+}
+
+.removing {
+    animation: fadeOut 0.5s ease-out forwards;
+}
+
+/* Controle de largura das colunas */
+.col-numero {
+    width: 60px;
+    max-width: 60px;
+    min-width: 60px;
+    white-space: nowrap;
+}
+
+.col-sacado {
+    width: 25%;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.col-documento {
+    width: 15%;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.col-valor {
+    width: 15%;
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.col-vencimento {
+    width: 15%;
+    min-width: 110px;
+    white-space: nowrap;
+}
+
+.col-tipo {
+    width: 12%;
+    min-width: 80px;
+    white-space: nowrap;
+}
+
+.col-acoes {
+    width: 50px;
+    max-width: 50px;
+    min-width: 50px;
+    white-space: nowrap;
+}
+
+/* =====================================================
+   ESTILOS MODERNOS PARA BOTÕES DE AÇÃO
+===================================================== */
+
+.action-buttons-section {
+    padding: 1rem 0;
+}
+
+.modern-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    height: auto;
+    min-height: 100px;
+}
+
+.modern-btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.modern-btn-secondary {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+}
+
+.modern-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modern-btn-primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea87a 100%);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.modern-btn-secondary:hover {
+    background: linear-gradient(135deg, #138496 0%, #5a32a3 100%);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+}
+
+.btn-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+.btn-text {
+    text-align: center;
+    flex-grow: 1;
+}
+
+.btn-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.btn-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.modern-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+    left: 100%;
+}
+
+/* Responsividade melhorada */
+@media (max-width: 768px) {
+    .table-header-modern th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .modern-table tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .modern-btn {
+        min-height: 80px;
+        padding: 1rem;
+    }
+    
+    .btn-icon {
+        font-size: 1.5rem;
+    }
+    
+    .btn-title {
+        font-size: 1rem;
+    }
+    }
+}
+</style>
+
+<script>
+// =====================================================
+// FUNÇÃO PARA EXCLUIR LINHAS DA TABELA (REMOÇÃO IMEDIATA)
+// =====================================================
+
+function excluirLinha(indice) {
+    // Adiciona animação de saída
+    const linha = document.getElementById(`linha-${indice}`);
+    if (linha) {
+        linha.classList.add('removing');
+        
+        // Remove após a animação
+        setTimeout(() => {
+            linha.remove();
+        }, 500);
+    }
+}
+
+// =====================================================
+// MÁSCARAS PARA CPF E CNPJ DOS NOVOS CAMPOS
+// =====================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Função para aplicar máscara de CPF
+    function aplicarMascaraCPF(campo) {
+        campo.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+            
+            // Limita a 11 dígitos
+            if (valor.length > 11) {
+                valor = valor.substring(0, 11);
+            }
+            
+            // Aplica máscara
+            if (valor.length <= 11) {
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = valor;
+        });
+    }
+    
+    // Função para aplicar máscara de CNPJ
+    function aplicarMascaraCNPJ(campo) {
+        campo.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
+            
+            // Limita a 14 dígitos
+            if (valor.length > 14) {
+                valor = valor.substring(0, 14);
+            }
+            
+            // Aplica máscara
+            if (valor.length <= 14) {
+                valor = valor.replace(/(\d{2})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1/$2');
+                valor = valor.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = valor;
+        });
+    }
+    
+    // Aplicar máscaras nos campos de CPF
+    const camposCPF = [
+        'id_emitente_cpf',
+        'id_cessionario_cpf', 
+        'id_testemunha1_cpf',
+        'id_testemunha2_cpf',
+        'id_sacado_cpf'
+    ];
+    
+    camposCPF.forEach(function(id) {
+        const campo = document.getElementById(id);
+        if (campo) {
+            aplicarMascaraCPF(campo);
+        }
+    });
+    
+    // Aplicar máscaras nos campos de CNPJ
+    const camposCNPJ = [
+        'id_emitente_cnpj',
+        'id_cessionario_cnpj',
+        'id_sacado_cnpj'
+    ];
+    
+    camposCNPJ.forEach(function(id) {
+        const campo = document.getElementById(id);
+        if (campo) {
+            aplicarMascaraCNPJ(campo);
+        }
+    });
+    
+});
+</script>
+
+{% endblock %}

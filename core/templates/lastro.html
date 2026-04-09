@@ -4,81 +4,79 @@
 
 {% block content %}
 <div class="container my-4">
-
-    <!-- Cabeçalho da página -->
+    <!-- Cabeçalho -->
     <div class="card mb-4">
         <div class="card-body d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">📑 Lastro & Cessões – Controle de Direitos Creditórios</h6>
-            <a href="{% static 'docs/mapa_conciliacao.pdf' %}" target="_blank" class="btn btn-sm btn-outline-primary btn-custom">
-                <i class="bi bi-diagram-3"></i> Mapa de Conciliação
-            </a>
+            <h6 class="mb-0">📑 Lastro & Cessões – Direitos Creditórios</h6>
+
+            <div class="d-flex gap-2">
+                <a href="{% url 'workflow_cessao' %}" class="btn btn-primary btn-sm">
+                    ➕ Nova Cessão CPV
+                </a>
+
+                <a href="{% static 'docs/mapa_conciliacao.pdf' %}" target="_blank"
+                class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-diagram-3"></i> Mapa Conciliação
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Tabela de cessões -->
+    <!-- Card explicativo -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <strong>CPV Web</strong><br>
+                    <small class="text-muted">
+                        Importe XML de NF-e, revise os títulos e gere o Termo de Cessão automaticamente.
+                    </small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'workflow_cessao' %}" class="btn btn-success">
+                        📄 Gerar Termo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de cessões (placeholder — depois ligamos no banco) -->
     <div class="card mb-3">
         <div class="card-body p-0">
+
             <table class="table table-dark table-hover table-striped align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Data</th>
+                        <th>Vencimento</th>
                         <th>Cedente</th>
                         <th>Sacado</th>
-                        <th>Valor (R$)</th>
-                        <th>Elegibilidade</th>
-                        <th>Fluxo Projetado</th>
+                        <th>Valor Nominal</th>
                         <th>Status</th>
-                        <th>Evidência</th>
+                        <th>Título</th>
                     </tr>
                 </thead>
+
                 <tbody>
+
+                    <!-- EXEMPLO — depois substituímos por loop de Recebiveis -->
+
                     <tr>
-                        <td>10/09/2025</td>
-                        <td>Empresa Alfa</td>
-                        <td>Cliente XPTO</td>
-                        <td>1.200.000,00</td>
-                        <td><span class="badge bg-success">Elegível</span></td>
-                        <td><span class="badge bg-success">Conciliado</span></td>
-                        <td><span class="badge bg-success px-3">Aprovado</span></td>
+                        <td>15/03/2026</td>
+                        <td>EMPRESA EMITENTE LTDA</td>
+                        <td>CLIENTE TESTE</td>
+                        <td>R$ 15.000,75</td>
                         <td>
-                            <a href="{% static 'docs/cessao1.pdf' %}" target="_blank" class="text-decoration-none">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i>
-                            </a>
+                            <span class="badge bg-warning text-dark">
+                                A Enviar
+                            </span>
                         </td>
+                        <td>001</td>
                     </tr>
-                    <tr>
-                        <td>05/09/2025</td>
-                        <td>Empresa Beta</td>
-                        <td>Cliente Y</td>
-                        <td>750.000,00</td>
-                        <td><span class="badge bg-warning text-dark">Parcial</span></td>
-                        <td><span class="badge bg-warning text-dark">Pendente</span></td>
-                        <td><span class="badge bg-warning text-dark px-3">Pendente</span></td>
-                        <td>
-                            <a href="{% static 'docs/cessao2.pdf' %}" target="_blank" class="text-decoration-none">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>28/08/2025</td>
-                        <td>Empresa Gama</td>
-                        <td>Cliente Z</td>
-                        <td>500.000,00</td>
-                        <td><span class="badge bg-danger">Não Elegível</span></td>
-                        <td><span class="badge bg-danger">Não Conciliado</span></td>
-                        <td>
-                            <span class="badge bg-danger px-3">Recusado</span>
-                            <i class="bi bi-bell-fill text-danger ms-1" title="Trigger: Workflow acionado"></i>
-                        </td>
-                        <td>
-                            <a href="{% static 'docs/cessao3.pdf' %}" target="_blank" class="text-decoration-none">
-                                <i class="bi bi-file-earmark-pdf text-danger"></i>
-                            </a>
-                        </td>
-                    </tr>
+
                 </tbody>
             </table>
+
         </div>
     </div>
 
@@ -86,30 +84,12 @@
     <div class="card mb-4">
         <div class="card-body">
             <p class="mb-1 text-light small">
-                Colunas de <strong>Elegibilidade</strong> e <strong>Fluxo Projetado</strong> foram incluídas conforme regulamento e 
-                projeções de caixa do fundo.
+                Operações criadas via CPV Web entram com status <strong>A ENVIAR</strong>.
             </p>
             <p class="mb-0 text-light small">
-                Status <strong>Recusado</strong> aciona trigger automático <i class="bi bi-bell-fill text-danger"></i> para o workflow de alçada.
+                Após validação, seguem para cobrança e monitoramento.
             </p>
         </div>
     </div>
-
-    <!-- Paginação / navegação -->
-    <div class="row">
-        <div class="col">
-            <nav aria-label="Navegação de páginas">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link" href="{% url 'home' %}">Home</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'limites' %}">Limites</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'risco' %}">Risco</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'relatorios' %}">Relatórios</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'conformidade' %}">Conformidade</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'integracoes' %}">Integrações</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-
-</div>
+</div> 
 {% endblock %}

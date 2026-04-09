@@ -6,6 +6,7 @@ from datetime import date
 import uuid
 
 from .models import Fundo, Cotista, MovimentacaoCota, CotaHistorico
+from .forms import FundoForm
 from .services.cota import calcular_cota_fechamento
 from .services.movimentacoes import processar_aplicacao, processar_resgate
 
@@ -80,11 +81,13 @@ def nova_aplicacao(request):
         except Exception as e:
             messages.error(request, f"Erro: {str(e)}")
     
-    fundos = Fundo.objects.filter(ativo=True)
+    empresa = request.empresa_ativa
+    fundos = Fundo.objects.filter(empresa=empresa, ativo=True) if empresa else Fundo.objects.none()
     cotistas = Cotista.objects.filter(ativo=True)
     ultimas_aplicacoes = MovimentacaoCota.objects.filter(
-        tipo_movimentacao='APLICACAO'
-    ).select_related('fundo', 'cotista').order_by('-data_solicitacao')[:10]
+        tipo_movimentacao='APLICACAO',
+        fundo__empresa=empresa
+    ).select_related('fundo', 'cotista').order_by('-data_solicitacao')[:10] if empresa else MovimentacaoCota.objects.none()
     
     context = {
         'fundos': fundos,
@@ -119,11 +122,13 @@ def novo_resgate(request):
         except Exception as e:
             messages.error(request, f"Erro: {str(e)}")
     
-    fundos = Fundo.objects.filter(ativo=True)
+    empresa = request.empresa_ativa
+    fundos = Fundo.objects.filter(empresa=empresa, ativo=True) if empresa else Fundo.objects.none()
     cotistas = Cotista.objects.filter(ativo=True)
     ultimos_resgates = MovimentacaoCota.objects.filter(
-        tipo_movimentacao='RESGATE'
-    ).select_related('fundo', 'cotista').order_by('-data_solicitacao')[:10]
+        tipo_movimentacao='RESGATE',
+        fundo__empresa=empresa
+    ).select_related('fundo', 'cotista').order_by('-data_solicitacao')[:10] if empresa else MovimentacaoCota.objects.none()
     
     context = {
         'fundos': fundos,
@@ -132,3 +137,61 @@ def novo_resgate(request):
     }
     
     return render(request, 'fundos/novo_resgate.html', context)
+
+
+@login_required
+def listar_fundos(request):
+    """Lista todos os fundos da empresa ativa"""
+    empresa = request.empresa_ativa
+    if empresa:
+        fundos = Fundo.objects.filter(empresa=empresa).order_by('razao_social')
+    else:
+        fundos = Fundo.objects.none()
+
+    context = {
+        'fundos': fundos,
+        'total_fundos': fundos.count(),
+        'total_ativos': fundos.filter(ativo=True).count(),
+        'total_inativos': fundos.filter(ativo=False).count(),
+    }
+    return render(request, 'fundos/listar_fundos.html', context)
+
+
+@login_required
+def novo_fundo(request):
+    """Cadastra um novo fundo para a empresa ativa"""
+    empresa = request.empresa_ativa
+    if not empresa:
+        messages.error(request, 'Nenhuma empresa ativa selecionada.')
+        return redirect('fundos:listar_fundos')
+
+    if request.method == 'POST':
+        form = FundoForm(request.POST)
+        if form.is_valid():
+            fundo = form.save(commit=False)
+            fundo.empresa = empresa
+            fundo.save()
+            messages.success(request, f'Fundo "{fundo.razao_social}" cadastrado com sucesso!')
+            return redirect('fundos:listar_fundos')
+    else:
+        form = FundoForm()
+
+    return render(request, 'fundos/novo_fundo.html', {'form': form, 'empresa': empresa})
+
+
+@login_required
+def editar_fundo(request, fundo_id):
+    """Edita os dados de um fundo da empresa ativa"""
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if request.method == 'POST':
+        form = FundoForm(request.POST, instance=fundo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Fundo "{fundo.razao_social}" atualizado com sucesso!')
+            return redirect('fundos:listar_fundos')
+    else:
+        form = FundoForm(instance=fundo)
+
+    return render(request, 'fundos/editar_fundo.html', {'form': form, 'fundo': fundo, 'empresa': empresa})

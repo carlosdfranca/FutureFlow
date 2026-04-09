@@ -166,6 +166,13 @@ LOGIN_URL = "login"
 
 
 # ==============================
+# TEMPLATES DIR
+# ==============================
+
+CPV_TEMPLATE_DIR = BASE_DIR / "doc_templates"
+
+
+# ==============================
 # CELERY CONFIGURATION
 # ==============================
 
