@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Fundo, Cotista, MovimentacaoCota, CotaHistorico, Ativo, Recebiveis
+from .models import Fundo, Cotista, MovimentacaoCota, CotaHistorico, Ativo, Recebiveis, InformeMensal, InformeMensalCedente, InformeMensalCarteira
 
 @admin.register(Fundo)
 class FundoAdmin(admin.ModelAdmin):
@@ -39,3 +39,43 @@ class RecebiveisAdmin(admin.ModelAdmin):
     list_filter = ('status', 'fundo', 'data_vencimento')
     search_fields = ('numero_titulo', 'cedente_nome', 'sacado_nome', 'cedente_cnpj', 'sacado_cpf_cnpj')
     date_hierarchy = 'data_vencimento'
+
+
+class InformeMensalCarteiraInline(admin.TabularInline):
+    model = InformeMensalCarteira
+    extra = 0
+    readonly_fields = ('segmento', 'subsegmento', 'valor', 'percentual_carteira')
+
+
+class InformeMensalCedenteInline(admin.TabularInline):
+    model = InformeMensalCedente
+    extra = 0
+    readonly_fields = ('nr_pf_pj_cedent', 'pr_cedent')
+
+
+@admin.register(InformeMensal)
+class InformeMensalAdmin(admin.ModelAdmin):
+    list_display = ('fundo', 'competencia_display', 'vl_patrimonio_liquido', 'vl_carteira', 'qt_total_cotistas', 'criado_em')
+    list_filter = ('fundo', 'competencia')
+    search_fields = ('fundo__razao_social', 'fundo__cnpj')
+    readonly_fields = ('id', 'criado_em', 'atualizado_em', 'criado_por')
+    date_hierarchy = 'competencia'
+    inlines = [InformeMensalCarteiraInline, InformeMensalCedenteInline]
+
+    def competencia_display(self, obj):
+        return obj.competencia_display
+    competencia_display.short_description = 'Competência'
+    competencia_display.admin_order_field = 'competencia'
+
+
+@admin.register(InformeMensalCarteira)
+class InformeMensalCarteiraAdmin(admin.ModelAdmin):
+    list_display = ('informe', 'segmento', 'subsegmento', 'valor', 'percentual_carteira')
+    list_filter = ('segmento', 'informe__fundo')
+    search_fields = ('informe__fundo__razao_social',)
+
+
+@admin.register(InformeMensalCedente)
+class InformeMensalCedenteAdmin(admin.ModelAdmin):
+    list_display = ('informe', 'nr_pf_pj_cedent', 'pr_cedent')
+    search_fields = ('nr_pf_pj_cedent', 'informe__fundo__razao_social')

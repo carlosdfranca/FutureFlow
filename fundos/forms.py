@@ -1,7 +1,6 @@
 from django import forms
 from .models import Fundo, TipoFundo
 
-
 class FundoForm(forms.ModelForm):
     # Declarado explicitamente para que max_length=18 (formatado) seja renderizado
     # no HTML. clean_cnpj() extrai apenas os dígitos antes de salvar.
@@ -63,3 +62,24 @@ class FundoForm(forms.ModelForm):
         if len(digits) != 14:
             raise forms.ValidationError('CNPJ deve conter exatamente 14 dígitos.')
         return digits
+
+
+class InformeUploadForm(forms.Form):
+    xml_file = forms.FileField(
+        label='Arquivo XML do Informe Mensal',
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': '.xml',
+        }),
+        help_text='Selecione o arquivo .xml gerado pela administradora (máx. 5 MB).',
+    )
+
+    def clean_xml_file(self):
+        f = self.cleaned_data.get('xml_file')
+        if not f:
+            return f
+        if not f.name.lower().endswith('.xml'):
+            raise forms.ValidationError('O arquivo deve ter extensão .xml.')
+        if f.size > 5 * 1024 * 1024:
+            raise forms.ValidationError('O arquivo não pode ultrapassar 5 MB.')
+        return f

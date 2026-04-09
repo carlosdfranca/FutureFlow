@@ -35,6 +35,8 @@ class EmpresaRole(models.Model):
     pode_ver_risco = models.BooleanField(default=False)
     pode_ver_conformidade = models.BooleanField(default=False)
     pode_ver_relatorios = models.BooleanField(default=True)
+    pode_ver_informes = models.BooleanField(default=True)
+    pode_importar_informes = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("empresa", "nome")

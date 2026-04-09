@@ -1,6 +1,7 @@
 from django.db import models
 from decimal import Decimal
 from usuarios.models import Empresa
+from django.conf import settings
 import uuid
 
 # ============================================
@@ -317,3 +318,185 @@ class Recebiveis(models.Model):
     
     def __str__(self):
         return f"{self.numero_titulo} - {self.sacado_nome}"
+
+
+# ============================================
+# MODELO: INFORME MENSAL (FECHAMENTO CVM/ANBIMA)
+# ============================================
+
+class SegmentoCarteira(models.TextChoices):
+    SETOR_PUBLICO       = 'SETOR_PUBLICO',       'Setor Público'
+    INDUSTRIAL          = 'INDUSTRIAL',           'Industrial'
+    COMERCIAL           = 'COMERCIAL',            'Comercial'
+    SERVICOS            = 'SERVICOS',             'Serviços'
+    AGRONEG             = 'AGRONEG',              'Agronegócio'
+    FINANCEIRO          = 'FINANCEIRO',           'Financeiro'
+    FACTORING           = 'FACTORING',            'Factoring'
+    CARTAO_CREDITO      = 'CARTAO_CREDITO',       'Cartão de Crédito'
+    VALORES_MOBILIARIOS = 'VALORES_MOBILIARIOS',  'Valores Mobiliários'
+    ACAO_JUDIC          = 'ACAO_JUDIC',           'Ação Judicial'
+    OUTROS              = 'OUTROS',               'Outros'
+
+
+class InformeMensal(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fundo = models.ForeignKey(Fundo, on_delete=models.CASCADE, related_name='informes_mensais')
+
+    # Identificação do informe
+    competencia = models.DateField(
+        db_index=True,
+        help_text='Primeiro dia do mês de competência. Ex: 2026-02-01 para 02/2026.'
+    )
+    versao_xml = models.CharField(max_length=10, blank=True)
+    cnpj_administrador = models.CharField(max_length=14, blank=True)
+    arquivo_xml_nome = models.CharField(max_length=255, blank=True)
+
+    # Ativos
+    vl_disponib = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_carteira = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_total_ativos = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Direitos Creditórios
+    vl_dicred = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_dicred_cedent = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_dicred_inad = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_dicred_venc_inad = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Passivo
+    vl_total_passivo = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_pgto_curprz = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_pgto_lprazo = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Patrimônio Líquido
+    vl_patrimonio_liquido = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_patrimonio_liquido_medio = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Cotas — Classe Subordinada
+    qt_cotas_subord = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    vl_cota_subord = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+
+    # Cotas — Classe Sênior
+    qt_cotas_senior = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    vl_cota_senior = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+
+    # Cotistas
+    qt_total_cotistas = models.IntegerField(null=True, blank=True)
+    qt_cotistas_senior = models.IntegerField(null=True, blank=True)
+    qt_cotistas_subord = models.IntegerField(null=True, blank=True)
+
+    # Rentabilidade mensal (%)
+    rentabilidade_senior = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    rentabilidade_subord = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+
+    # Desempenho esperado / realizado (%)
+    desemp_esp_senior = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    desemp_real_senior = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    desemp_esp_subord = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    desemp_real_subord = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+
+    # Liquidez
+    vl_liqdez_30 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_liqdez_60 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_liqdez_90 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_liqdez_180 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_liqdez_360 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_liqdez_mais_360 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Perfil de vencimentos — sem aquisição
+    vl_venc_30 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_31_60 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_61_90 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_91_120 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_121_180 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_181_360 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_361_720 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_venc_mais_720 = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Captação / Resgate no mês
+    vl_capt_senior = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_capt_subord = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_resg_senior = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_resg_subord = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Rating SCR (escala AA → H)
+    vl_rating_aa = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_rating_a = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_rating_b = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_rating_c = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    vl_rating_d_h = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+
+    # Auditoria
+    dados_brutos = models.JSONField(null=True, blank=True)
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='informes_importados'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'fundos_informe_mensal'
+        verbose_name = 'Informe Mensal'
+        verbose_name_plural = 'Informes Mensais'
+        ordering = ['-competencia']
+        unique_together = [['fundo', 'competencia']]
+        indexes = [
+            models.Index(fields=['fundo', '-competencia']),
+        ]
+
+    def __str__(self):
+        return f"{self.fundo.razao_social} — {self.competencia.strftime('%m/%Y')}"
+
+    @property
+    def competencia_display(self):
+        return self.competencia.strftime('%m/%Y')
+
+
+# ============================================
+# MODELO: CEDENTES DO INFORME MENSAL
+# ============================================
+
+class InformeMensalCedente(models.Model):
+    informe = models.ForeignKey(
+        InformeMensal, on_delete=models.CASCADE, related_name='cedentes'
+    )
+    nr_pf_pj_cedent = models.CharField(max_length=14)
+    pr_cedent = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        db_table = 'fundos_informe_mensal_cedente'
+        verbose_name = 'Cedente do Informe'
+        verbose_name_plural = 'Cedentes do Informe'
+        ordering = ['-pr_cedent']
+
+    def __str__(self):
+        return f"{self.nr_pf_pj_cedent} — {self.pr_cedent}"
+
+
+# ============================================
+# MODELO: CARTEIRA POR SEGMENTO DO INFORME MENSAL
+# ============================================
+
+class InformeMensalCarteira(models.Model):
+    informe = models.ForeignKey(
+        InformeMensal, on_delete=models.CASCADE, related_name='carteira'
+    )
+    segmento = models.CharField(max_length=50, choices=SegmentoCarteira.choices)
+    subsegmento = models.CharField(max_length=80, null=True, blank=True)
+    valor = models.DecimalField(max_digits=16, decimal_places=2)
+    percentual_carteira = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
+
+    class Meta:
+        db_table = 'fundos_informe_mensal_carteira'
+        verbose_name = 'Segmento de Carteira'
+        verbose_name_plural = 'Segmentos de Carteira'
+        ordering = ['-valor']
+        unique_together = [['informe', 'segmento', 'subsegmento']]
+
+    def __str__(self):
+        label = f"{self.segmento}"
+        if self.subsegmento:
+            label += f" / {self.subsegmento}"
+        return f"{label}: R$ {self.valor:,.2f}"

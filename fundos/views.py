@@ -5,56 +5,9 @@ from decimal import Decimal
 from datetime import date
 import uuid
 
-from .models import Fundo, Cotista, MovimentacaoCota, CotaHistorico
-from .forms import FundoForm
-from .services.cota import calcular_cota_fechamento
+from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
+from .forms import FundoForm, InformeUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
-
-
-@login_required
-def calcular_cota_manual(request, fundo_id):
-    """View para calcular cota manualmente"""
-
-    fundo_id = str(fundo_id)
-    
-    # Converte string para UUID (com ou sem hífens)
-    try:
-        if '-' not in fundo_id and len(fundo_id) == 32:
-            fundo_id = f"{fundo_id[:8]}-{fundo_id[8:12]}-{fundo_id[12:16]}-{fundo_id[16:20]}-{fundo_id[20:]}"
-        
-        fundo_uuid = uuid.UUID(fundo_id)
-        fundo = get_object_or_404(Fundo, id=fundo_uuid)
-    except (ValueError, AttributeError):
-        messages.error(request, "UUID inválido")
-        return redirect('home')
-    
-    if request.method == 'POST':
-        data_referencia = request.POST.get('data_referencia')
-        
-        try:
-            data_obj = date.fromisoformat(data_referencia)
-            resultado = calcular_cota_fechamento(str(fundo.id), data_obj)
-            
-            messages.success(
-                request,
-                f"Cota calculada: R$ {resultado['valor_cota']:.6f} | "
-                f"PL: R$ {resultado['patrimonio_liquido']:,.2f}"
-            )
-        except Exception as e:
-            messages.error(request, f"Erro ao calcular cota: {str(e)}")
-        
-        return redirect('fundos:calcular_cota_manual', fundo_id=str(fundo.id))
-    
-    # Busca últimas 10 cotas
-    historico = CotaHistorico.objects.filter(fundo=fundo).order_by('-data_referencia')[:10]
-    
-    context = {
-        'fundo': fundo,
-        'historico': historico,
-        'data_hoje': date.today().isoformat()
-    }
-    
-    return render(request, 'fundos/calcular_cota.html', context)
 
 
 @login_required
@@ -205,3 +158,129 @@ def editar_fundo(request, fundo_id):
         form = FundoForm(instance=fundo)
 
     return render(request, 'fundos/editar_fundo.html', {'form': form, 'fundo': fundo, 'empresa': empresa})
+
+
+# ============================================================
+# VIEWS — INFORMES MENSAIS
+# ============================================================
+
+def _check_pode_ver_informes(request):
+    """Retorna True se o usuário autenticado tem permissão de visualizar informes."""
+    if request.user.is_superuser:
+        return True
+    role = getattr(request, 'user_role', None)
+    return role is not None and role.pode_ver_informes
+
+
+def _check_pode_importar_informes(request):
+    """Retorna True se o usuário autenticado tem permissão de importar informes."""
+    if request.user.is_superuser:
+        return True
+    role = getattr(request, 'user_role', None)
+    return role is not None and role.pode_importar_informes
+
+
+@login_required
+def listar_informes(request, fundo_id):
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if not _check_pode_ver_informes(request):
+        messages.error(request, 'Você não tem permissão para visualizar informes mensais.')
+        return redirect('fundos:listar_fundos')
+
+    informes = InformeMensal.objects.filter(fundo=fundo).order_by('-competencia')
+
+    context = {
+        'fundo': fundo,
+        'informes': informes,
+        'pode_importar': _check_pode_importar_informes(request),
+    }
+    return render(request, 'fundos/listar_informes.html', context)
+
+
+@login_required
+def importar_informe(request, fundo_id):
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if not _check_pode_importar_informes(request):
+        messages.error(request, 'Você não tem permissão para importar informes mensais.')
+        return redirect('fundos:listar_informes', fundo_id=fundo_id)
+
+    if request.method == 'POST':
+        form = InformeUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            xml_file = request.FILES['xml_file']
+            try:
+                from .services.informe_xml import parse_informe_mensal, InformeParseError
+                from .services.importar_informe import importar_informe_mensal
+
+                xml_bytes = xml_file.read()
+                parsed = parse_informe_mensal(xml_bytes)
+                informe = importar_informe_mensal(
+                    fundo_id=str(fundo.id),
+                    parsed_dict=parsed,
+                    user=request.user,
+                    arquivo_nome=xml_file.name,
+                )
+                messages.success(
+                    request,
+                    f'Informe de {informe.competencia_display} importado com sucesso!'
+                )
+                return redirect('fundos:detalhe_informe', fundo_id=fundo_id, informe_id=informe.id)
+            except Exception as e:
+                messages.error(request, f'Erro ao importar o informe: {e}')
+    else:
+        form = InformeUploadForm()
+
+    context = {'fundo': fundo, 'form': form}
+    return render(request, 'fundos/importar_informe.html', context)
+
+
+@login_required
+def detalhe_informe(request, fundo_id, informe_id):
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if not _check_pode_ver_informes(request):
+        messages.error(request, 'Você não tem permissão para visualizar informes mensais.')
+        return redirect('fundos:listar_fundos')
+
+    informe = get_object_or_404(InformeMensal, id=informe_id, fundo=fundo)
+
+    scr_display = [
+        ('AA', informe.vl_rating_aa),
+        ('A', informe.vl_rating_a),
+        ('B', informe.vl_rating_b),
+        ('C', informe.vl_rating_c),
+        ('D\u2013H', informe.vl_rating_d_h),
+    ]
+    liquidez_display = [
+        ('Até 30 dias', informe.vl_liqdez_30),
+        ('31\u201360 dias', informe.vl_liqdez_60),
+        ('61\u201390 dias', informe.vl_liqdez_90),
+        ('91\u2013180 dias', informe.vl_liqdez_180),
+        ('181\u2013360 dias', informe.vl_liqdez_360),
+        ('> 360 dias', informe.vl_liqdez_mais_360),
+    ]
+    vencimentos_display = [
+        ('Até 30 dias', informe.vl_venc_30),
+        ('31\u201360 dias', informe.vl_venc_31_60),
+        ('61\u201390 dias', informe.vl_venc_61_90),
+        ('91\u2013120 dias', informe.vl_venc_91_120),
+        ('121\u2013180 dias', informe.vl_venc_121_180),
+        ('181\u2013360 dias', informe.vl_venc_181_360),
+        ('361\u2013720 dias', informe.vl_venc_361_720),
+        ('> 720 dias', informe.vl_venc_mais_720),
+    ]
+
+    context = {
+        'fundo': fundo,
+        'informe': informe,
+        'pode_importar': _check_pode_importar_informes(request),
+        'scr_display': scr_display,
+        'liquidez_display': liquidez_display,
+        'vencimentos_display': vencimentos_display,
+    }
+    return render(request, 'fundos/detalhe_informe.html', context)

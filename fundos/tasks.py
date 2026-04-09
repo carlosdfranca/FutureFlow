@@ -7,18 +7,19 @@ from datetime import date, timedelta
 from decimal import Decimal
 import logging
 
-from .models import Fundo, MovimentacaoCota, CotaHistorico, Recebiveis
-from .services.cota import calcular_cota_fechamento
+from .models import Fundo, MovimentacaoCota, Recebiveis
 from .services.movimentacoes import efetivar_movimentacao
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3)
-def calcular_cotas_diarias(self):
+# DEPRECATED: cálculo diário substituído por importação do Informe Mensal XML (CVM)
+# @shared_task(bind=True, max_retries=3)
+# def calcular_cotas_diarias(self):
+def calcular_cotas_diarias():
     """
-    Task que calcula cotas de todos os fundos ativos
-    Executa às 23h via Celery Beat
+    DEPRECATED — cálculo diário substituído por importação do Informe Mensal XML.
+    Mantido apenas para referência. Não registrar no Celery Beat.
     """
     try:
         fundos = Fundo.objects.filter(ativo=True)
@@ -145,11 +146,13 @@ def efetivar_movimentacoes_pendentes(self):
         raise self.retry(exc=e, countdown=300)
 
 
-@shared_task
+# DEPRECATED: envio ANBIMA diário substituído pelo fluxo de Informe Mensal XML
+# @shared_task
+# def enviar_cotas_anbima_diarias():
 def enviar_cotas_anbima_diarias():
     """
-    Task que envia cotas para ANBIMA
-    Executa às 9h via Celery Beat
+    DEPRECATED — envio diário substituído por importação do Informe Mensal XML.
+    Mantido apenas para referência. Não registrar no Celery Beat.
     """
     try:
         data_ontem = date.today() - timedelta(days=1)

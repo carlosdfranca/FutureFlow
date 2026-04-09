@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Informe {{ informe.competencia_display }} — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
+            </p>
+            <h1 class="page-hero__title">Informe {{ informe.competencia_display }}</h1>
+            <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj }}</p>
+        </div>
+        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}"
+           class="btn btn-ghost-ds">
+            <i class="bi bi-arrow-left me-1"></i>Todos os Informes
+        </a>
+    </div>
+</div>
+
+<div class="container my-4">
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ── KPIs Principais ─────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-card__label">Patrimônio Líquido</div>
+                <div class="kpi-card__value">
+                    {% if informe.vl_patrimonio_liquido %}
+                        R$ {{ informe.vl_patrimonio_liquido|floatformat:2 }}
+                    {% else %}—{% endif %}
+                </div>
+                <div class="kpi-card__sub">{{ informe.competencia_display }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-card__label">Carteira Total</div>
+                <div class="kpi-card__value">
+                    {% if informe.vl_carteira %}
+                        R$ {{ informe.vl_carteira|floatformat:2 }}
+                    {% else %}—{% endif %}
+                </div>
+                <div class="kpi-card__sub">Direitos Creditórios</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-card__label">Cotistas (Total)</div>
+                <div class="kpi-card__value">
+                    {% if informe.qt_total_cotistas %}{{ informe.qt_total_cotistas }}{% else %}—{% endif %}
+                </div>
+                <div class="kpi-card__sub">
+                    Sênior:
+                    {% if informe.qt_cotistas_senior %}{{ informe.qt_cotistas_senior }}{% else %}—{% endif %}
+                    &nbsp;|&nbsp;Sub:
+                    {% if informe.qt_cotistas_subord %}{{ informe.qt_cotistas_subord }}{% else %}—{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-card__label">Rentab. Sênior</div>
+                <div class="kpi-card__value {% if informe.rentabilidade_senior and informe.rentabilidade_senior > 0 %}text-success{% elif informe.rentabilidade_senior and informe.rentabilidade_senior < 0 %}text-danger{% endif %}">
+                    {% if informe.rentabilidade_senior %}
+                        {{ informe.rentabilidade_senior|floatformat:4 }}%
+                    {% else %}—{% endif %}
+                </div>
+                <div class="kpi-card__sub">
+                    Sub: {% if informe.rentabilidade_subord %}{{ informe.rentabilidade_subord|floatformat:4 }}%{% else %}—{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ── Coluna Esquerda ─────────────────────────────── -->
+        <div class="col-lg-7">
+
+            <!-- Cotas -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-layers me-2 text-primary"></i>Cotas por Classe
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Classe</th>
+                                <th class="text-end">Qtd. Cotas</th>
+                                <th class="text-end">Valor da Cota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sênior</td>
+                                <td class="text-end">{{ informe.qt_cotas_senior|default:"—"|floatformat:0 }}</td>
+                                <td class="text-end">{{ informe.vl_cota_senior|default:"—"|floatformat:8 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Subordinada</td>
+                                <td class="text-end">{{ informe.qt_cotas_subord|default:"—"|floatformat:0 }}</td>
+                                <td class="text-end">{{ informe.vl_cota_subord|default:"—"|floatformat:8 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Carteira por Segmento -->
+            {% with segs=informe.carteira.all %}
+            {% if segs %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-pie-chart me-2 text-primary"></i>Carteira por Segmento
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Segmento</th>
+                                <th>Subsegmento</th>
+                                <th class="text-end">Valor (R$)</th>
+                                <th class="text-end">% Carteira</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seg in segs %}
+                            <tr>
+                                <td>{{ seg.get_segmento_display }}</td>
+                                <td class="text-muted small">{{ seg.subsegmento|default:"—" }}</td>
+                                <td class="text-end">{{ seg.valor|floatformat:2 }}</td>
+                                <td class="text-end">
+                                    {% if seg.percentual_carteira %}
+                                        {{ seg.percentual_carteira|floatformat:2 }}%
+                                    {% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div id="chart-carteira" style="min-height:200px;" class="px-3 pb-3"></div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Cedentes -->
+            {% with cedentes=informe.cedentes.all %}
+            {% if cedentes %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-people me-2 text-primary"></i>Cedentes
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>CNPJ / CPF</th>
+                                <th class="text-end">% Cedentes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ced in cedentes %}
+                            <tr>
+                                <td class="font-monospace">{{ ced.nr_pf_pj_cedent }}</td>
+                                <td class="text-end">
+                                    {% if ced.pr_cedent %}{{ ced.pr_cedent|floatformat:2 }}%{% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+        </div>
+
+        <!-- ── Coluna Direita ──────────────────────────────── -->
+        <div class="col-lg-5">
+
+            <!-- Ativos & Passivos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-balance-scale me-2 text-primary"></i>Balanço Patrimonial
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Total de Ativos</div>
+                        <div class="col-6 text-end small">{{ informe.vl_total_ativos|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Disponibilidades</div>
+                        <div class="col-6 text-end small">{{ informe.vl_disponib|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Direitos Cred. Total</div>
+                        <div class="col-6 text-end small">{{ informe.vl_dicred|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Direitos Cred. Cedentes</div>
+                        <div class="col-6 text-end small">{{ informe.vl_dicred_cedent|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Total de Passivos</div>
+                        <div class="col-6 text-end small">{{ informe.vl_total_passivo|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Obrig. Curto Prazo</div>
+                        <div class="col-6 text-end small">{{ informe.vl_pgto_curprz|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Obrig. Longo Prazo</div>
+                        <div class="col-6 text-end small">{{ informe.vl_pgto_lprazo|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="row g-2">
+                        <div class="col-6 small fw-semibold">PL Médio</div>
+                        <div class="col-6 text-end small fw-semibold">{{ informe.vl_patrimonio_liquido_medio|default:"—"|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inadimplência -->
+            {% if informe.vl_dicred_inad or informe.vl_dicred_venc_inad %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Inadimplência
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-7 small text-muted">Créditos com alguma inadimplência</div>
+                        <div class="col-5 text-end small">{{ informe.vl_dicred_inad|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-7 small text-muted">Total vencido e inadimplente</div>
+                        <div class="col-5 text-end small text-danger">{{ informe.vl_dicred_venc_inad|default:"—"|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Rating SCR -->
+            {% if informe.vl_rating_aa or informe.vl_rating_a or informe.vl_rating_b or informe.vl_rating_c or informe.vl_rating_d_h %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-shield-check me-2 text-primary"></i>Rating SCR
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% for label, val in scr_display %}
+                    <div class="row g-2 mb-1">
+                        <div class="col-4 small text-muted">{{ label }}</div>
+                        <div class="col-8 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Captação / Resgate -->
+            {% if informe.vl_capt_senior or informe.vl_resg_senior %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-arrow-left-right me-2 text-primary"></i>Captação e Resgate no Mês
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Captação Sênior</div>
+                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_senior|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Captação Subordinada</div>
+                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_subord|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 small text-muted">Resgate Sênior</div>
+                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_senior|default:"—"|floatformat:2 }}</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6 small text-muted">Resgate Subordinada</div>
+                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_subord|default:"—"|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Liquidez -->
+            {% if informe.vl_liqdez_30 or informe.vl_liqdez_60 %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-hourglass-split me-2 text-primary"></i>Perfil de Liquidez
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% for label, val in liquidez_display %}
+                    <div class="row g-2 mb-1">
+                        <div class="col-5 small text-muted">{{ label }}</div>
+                        <div class="col-7 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vencimentos -->
+            {% if informe.vl_venc_30 or informe.vl_venc_31_60 %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <span class="fw-semibold">
+                        <i class="bi bi-calendar-range me-2 text-primary"></i>Perfil de Vencimentos
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% for label, val in vencimentos_display %}
+                    <div class="row g-2 mb-1">
+                        <div class="col-5 small text-muted">{{ label }}</div>
+                        <div class="col-7 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /col-lg-5 -->
+    </div><!-- /row -->
+
+    <!-- Metadados do arquivo -->
+    <div class="text-muted small mt-2 mb-4">
+        <i class="bi bi-info-circle me-1"></i>
+        Arquivo: <code>{{ informe.arquivo_xml_nome|default:"—" }}</code>
+        &nbsp;|&nbsp;
+        Importado em {{ informe.criado_em|date:"d/m/Y H:i" }}
+        {% if informe.criado_por %}por {{ informe.criado_por.get_full_name|default:informe.criado_por.username }}{% endif %}
+        &nbsp;|&nbsp;
+        Versão XML: {{ informe.versao_xml|default:"—" }}
+    </div>
+
+</div>
+
+{% if informe.carteira.exists %}
+<script>
+(function () {
+    const segs = [
+        {% for seg in informe.carteira.all %}
+        { label: "{{ seg.get_segmento_display }}{% if seg.subsegmento %} / {{ seg.subsegmento }}{% endif %}", value: {{ seg.valor }} },
+        {% endfor %}
+    ];
+    const options = {
+        chart: { type: 'donut', height: 220 },
+        series: segs.map(s => s.value),
+        labels: segs.map(s => s.label),
+        legend: { position: 'bottom', fontSize: '12px' },
+        dataLabels: { enabled: true, formatter: (_, opt) => opt.w.globals.labels[opt.seriesIndex] },
+        tooltip: {
+            y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }
+        },
+        plotOptions: { pie: { donut: { size: '60%' } } },
+    };
+    new ApexCharts(document.querySelector('#chart-carteira'), options).render();
+})();
+</script>
+{% endif %}
+
+{% endblock %}
