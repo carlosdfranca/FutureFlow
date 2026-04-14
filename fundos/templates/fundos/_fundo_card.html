@@ -1,3 +1,4 @@
+{% load fundos_filters %}
 <div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}" data-search="{{ fundo.razao_social|lower }} {{ fundo.nome_comercial|lower }}">
     <div class="fundo-card__topbar"></div>
     <div class="fundo-card__header">
@@ -24,7 +25,7 @@
         {% endif %}
 
         <ul class="fundo-card__meta">
-            <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj }}</li>
+            <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
             {% if fundo.codigo_anbima %}
             <li><i class="bi bi-tag"></i><strong>ANBIMA</strong>&nbsp;{{ fundo.codigo_anbima }}</li>
             {% endif %}

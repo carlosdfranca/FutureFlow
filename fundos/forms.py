@@ -83,3 +83,24 @@ class InformeUploadForm(forms.Form):
         if f.size > 5 * 1024 * 1024:
             raise forms.ValidationError('O arquivo não pode ultrapassar 5 MB.')
         return f
+
+
+class InformeLoteUploadForm(forms.Form):
+    zip_file = forms.FileField(
+        label='Arquivo ZIP com XMLs dos Informes',
+        widget=forms.ClearableFileInput(attrs={
+            'class': 'form-control',
+            'accept': '.zip',
+        }),
+        help_text='Selecione um arquivo .zip contendo um ou mais XMLs de informe mensal (máx. 50 MB).',
+    )
+
+    def clean_zip_file(self):
+        f = self.cleaned_data.get('zip_file')
+        if not f:
+            return f
+        if not f.name.lower().endswith('.zip'):
+            raise forms.ValidationError('O arquivo deve ter extensão .zip.')
+        if f.size > 50 * 1024 * 1024:
+            raise forms.ValidationError('O arquivo ZIP não pode ultrapassar 50 MB.')
+        return f

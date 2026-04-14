@@ -42,11 +42,21 @@ def _dec(element, tag: str) -> Decimal | None:
 
 
 def _to_decimal_br(raw: str | None) -> Decimal | None:
-    """Converte string no formato BR para Decimal. Retorna None se inválido."""
+    """
+    Converte string numérica para Decimal.
+    Suporta dois formatos presentes no XML CVM:
+      - Formato BR  (vírgula decimal): '12.000.000,00'  → remove pontos, troca vírgula
+      - Formato US  (ponto decimal):   '5400.63526020'  → usa diretamente
+    """
     if not raw:
         return None
-    # Remove separador de milhar e troca vírgula decimal por ponto
-    cleaned = raw.replace('.', '').replace(',', '.')
+    s = raw.strip()
+    if ',' in s:
+        # BR: ponto = separador de milhar, vírgula = decimal
+        cleaned = s.replace('.', '').replace(',', '.')
+    else:
+        # US/padrão: ponto = decimal (já aceito por Decimal())
+        cleaned = s
     try:
         return Decimal(cleaned)
     except InvalidOperation:

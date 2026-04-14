@@ -13,4 +13,5 @@ urlpatterns = [
     path('<uuid:fundo_id>/informes/', views.listar_informes, name='listar_informes'),
     path('<uuid:fundo_id>/informes/importar/', views.importar_informe, name='importar_informe'),
     path('<uuid:fundo_id>/informes/<uuid:informe_id>/', views.detalhe_informe, name='detalhe_informe'),
+    path('<uuid:fundo_id>/informes/<uuid:informe_id>/excluir/', views.excluir_informe, name='excluir_informe'),
 ]

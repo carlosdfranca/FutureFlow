@@ -6,7 +6,7 @@ from datetime import date
 import uuid
 
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
-from .forms import FundoForm, InformeUploadForm
+from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
 
 
@@ -208,33 +208,72 @@ def importar_informe(request, fundo_id):
         messages.error(request, 'Você não tem permissão para importar informes mensais.')
         return redirect('fundos:listar_informes', fundo_id=fundo_id)
 
+    form = InformeUploadForm()
+    form_lote = InformeLoteUploadForm()
+    resultados_lote = None
+    aba_ativa = 'unico'
+
     if request.method == 'POST':
-        form = InformeUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            xml_file = request.FILES['xml_file']
-            try:
-                from .services.informe_xml import parse_informe_mensal, InformeParseError
-                from .services.importar_informe import importar_informe_mensal
+        tipo_import = request.POST.get('tipo_import', 'unico')
 
-                xml_bytes = xml_file.read()
-                parsed = parse_informe_mensal(xml_bytes)
-                informe = importar_informe_mensal(
-                    fundo_id=str(fundo.id),
-                    parsed_dict=parsed,
-                    user=request.user,
-                    arquivo_nome=xml_file.name,
-                )
-                messages.success(
-                    request,
-                    f'Informe de {informe.competencia_display} importado com sucesso!'
-                )
-                return redirect('fundos:detalhe_informe', fundo_id=fundo_id, informe_id=informe.id)
-            except Exception as e:
-                messages.error(request, f'Erro ao importar o informe: {e}')
-    else:
-        form = InformeUploadForm()
+        if tipo_import == 'lote':
+            aba_ativa = 'lote'
+            form_lote = InformeLoteUploadForm(request.POST, request.FILES)
+            if form_lote.is_valid():
+                zip_file = request.FILES['zip_file']
+                try:
+                    from .services.informe_xml import parse_informe_mensal, InformeParseError
+                    from .services.importar_informe import importar_lote_zip
 
-    context = {'fundo': fundo, 'form': form}
+                    zip_bytes = zip_file.read()
+                    resultados_lote = importar_lote_zip(
+                        zip_bytes=zip_bytes,
+                        fundo=fundo,
+                        user=request.user,
+                    )
+                    ok_count = sum(1 for r in resultados_lote if r['status'] == 'ok')
+                    err_count = len(resultados_lote) - ok_count
+                    if ok_count:
+                        messages.success(
+                            request,
+                            f'{ok_count} informe(s) importado(s) com sucesso'
+                            + (f'; {err_count} com erro.' if err_count else '.'),
+                        )
+                    else:
+                        messages.error(request, 'Nenhum informe foi importado. Verifique os erros abaixo.')
+                except Exception as e:
+                    messages.error(request, f'Erro ao processar o ZIP: {e}')
+        else:
+            form = InformeUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                xml_file = request.FILES['xml_file']
+                try:
+                    from .services.informe_xml import parse_informe_mensal, InformeParseError
+                    from .services.importar_informe import importar_informe_mensal
+
+                    xml_bytes = xml_file.read()
+                    parsed = parse_informe_mensal(xml_bytes)
+                    informe = importar_informe_mensal(
+                        fundo_id=str(fundo.id),
+                        parsed_dict=parsed,
+                        user=request.user,
+                        arquivo_nome=xml_file.name,
+                    )
+                    messages.success(
+                        request,
+                        f'Informe de {informe.competencia_display} importado com sucesso!'
+                    )
+                    return redirect('fundos:detalhe_informe', fundo_id=fundo_id, informe_id=informe.id)
+                except Exception as e:
+                    messages.error(request, f'Erro ao importar o informe: {e}')
+
+    context = {
+        'fundo': fundo,
+        'form': form,
+        'form_lote': form_lote,
+        'resultados_lote': resultados_lote,
+        'aba_ativa': aba_ativa,
+    }
     return render(request, 'fundos/importar_informe.html', context)
 
 
@@ -284,3 +323,23 @@ def detalhe_informe(request, fundo_id, informe_id):
         'vencimentos_display': vencimentos_display,
     }
     return render(request, 'fundos/detalhe_informe.html', context)
+
+
+@login_required
+def excluir_informe(request, fundo_id, informe_id):
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if not _check_pode_importar_informes(request):
+        messages.error(request, 'Você não tem permissão para excluir informes mensais.')
+        return redirect('fundos:listar_informes', fundo_id=fundo_id)
+
+    informe = get_object_or_404(InformeMensal, id=informe_id, fundo=fundo)
+
+    if request.method == 'POST':
+        competencia = informe.competencia_display
+        informe.delete()
+        messages.success(request, f'Informe de {competencia} excluído com sucesso.')
+        return redirect('fundos:listar_informes', fundo_id=fundo_id)
+
+    return redirect('fundos:listar_informes', fundo_id=fundo_id)

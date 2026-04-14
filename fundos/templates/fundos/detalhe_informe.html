@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fundos_filters %}
 
 {% block title %}Informe {{ informe.competencia_display }} — {{ fundo.razao_social }}{% endblock %}
 
@@ -34,22 +35,24 @@
     <!-- ── KPIs Principais ─────────────────────────────────── -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="kpi-card">
+            <div class="kpi-card kpi-card--blue">
+                <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Patrimônio Líquido</div>
                 <div class="kpi-card__value">
                     {% if informe.vl_patrimonio_liquido %}
-                        R$ {{ informe.vl_patrimonio_liquido|floatformat:2 }}
+                        R$ {{ informe.vl_patrimonio_liquido|brl }}
                     {% else %}—{% endif %}
                 </div>
                 <div class="kpi-card__sub">{{ informe.competencia_display }}</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="kpi-card">
+            <div class="kpi-card kpi-card--gray">
+                <i class="bi bi-briefcase kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Carteira Total</div>
                 <div class="kpi-card__value">
                     {% if informe.vl_carteira %}
-                        R$ {{ informe.vl_carteira|floatformat:2 }}
+                        R$ {{ informe.vl_carteira|brl }}
                     {% else %}—{% endif %}
                 </div>
                 <div class="kpi-card__sub">Direitos Creditórios</div>
@@ -57,20 +60,20 @@
         </div>
         <div class="col-6 col-md-3">
             <div class="kpi-card">
+                <i class="bi bi-people-fill kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Cotistas (Total)</div>
                 <div class="kpi-card__value">
                     {% if informe.qt_total_cotistas %}{{ informe.qt_total_cotistas }}{% else %}—{% endif %}
                 </div>
                 <div class="kpi-card__sub">
-                    Sênior:
-                    {% if informe.qt_cotistas_senior %}{{ informe.qt_cotistas_senior }}{% else %}—{% endif %}
-                    &nbsp;|&nbsp;Sub:
-                    {% if informe.qt_cotistas_subord %}{{ informe.qt_cotistas_subord }}{% else %}—{% endif %}
+                    Sênior: {% if informe.qt_cotistas_senior %}{{ informe.qt_cotistas_senior }}{% else %}—{% endif %}
+                    &nbsp;|&nbsp; Sub: {% if informe.qt_cotistas_subord %}{{ informe.qt_cotistas_subord }}{% else %}—{% endif %}
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="kpi-card">
+            <div class="kpi-card kpi-card--green">
+                <i class="bi bi-percent kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Rentab. Sênior</div>
                 <div class="kpi-card__value {% if informe.rentabilidade_senior and informe.rentabilidade_senior > 0 %}text-success{% elif informe.rentabilidade_senior and informe.rentabilidade_senior < 0 %}text-danger{% endif %}">
                     {% if informe.rentabilidade_senior %}
@@ -90,15 +93,15 @@
         <div class="col-lg-7">
 
             <!-- Cotas -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-layers me-2 text-primary"></i>Cotas por Classe
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-layers text-primary"></i>Cotas por Classe
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
+                    <table class="table table-ds mb-0">
+                        <thead>
                             <tr>
                                 <th>Classe</th>
                                 <th class="text-end">Qtd. Cotas</th>
@@ -108,13 +111,13 @@
                         <tbody>
                             <tr>
                                 <td>Sênior</td>
-                                <td class="text-end">{{ informe.qt_cotas_senior|default:"—"|floatformat:0 }}</td>
-                                <td class="text-end">{{ informe.vl_cota_senior|default:"—"|floatformat:8 }}</td>
+                                <td class="text-end font-monospace">{{ informe.qt_cotas_senior|brl:"8" }}</td>
+                                <td class="text-end font-monospace">{{ informe.vl_cota_senior|brl:"8" }}</td>
                             </tr>
                             <tr>
                                 <td>Subordinada</td>
-                                <td class="text-end">{{ informe.qt_cotas_subord|default:"—"|floatformat:0 }}</td>
-                                <td class="text-end">{{ informe.vl_cota_subord|default:"—"|floatformat:8 }}</td>
+                                <td class="text-end font-monospace">{{ informe.qt_cotas_subord|brl:"8" }}</td>
+                                <td class="text-end font-monospace">{{ informe.vl_cota_subord|brl:"8" }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -124,15 +127,15 @@
             <!-- Carteira por Segmento -->
             {% with segs=informe.carteira.all %}
             {% if segs %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-pie-chart me-2 text-primary"></i>Carteira por Segmento
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-pie-chart text-primary"></i>Carteira por Segmento
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
+                    <table class="table table-ds mb-0">
+                        <thead>
                             <tr>
                                 <th>Segmento</th>
                                 <th>Subsegmento</th>
@@ -145,7 +148,7 @@
                             <tr>
                                 <td>{{ seg.get_segmento_display }}</td>
                                 <td class="text-muted small">{{ seg.subsegmento|default:"—" }}</td>
-                                <td class="text-end">{{ seg.valor|floatformat:2 }}</td>
+                                <td class="text-end font-monospace">{{ seg.valor|brl }}</td>
                                 <td class="text-end">
                                     {% if seg.percentual_carteira %}
                                         {{ seg.percentual_carteira|floatformat:2 }}%
@@ -164,15 +167,15 @@
             <!-- Cedentes -->
             {% with cedentes=informe.cedentes.all %}
             {% if cedentes %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-people me-2 text-primary"></i>Cedentes
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-people text-primary"></i>Cedentes
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
+                    <table class="table table-ds mb-0">
+                        <thead>
                             <tr>
                                 <th>CNPJ / CPF</th>
                                 <th class="text-end">% Cedentes</th>
@@ -181,7 +184,7 @@
                         <tbody>
                             {% for ced in cedentes %}
                             <tr>
-                                <td class="font-monospace">{{ ced.nr_pf_pj_cedent }}</td>
+                                <td class="font-monospace">{{ ced.nr_pf_pj_cedent|cpf_cnpj }}</td>
                                 <td class="text-end">
                                     {% if ced.pr_cedent %}{{ ced.pr_cedent|floatformat:2 }}%{% else %}—{% endif %}
                                 </td>
@@ -200,66 +203,66 @@
         <div class="col-lg-5">
 
             <!-- Ativos & Passivos -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-balance-scale me-2 text-primary"></i>Balanço Patrimonial
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-balance-scale text-primary"></i>Balanço Patrimonial
                     </span>
                 </div>
                 <div class="card-body">
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Total de Ativos</div>
-                        <div class="col-6 text-end small">{{ informe.vl_total_ativos|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_total_ativos|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Disponibilidades</div>
-                        <div class="col-6 text-end small">{{ informe.vl_disponib|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_disponib|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Direitos Cred. Total</div>
-                        <div class="col-6 text-end small">{{ informe.vl_dicred|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_dicred|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Direitos Cred. Cedentes</div>
-                        <div class="col-6 text-end small">{{ informe.vl_dicred_cedent|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_dicred_cedent|brl }}</div>
                     </div>
                     <hr class="my-2">
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Total de Passivos</div>
-                        <div class="col-6 text-end small">{{ informe.vl_total_passivo|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_total_passivo|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Obrig. Curto Prazo</div>
-                        <div class="col-6 text-end small">{{ informe.vl_pgto_curprz|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_pgto_curprz|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Obrig. Longo Prazo</div>
-                        <div class="col-6 text-end small">{{ informe.vl_pgto_lprazo|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small">{{ informe.vl_pgto_lprazo|brl }}</div>
                     </div>
                     <hr class="my-2">
                     <div class="row g-2">
                         <div class="col-6 small fw-semibold">PL Médio</div>
-                        <div class="col-6 text-end small fw-semibold">{{ informe.vl_patrimonio_liquido_medio|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small fw-semibold">{{ informe.vl_patrimonio_liquido_medio|brl }}</div>
                     </div>
                 </div>
             </div>
 
             <!-- Inadimplência -->
             {% if informe.vl_dicred_inad or informe.vl_dicred_venc_inad %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Inadimplência
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>Inadimplência
                     </span>
                 </div>
                 <div class="card-body">
                     <div class="row g-2 mb-2">
                         <div class="col-7 small text-muted">Créditos com alguma inadimplência</div>
-                        <div class="col-5 text-end small">{{ informe.vl_dicred_inad|default:"—"|floatformat:2 }}</div>
+                        <div class="col-5 text-end small">{{ informe.vl_dicred_inad|brl }}</div>
                     </div>
                     <div class="row g-2">
                         <div class="col-7 small text-muted">Total vencido e inadimplente</div>
-                        <div class="col-5 text-end small text-danger">{{ informe.vl_dicred_venc_inad|default:"—"|floatformat:2 }}</div>
+                        <div class="col-5 text-end small text-danger">{{ informe.vl_dicred_venc_inad|brl }}</div>
                     </div>
                 </div>
             </div>
@@ -267,17 +270,17 @@
 
             <!-- Rating SCR -->
             {% if informe.vl_rating_aa or informe.vl_rating_a or informe.vl_rating_b or informe.vl_rating_c or informe.vl_rating_d_h %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-shield-check me-2 text-primary"></i>Rating SCR
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-shield-check text-primary"></i>Rating SCR
                     </span>
                 </div>
                 <div class="card-body">
                     {% for label, val in scr_display %}
                     <div class="row g-2 mb-1">
                         <div class="col-4 small text-muted">{{ label }}</div>
-                        <div class="col-8 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                        <div class="col-8 text-end small">{{ val|brl }}</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -286,28 +289,28 @@
 
             <!-- Captação / Resgate -->
             {% if informe.vl_capt_senior or informe.vl_resg_senior %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-arrow-left-right me-2 text-primary"></i>Captação e Resgate no Mês
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-arrow-left-right text-primary"></i>Captação e Resgate no Mês
                     </span>
                 </div>
                 <div class="card-body">
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Captação Sênior</div>
-                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_senior|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_senior|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Captação Subordinada</div>
-                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_subord|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small text-success">{{ informe.vl_capt_subord|brl }}</div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6 small text-muted">Resgate Sênior</div>
-                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_senior|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_senior|brl }}</div>
                     </div>
                     <div class="row g-2">
                         <div class="col-6 small text-muted">Resgate Subordinada</div>
-                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_subord|default:"—"|floatformat:2 }}</div>
+                        <div class="col-6 text-end small text-danger">{{ informe.vl_resg_subord|brl }}</div>
                     </div>
                 </div>
             </div>
@@ -315,17 +318,17 @@
 
             <!-- Liquidez -->
             {% if informe.vl_liqdez_30 or informe.vl_liqdez_60 %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-hourglass-split me-2 text-primary"></i>Perfil de Liquidez
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-hourglass-split text-primary"></i>Perfil de Liquidez
                     </span>
                 </div>
                 <div class="card-body">
                     {% for label, val in liquidez_display %}
                     <div class="row g-2 mb-1">
                         <div class="col-5 small text-muted">{{ label }}</div>
-                        <div class="col-7 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                        <div class="col-7 text-end small">{{ val|brl }}</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -334,17 +337,17 @@
 
             <!-- Vencimentos -->
             {% if informe.vl_venc_30 or informe.vl_venc_31_60 %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <span class="fw-semibold">
-                        <i class="bi bi-calendar-range me-2 text-primary"></i>Perfil de Vencimentos
+            <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-calendar-range text-primary"></i>Perfil de Vencimentos
                     </span>
                 </div>
                 <div class="card-body">
                     {% for label, val in vencimentos_display %}
                     <div class="row g-2 mb-1">
                         <div class="col-5 small text-muted">{{ label }}</div>
-                        <div class="col-7 text-end small">{% if val %}{{ val|floatformat:2 }}{% else %}—{% endif %}</div>
+                        <div class="col-7 text-end small">{{ val|brl }}</div>
                     </div>
                     {% endfor %}
                 </div>

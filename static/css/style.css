@@ -764,6 +764,45 @@ body {
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
+/* Icon action buttons — tabelas */
+.btn-icon-ds {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+    text-decoration: none;
+    background: none;
+    padding: 0;
+}
+.btn-icon-ds--blue {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.22);
+    color: #60a5fa;
+}
+.btn-icon-ds--blue:hover {
+    background: rgba(59, 130, 246, 0.22);
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+    transform: translateY(-1px);
+}
+.btn-icon-ds--red {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.btn-icon-ds--red:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+    transform: translateY(-1px);
+}
+
 /* Ghost / outline secundário */
 .btn-ghost-ds,
 .btn-outline-secondary,
@@ -1175,11 +1214,13 @@ input[type=number] {
 .kpi-card--green::before { background: linear-gradient(90deg, #10b981, #34d399); }
 .kpi-card--gray::before  { background: linear-gradient(90deg, #6b7585, #8892a0); }
 .kpi-card__value {
-    font-size: 2.75rem;
+    font-size: clamp(0.95rem, 2vw, 1.4rem);
     font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.045em;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
     margin-bottom: 0.4rem;
+    word-break: keep-all;
+    white-space: nowrap;
 }
 .kpi-card--blue  .kpi-card__value { color: #60a5fa; }
 .kpi-card--green .kpi-card__value { color: #34d399; }
@@ -1190,6 +1231,169 @@ input[type=number] {
     text-transform: uppercase;
     letter-spacing: 0.09em;
     color: var(--text-secondary);
+}
+.kpi-card__sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+.kpi-card__ghost-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 3.5rem;
+    opacity: 0.06;
+    pointer-events: none;
+    line-height: 1;
+    color: currentColor;
+}
+
+/* ================================
+   Dark Card Header & Table
+================================ */
+.card-header-ds {
+    background: var(--surface-3);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.card-header-ds .card-header-ds__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+    position: relative;
+    padding-left: 0.85rem;
+}
+.card-header-ds .card-header-ds__title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 1em;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #3b82f6, #60a5fa);
+}
+.card-header-ds .badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    background: rgba(59,130,246,0.15) !important;
+    color: #60a5fa;
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 20px;
+    padding: 0.25em 0.7em;
+}
+
+/* Dark table to match site theme */
+.table-ds {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border-color);
+    --bs-table-hover-bg: rgba(255,255,255,0.03);
+    --bs-table-hover-color: var(--text-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    margin-bottom: 0;
+}
+.table-ds thead tr {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.table-ds thead th {
+    background: var(--surface-3);
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.6rem 0.85rem;
+    border-bottom: none;
+    white-space: nowrap;
+}
+.table-ds tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.12s ease;
+}
+.table-ds tbody tr:last-child {
+    border-bottom: none;
+}
+.table-ds tbody td {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.82rem;
+    vertical-align: middle;
+    border-bottom: none;
+    background: transparent;
+    transition: background 0.12s ease;
+}
+.table-ds tbody td:first-child {
+    border-left: 3px solid transparent;
+    padding-left: calc(0.85rem - 3px);
+    transition: background 0.12s ease, border-left-color 0.15s ease;
+}
+.table-ds tbody tr:hover td {
+    background: rgba(255,255,255,0.03);
+}
+.table-ds tbody tr:hover td:first-child {
+    border-left-color: var(--accent-primary);
+}
+
+/* Period pill for table date column */
+.period-pill {
+    display: inline-block;
+    background: var(--surface-3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.18em 0.6em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+/* Rentability badge with arrow */
+.rentab-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    padding: 0.2em 0.6em;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+.rentab-badge--up {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.rentab-badge--down {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.rentab-badge--neutral {
+    background: rgba(107, 117, 133, 0.12);
+    color: #8892a0;
+    border: 1px solid rgba(107, 117, 133, 0.2);
+}
+.table-ds .fw-medium {
+    color: var(--text-primary);
+}
+.table-ds .text-muted {
+    color: var(--text-secondary) !important;
 }
 
 /* ================================

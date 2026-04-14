@@ -6,6 +6,8 @@ Toda a operação é atômica: ou tudo é salvo, ou nada.
 """
 from __future__ import annotations
 
+import io
+import zipfile
 import json
 from decimal import Decimal
 from datetime import date
@@ -213,3 +215,65 @@ def importar_informe_mensal(
         InformeMensalCarteira.objects.bulk_create(carteira_objs)
 
     return informe
+
+
+def importar_lote_zip(zip_bytes: bytes, fundo: Fundo, user) -> list[dict]:
+    """
+    Processa um arquivo ZIP contendo múltiplos XMLs de informe mensal.
+
+    Cada XML é importado de forma independente (transações separadas).
+    Erros em um arquivo não afetam os demais.
+
+    Retorna uma lista de dicts com:
+        - arquivo   : nome do arquivo dentro do ZIP
+        - status    : 'ok' | 'erro'
+        - competencia: string 'MM/YYYY' se status=='ok'
+        - mensagem  : descrição do erro se status=='erro'
+        - informe_id: UUID str se status=='ok'
+    """
+    from fundos.services.informe_xml import parse_informe_mensal, InformeParseError
+
+    resultados = []
+
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        raise ValueError('O arquivo enviado não é um ZIP válido.')
+
+    xml_names = [
+        name for name in zf.namelist()
+        if name.lower().endswith('.xml') and not name.startswith('__MACOSX')
+    ]
+
+    if not xml_names:
+        raise ValueError('O ZIP não contém nenhum arquivo .xml.')
+
+    for name in xml_names:
+        arquivo_label = name.split('/')[-1]  # exibe apenas o nome, sem subpastas
+        try:
+            xml_bytes_item = zf.read(name)
+            parsed = parse_informe_mensal(xml_bytes_item)
+            informe = importar_informe_mensal(
+                fundo_id=str(fundo.id),
+                parsed_dict=parsed,
+                user=user,
+                arquivo_nome=arquivo_label,
+            )
+            resultados.append({
+                'arquivo': arquivo_label,
+                'status': 'ok',
+                'competencia': informe.competencia_display,
+                'informe_id': str(informe.id),
+                'mensagem': '',
+            })
+        except Exception as exc:
+            resultados.append({
+                'arquivo': arquivo_label,
+                'status': 'erro',
+                'competencia': '',
+                'informe_id': '',
+                'mensagem': str(exc),
+            })
+
+    zf.close()
+    return resultados

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fundos_filters %}
 
 {% block title %}Informes Mensais — {{ fundo.razao_social }}{% endblock %}
 
@@ -41,22 +42,24 @@
         {% with latest=informes.0 %}
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-                <div class="kpi-card">
+                <div class="kpi-card kpi-card--blue">
+                    <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
                     <div class="kpi-card__label">PL (último)</div>
                     <div class="kpi-card__value">
                         {% if latest.vl_patrimonio_liquido %}
-                            R$ {{ latest.vl_patrimonio_liquido|floatformat:2 }}
+                            R$ {{ latest.vl_patrimonio_liquido|brl }}
                         {% else %}—{% endif %}
                     </div>
                     <div class="kpi-card__sub">{{ latest.competencia_display }}</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="kpi-card">
+                <div class="kpi-card kpi-card--gray">
+                    <i class="bi bi-graph-up kpi-card__ghost-icon"></i>
                     <div class="kpi-card__label">Cota Sênior</div>
                     <div class="kpi-card__value">
                         {% if latest.vl_cota_senior %}
-                            {{ latest.vl_cota_senior|floatformat:8 }}
+                            {{ latest.vl_cota_senior|brl:"8" }}
                         {% else %}—{% endif %}
                     </div>
                     <div class="kpi-card__sub">{{ latest.competencia_display }}</div>
@@ -64,6 +67,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="kpi-card">
+                    <i class="bi bi-people-fill kpi-card__ghost-icon"></i>
                     <div class="kpi-card__label">Cotistas</div>
                     <div class="kpi-card__value">
                         {% if latest.qt_total_cotistas %}{{ latest.qt_total_cotistas }}{% else %}—{% endif %}
@@ -72,9 +76,10 @@
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="kpi-card">
+                <div class="kpi-card kpi-card--green">
+                    <i class="bi bi-percent kpi-card__ghost-icon"></i>
                     <div class="kpi-card__label">Rentab. Sênior</div>
-                    <div class="kpi-card__value">
+                    <div class="kpi-card__value {% if latest.rentabilidade_senior and latest.rentabilidade_senior < 0 %}text-danger{% endif %}">
                         {% if latest.rentabilidade_senior %}
                             {{ latest.rentabilidade_senior|floatformat:4 }}%
                         {% else %}—{% endif %}
@@ -86,16 +91,16 @@
         {% endwith %}
 
         <!-- Tabela histórico -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <span class="fw-semibold">
-                    <i class="bi bi-calendar3 me-2 text-primary"></i>Histórico de Competências
+        <div class="card shadow-sm" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+            <div class="card-header-ds">
+                <span class="card-header-ds__title">
+                    <i class="bi bi-calendar3 text-primary"></i>Histórico de Competências
                 </span>
-                <span class="badge bg-secondary rounded-pill">{{ informes|length }} registros</span>
+                <span class="badge">{{ informes|length }} registros</span>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-ds mb-0">
+                    <thead>
                         <tr>
                             <th>Competência</th>
                             <th class="text-end">PL (R$)</th>
@@ -109,33 +114,50 @@
                     <tbody>
                         {% for informe in informes %}
                         <tr>
-                            <td class="fw-medium">{{ informe.competencia_display }}</td>
-                            <td class="text-end">
+                            <td class="fw-medium">
+                                <span class="period-pill">{{ informe.competencia_display }}</span>
+                            </td>
+                            <td class="text-end font-monospace">
                                 {% if informe.vl_patrimonio_liquido %}
-                                    {{ informe.vl_patrimonio_liquido|floatformat:2 }}
+                                    {{ informe.vl_patrimonio_liquido|brl }}
                                 {% else %}—{% endif %}
                             </td>
-                            <td class="text-end">
-                                {% if informe.vl_carteira %}{{ informe.vl_carteira|floatformat:2 }}{% else %}—{% endif %}
+                            <td class="text-end font-monospace">
+                                {% if informe.vl_carteira %}{{ informe.vl_carteira|brl }}{% else %}—{% endif %}
                             </td>
-                            <td class="text-end">
-                                {% if informe.vl_cota_senior %}{{ informe.vl_cota_senior|floatformat:8 }}{% else %}—{% endif %}
+                            <td class="text-end font-monospace">
+                                {% if informe.vl_cota_senior %}{{ informe.vl_cota_senior|brl:"8" }}{% else %}—{% endif %}
                             </td>
                             <td class="text-end">
                                 {% if informe.qt_total_cotistas %}{{ informe.qt_total_cotistas }}{% else %}—{% endif %}
                             </td>
                             <td class="text-end">
                                 {% if informe.rentabilidade_senior %}
-                                    <span class="{% if informe.rentabilidade_senior > 0 %}text-success{% elif informe.rentabilidade_senior < 0 %}text-danger{% endif %}">
+                                    <span class="rentab-badge {% if informe.rentabilidade_senior > 0 %}rentab-badge--up{% elif informe.rentabilidade_senior < 0 %}rentab-badge--down{% else %}rentab-badge--neutral{% endif %}">
+                                        <i class="bi {% if informe.rentabilidade_senior > 0 %}bi-arrow-up{% elif informe.rentabilidade_senior < 0 %}bi-arrow-down{% else %}bi-dash{% endif %}"></i>
                                         {{ informe.rentabilidade_senior|floatformat:4 }}%
                                     </span>
                                 {% else %}—{% endif %}
                             </td>
                             <td class="text-center">
-                                <a href="{% url 'fundos:detalhe_informe' fundo_id=fundo.id informe_id=informe.id %}"
-                                   class="btn btn-sm btn-ghost-ds">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{% url 'fundos:detalhe_informe' fundo_id=fundo.id informe_id=informe.id %}"
+                                       class="btn-icon-ds btn-icon-ds--blue"
+                                       title="Visualizar informe">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if pode_importar %}
+                                    <button type="button"
+                                            class="btn-icon-ds btn-icon-ds--red"
+                                            title="Excluir informe"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modal-excluir"
+                                            data-competencia="{{ informe.competencia_display }}"
+                                            data-action="{% url 'fundos:excluir_informe' fundo_id=fundo.id informe_id=informe.id %}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -165,4 +187,51 @@
     {% endif %}
 
 </div>
+
+{# ── Modal de confirmação de exclusão ── #}
+{% if pode_importar %}
+<div class="modal fade" id="modal-excluir" tabindex="-1" aria-labelledby="modal-excluir-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" id="modal-excluir-label">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Excluir informe
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color: var(--text-secondary);">
+                Tem certeza que deseja excluir o informe de
+                <strong id="modal-excluir-competencia" class="text-danger"></strong>?
+                <p class="small text-muted mt-2 mb-0">Esta ação não pode ser desfeita. Todos os dados associados (cedentes, carteira) serão removidos permanentemente.</p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-1"></i>Cancelar
+                </button>
+                <form id="form-excluir" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash3 me-1"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+(function () {
+    var modal = document.getElementById('modal-excluir');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('modal-excluir-competencia').textContent = btn.dataset.competencia;
+        document.getElementById('form-excluir').action = btn.dataset.action;
+    });
+}());
+</script>
+{% endblock %}
+{% endif %}
+
 {% endblock %}

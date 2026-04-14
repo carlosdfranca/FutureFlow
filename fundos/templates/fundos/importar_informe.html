@@ -3,75 +3,288 @@
 {% block title %}Importar Informe Mensal — {{ fundo.razao_social }}{% endblock %}
 
 {% block content %}
+<style>
+.mode-card {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.25rem 1.25rem 1.1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+}
+.mode-card:hover {
+    border-color: rgba(99, 102, 241, 0.45);
+    background: rgba(99, 102, 241, 0.04);
+}
+.mode-card.is-active {
+    border-color: rgba(99, 102, 241, 0.7);
+    background: rgba(99, 102, 241, 0.08);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+.mode-card__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.mode-card__icon--amber {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+.mode-card__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+.mode-card__sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.mode-card.is-active .mode-card__title {
+    color: #818cf8;
+}
+</style>
 
-<div class="page-hero">
+<div class="page-hero page-hero--compact">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
-            </p>
-            <h1 class="page-hero__title">Importar Informe Mensal</h1>
-            <p class="page-hero__subtitle">XML CVM — DOC_ARQ</p>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn-back" title="Voltar">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <p class="page-hero__label"><i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}</p>
+                <h1 class="page-hero__title" style="font-size:1.5rem;">Importar Informe Mensal</h1>
+                <p class="page-hero__subtitle">XML CVM — DOC_ARQ &mdash; CNPJ {{ fundo.cnpj }}</p>
+            </div>
         </div>
-        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}"
-           class="btn btn-ghost-ds">
-            <i class="bi bi-arrow-left me-1"></i>Voltar
-        </a>
     </div>
 </div>
 
-<div class="container my-4" style="max-width:600px;">
+<div class="container pb-5" style="max-width: 680px;">
 
     {% if messages %}
         {% for msg in messages %}
-            <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3 mb-4" role="alert">
                 {{ msg }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         {% endfor %}
     {% endif %}
 
-    <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h5 class="fw-semibold mb-1">
-                <i class="bi bi-file-earmark-arrow-up me-2 text-primary"></i>Selecionar arquivo XML
-            </h5>
-            <p class="text-muted small mb-4">
-                Arquivo gerado pelo sistema CVM / ANBIMA para o mês de competência.
-                Tamanho máximo: 5 MB.
-            </p>
-
-            <form method="post" enctype="multipart/form-data" novalidate>
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="{{ form.xml_file.id_for_label }}" class="form-label fw-medium">
-                        Arquivo XML do Informe Mensal
-                    </label>
-                    <input type="file"
-                           name="{{ form.xml_file.html_name }}"
-                           id="{{ form.xml_file.id_for_label }}"
-                           accept=".xml"
-                           class="form-control {% if form.xml_file.errors %}is-invalid{% endif %}">
-                    {% if form.xml_file.errors %}
-                        <div class="invalid-feedback">
-                            {% for err in form.xml_file.errors %}{{ err }}{% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="form-text">
-                        Somente arquivos <code>.xml</code>. O CNPJ do fundo no arquivo deve
-                        corresponder ao CNPJ do fundo <strong>{{ fundo.cnpj }}</strong>.
-                    </div>
+    {# ── Seletor de modo ── #}
+    <div class="row g-3 mb-4" id="mode-selector">
+        <div class="col-6">
+            <button type="button"
+                    class="mode-card {% if aba_ativa != 'lote' %}is-active{% endif %}"
+                    data-mode="unico">
+                <div class="mode-card__icon">
+                    <i class="bi bi-file-earmark-code"></i>
                 </div>
-
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary-ds">
-                        <i class="bi bi-upload me-2"></i>Importar Informe
-                    </button>
+                <div>
+                    <div class="mode-card__title">Arquivo único</div>
+                    <div class="mode-card__sub">Um XML por vez</div>
                 </div>
-            </form>
+            </button>
+        </div>
+        <div class="col-6">
+            <button type="button"
+                    class="mode-card {% if aba_ativa == 'lote' %}is-active{% endif %}"
+                    data-mode="lote">
+                <div class="mode-card__icon mode-card__icon--amber">
+                    <i class="bi bi-file-zip"></i>
+                </div>
+                <div>
+                    <div class="mode-card__title">Importação em lote</div>
+                    <div class="mode-card__sub">ZIP com múltiplos XMLs</div>
+                </div>
+            </button>
         </div>
     </div>
 
+    {# ── Seção: Arquivo único ── #}
+    <div id="section-unico" {% if aba_ativa == 'lote' %}style="display:none;"{% endif %}>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="tipo_import" value="unico">
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <div class="form-section__icon">
+                        <i class="bi bi-file-earmark-arrow-up"></i>
+                    </div>
+                    <div>
+                        <h2 class="form-section__title">Selecionar arquivo XML</h2>
+                        <p class="form-section__subtitle">Arquivo gerado pelo sistema CVM / ANBIMA para o mês de competência &mdash; máx. 5 MB</p>
+                    </div>
+                </div>
+                <div class="form-section__body">
+                    <div class="form-field">
+                        <label class="form-field__label" for="{{ form.xml_file.id_for_label }}">
+                            Arquivo XML do Informe Mensal <span class="form-field__required">*</span>
+                        </label>
+                        <input type="file"
+                               name="{{ form.xml_file.html_name }}"
+                               id="{{ form.xml_file.id_for_label }}"
+                               accept=".xml"
+                               class="form-control {% if form.xml_file.errors %}is-invalid{% endif %}">
+                        {% if form.xml_file.errors %}
+                            <p class="form-field__error">
+                                <i class="bi bi-exclamation-circle me-1"></i>{% for err in form.xml_file.errors %}{{ err }}{% endfor %}
+                            </p>
+                        {% endif %}
+                        <p class="form-field__hint mt-1" style="font-size:.775rem;color:var(--text-muted);margin:0;">
+                            Somente <code>.xml</code>. O CNPJ do arquivo deve corresponder a <strong>{{ fundo.cnpj }}</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary-ds">
+                    <i class="bi bi-upload me-2"></i>Importar Informe
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# ── Seção: Importação em lote ── #}
+    <div id="section-lote" {% if aba_ativa != 'lote' %}style="display:none;"{% endif %}>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="tipo_import" value="lote">
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <div class="form-section__icon mode-card__icon--amber"
+                         style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.2);color:#fbbf24;">
+                        <i class="bi bi-file-zip"></i>
+                    </div>
+                    <div>
+                        <h2 class="form-section__title">Arquivo ZIP com XMLs</h2>
+                        <p class="form-section__subtitle">Cada XML é processado de forma independente — erros em um arquivo não afetam os demais &mdash; máx. 50 MB</p>
+                    </div>
+                </div>
+                <div class="form-section__body">
+                    <div class="form-field">
+                        <label class="form-field__label" for="{{ form_lote.zip_file.id_for_label }}">
+                            Arquivo ZIP <span class="form-field__required">*</span>
+                        </label>
+                        <input type="file"
+                               name="{{ form_lote.zip_file.html_name }}"
+                               id="{{ form_lote.zip_file.id_for_label }}"
+                               accept=".zip"
+                               class="form-control {% if form_lote.zip_file.errors %}is-invalid{% endif %}">
+                        {% if form_lote.zip_file.errors %}
+                            <p class="form-field__error">
+                                <i class="bi bi-exclamation-circle me-1"></i>{% for err in form_lote.zip_file.errors %}{{ err }}{% endfor %}
+                            </p>
+                        {% endif %}
+                        <p class="form-field__hint mt-1" style="font-size:.775rem;color:var(--text-muted);margin:0;">
+                            XMLs na raiz ou em subpastas são aceitos. O CNPJ de todos os informes deve corresponder a <strong>{{ fundo.cnpj }}</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x me-1"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary-ds">
+                    <i class="bi bi-cloud-upload me-2"></i>Importar Lote
+                </button>
+            </div>
+        </form>
+
+        {# Tabela de resultados após importação #}
+        {% if resultados_lote %}
+            <div class="card shadow-sm mt-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-list-check text-primary"></i>Resultado da importação
+                    </span>
+                    <span class="badge">{{ resultados_lote|length }} arquivo(s)</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-ds mb-0">
+                        <thead>
+                            <tr>
+                                <th>Arquivo</th>
+                                <th>Competência</th>
+                                <th class="text-center">Status</th>
+                                <th>Detalhe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in resultados_lote %}
+                            <tr>
+                                <td class="font-monospace small">{{ r.arquivo }}</td>
+                                <td>{% if r.competencia %}<span class="period-pill">{{ r.competencia }}</span>{% else %}—{% endif %}</td>
+                                <td class="text-center">
+                                    {% if r.status == 'ok' %}
+                                        <span class="badge bg-success">Importado</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Erro</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">
+                                    {% if r.status == 'ok' %}
+                                        <a href="{% url 'fundos:detalhe_informe' fundo_id=fundo.id informe_id=r.informe_id %}">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>Ver informe
+                                        </a>
+                                    {% else %}
+                                        {{ r.mensagem }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>{# /section-lote #}
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const cards   = document.querySelectorAll('[data-mode]');
+    const sections = {
+        unico: document.getElementById('section-unico'),
+        lote:  document.getElementById('section-lote'),
+    };
+
+    function activate(mode) {
+        cards.forEach(c => c.classList.toggle('is-active', c.dataset.mode === mode));
+        Object.entries(sections).forEach(([key, el]) => {
+            if (el) el.style.display = key === mode ? '' : 'none';
+        });
+    }
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => activate(card.dataset.mode));
+    });
+}());
+</script>
 {% endblock %}
