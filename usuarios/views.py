@@ -36,7 +36,6 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            messages.success(request, "Login realizado com sucesso!")
             return redirect("home")
         else:
             messages.error(request, "Usuário ou senha inválidos.")
@@ -59,7 +58,6 @@ def otp_view(request):
             login(request, user)
             cache.delete(f"otp_{user.id}")  # limpa OTP
             del request.session["otp_user_id"]
-            messages.success(request, "Login realizado com sucesso!")
             return redirect("home")
         else:
             messages.error(request, "Código OTP inválido. Tente novamente.")
