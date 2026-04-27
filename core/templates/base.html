@@ -18,6 +18,15 @@
     <script src="{% static 'js/scripts.js' %}" defer></script>
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Previne FOUC: aplica tema salvo antes do primeiro render -->
+    <script>
+        (function(){
+            try {
+                var t = localStorage.getItem('cinnamon-theme');
+                if (t) document.documentElement.setAttribute('data-theme', t);
+            } catch(e) {}
+        })();
+    </script>
 </head>
 <body>
     <!-- Navbar principal -->
@@ -26,11 +35,12 @@
 
             <!-- Brand -->
             <a class="site-nav__brand" href="{% url 'home' %}">
-                <div class="site-nav__brand-icon">
-                    <span style="font-size:1rem;font-weight:900;line-height:1;letter-spacing:-0.05em;">C</span>
-                </div>
-                <span style="font-size:0.82rem;font-weight:400;color:var(--text-muted);letter-spacing:0.04em;text-transform:uppercase;">Cinnamon</span>
-                <strong style="font-size:0.92rem;font-weight:700;letter-spacing:-0.01em;">FutureFlow</strong>
+                <img src="{% static 'img/logo-dark.png' %}"
+                     alt="Cinnamon FutureFlow"
+                     class="site-nav__logo site-nav__logo--dark">
+                <img src="{% static 'img/logo-light.png' %}"
+                     alt="Cinnamon FutureFlow"
+                     class="site-nav__logo site-nav__logo--light">
             </a>
 
             <!-- Company selector -->
@@ -78,16 +88,14 @@
 
                 <!-- User menu -->
                 <div class="site-nav__user">
+                    <!-- Theme toggle -->
+                    <button id="theme-toggle" class="site-nav__theme-btn" aria-label="Alternar tema" title="Modo claro / escuro">
+                        <i id="theme-icon" class="bi bi-sun-fill"></i>
+                    </button>
+
                     {% if user.is_authenticated %}
                         <div class="site-nav__dropdown-wrap">
                             <a class="site-nav__user-btn" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% if user.profile_image %}
-                                    <img src="{{ user.profile_image.url }}" alt="avatar" class="site-nav__avatar">
-                                {% else %}
-                                    <span class="site-nav__avatar-fallback">
-                                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                                    </span>
-                                {% endif %}
                                 <span class="site-nav__username">{{ user.first_name }}</span>
                                 <i class="bi bi-chevron-down site-nav__chevron"></i>
                             </a>
