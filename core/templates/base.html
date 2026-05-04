@@ -22,8 +22,8 @@
     <script>
         (function(){
             try {
-                var t = localStorage.getItem('cinnamon-theme');
-                if (t) document.documentElement.setAttribute('data-theme', t);
+                var t = localStorage.getItem('cinnamon-theme') || 'light';
+                document.documentElement.setAttribute('data-theme', t);
             } catch(e) {}
         })();
     </script>

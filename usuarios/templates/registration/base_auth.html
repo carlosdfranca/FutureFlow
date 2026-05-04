@@ -11,8 +11,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <!-- Previne FOUC: aplica tema salvo antes do primeiro render -->
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('cinnamon-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch(e) {}
+    })();
+  </script>
 </head>
-<body style="background-color:#111113; font-family:'Inter',sans-serif; min-height:100vh;">
+<body>
 
   {% block content %}{% endblock %}
 

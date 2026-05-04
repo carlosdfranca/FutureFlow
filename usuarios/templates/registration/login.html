@@ -1,32 +1,44 @@
 {% extends "registration/base_auth.html" %}
-{% block title %}Login — Cinnamon{% endblock %}
+{% load static %}
+{% block title %}Login — FIDC Gestão{% endblock %}
 
 {% block content %}
-<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; background-color:#111113;">
+<div class="login-page">
 
-  <!-- Subtle background glow -->
-  <div style="position:fixed; top:-120px; right:-120px; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(107,26,42,0.12) 0%, transparent 70%); pointer-events:none;"></div>
-  <div style="position:fixed; bottom:-100px; left:-80px; width:380px; height:380px; border-radius:50%; background:radial-gradient(circle, rgba(107,26,42,0.07) 0%, transparent 70%); pointer-events:none;"></div>
-
-  <div style="width:100%; max-width:400px; position:relative; z-index:1;">
-
-    <!-- Brand mark -->
-    <div style="text-align:center; margin-bottom:2.5rem;">
-      <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,#6B1A2A,#4A0F1C); box-shadow:0 4px 24px rgba(107,26,42,0.35); margin-bottom:1.25rem;">
-        <span style="font-size:1.8rem; font-weight:900; color:#F8F5F0; line-height:1; letter-spacing:-0.06em;">C</span>
-      </div>
-      <div>
-        <p style="font-size:0.72rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6C6C70; margin:0 0 2px;">Cinnamon</p>
-        <h1 style="font-size:1.45rem; font-weight:800; color:#F8F5F0; margin:0; letter-spacing:-0.03em;">FutureFlow</h1>
-        <p style="font-size:0.78rem; color:#6C6C70; margin:0.35rem 0 0;">Operações que funcionam. Fundos que crescem.</p>
-      </div>
+  <!-- Painel esquerdo: branding -->
+  <div class="login-panel--brand">
+    <div class="login-brand-content">
+      <img src="{% static 'img/logo-dark.png' %}" alt="FIDC Gestão" class="login-brand-logo">
+      <p class="login-brand-tagline">A plataforma para gestores<br>e administradores de fundos</p>
+      <ul class="login-brand-features">
+        <li>
+          <i class="bi bi-speedometer2"></i>
+          <span>Monitore limites regulatórios e concentração em tempo real</span>
+        </li>
+        <li>
+          <i class="bi bi-file-earmark-check"></i>
+          <span>Gere Termos de Cessão automaticamente a partir de NF-e</span>
+        </li>
+        <li>
+          <i class="bi bi-shield-check"></i>
+          <span>Conformidade, evidências e relatórios num só lugar</span>
+        </li>
+      </ul>
     </div>
+    <p class="login-brand-copy">&copy; {{ "now"|date:"Y" }} Cinnamon. Todos os direitos reservados.</p>
+  </div>
 
-    <!-- Login card -->
-    <div style="background:#171719; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:2rem; box-shadow:0 4px 32px rgba(0,0,0,0.6);">
+  <!-- Painel direito: formulário -->
+  <div class="login-panel--form">
+    <div class="login-form-wrapper">
+      <img src="{% static 'img/logo-dark.png' %}" alt="FIDC Gestão" class="login-form-logo site-nav__logo--dark">
+      <img src="{% static 'img/logo-light.png' %}" alt="FIDC Gestão" class="login-form-logo site-nav__logo--light">
+
+      <h1 class="login-form-title">Bem-vindo de volta</h1>
+      <p class="login-form-subtitle">Acesse sua conta para continuar</p>
 
       {% if form.non_field_errors %}
-        <div style="background:rgba(239,68,68,0.10); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:0.75rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; color:#f87171;">
+        <div class="alert alert-danger mb-4" role="alert">
           <i class="bi bi-exclamation-circle me-1"></i>{{ form.non_field_errors.0 }}
         </div>
       {% endif %}
@@ -34,38 +46,28 @@
       <form method="post" novalidate>
         {% csrf_token %}
 
-        <div style="margin-bottom:1.25rem;">
-          <label for="id_username" style="display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#ADADB1; margin-bottom:0.4rem;">Usuário</label>
-          <input type="text" name="username" id="id_username" required autocomplete="username"
-            style="width:100%; background:#1C1C1E; border:1px solid rgba(255,255,255,0.09); border-radius:8px; color:#F8F5F0; font-size:0.875rem; padding:0.6rem 0.85rem; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.15s ease, box-shadow 0.15s ease; box-sizing:border-box;"
-            onfocus="this.style.borderColor='rgba(107,26,42,0.6)';this.style.boxShadow='0 0 0 3px rgba(107,26,42,0.12)'"
-            onblur="this.style.borderColor='rgba(255,255,255,0.09)';this.style.boxShadow='none'">
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Usuário</label>
+          <input type="text" name="username" id="id_username" class="form-control"
+                 required autocomplete="username" autofocus>
         </div>
 
-        <div style="margin-bottom:1.75rem;">
-          <label for="id_password" style="display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#ADADB1; margin-bottom:0.4rem;">Senha</label>
-          <input type="password" name="password" id="id_password" required autocomplete="current-password"
-            style="width:100%; background:#1C1C1E; border:1px solid rgba(255,255,255,0.09); border-radius:8px; color:#F8F5F0; font-size:0.875rem; padding:0.6rem 0.85rem; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.15s ease, box-shadow 0.15s ease; box-sizing:border-box;"
-            onfocus="this.style.borderColor='rgba(107,26,42,0.6)';this.style.boxShadow='0 0 0 3px rgba(107,26,42,0.12)'"
-            onblur="this.style.borderColor='rgba(255,255,255,0.09)';this.style.boxShadow='none'">
+        <div class="mb-4">
+          <label for="id_password" class="form-label">Senha</label>
+          <input type="password" name="password" id="id_password" class="form-control"
+                 required autocomplete="current-password">
         </div>
 
-        <button type="submit"
-          style="width:100%; background:linear-gradient(135deg,#6B1A2A,#4A0F1C); color:#F8F5F0; border:none; border-radius:8px; font-family:'Inter',sans-serif; font-size:0.875rem; font-weight:700; letter-spacing:0.03em; padding:0.65rem 1rem; cursor:pointer; box-shadow:0 2px 12px rgba(107,26,42,0.35); transition:all 0.15s ease;"
-          onmouseover="this.style.background='linear-gradient(135deg,#7D2A3F,#6B1A2A)';this.style.boxShadow='0 4px 20px rgba(107,26,42,0.50)'"
-          onmouseout="this.style.background='linear-gradient(135deg,#6B1A2A,#4A0F1C)';this.style.boxShadow='0 2px 12px rgba(107,26,42,0.35)'">
-          Entrar
-        </button>
+        <button type="submit" class="btn btn-primary w-100 login-btn">Entrar</button>
       </form>
+
+      <p class="text-center mt-3" style="font-size:0.82rem;">
+        <a href="{% url 'password_reset' %}" class="text-muted" style="text-decoration:none;">
+          Esqueci minha senha
+        </a>
+      </p>
     </div>
-
-    <p style="text-align:center; margin-top:1.25rem; font-size:0.8rem;">
-      <a href="{% url 'password_reset' %}" style="color:#6C6C70; text-decoration:none;"
-         onmouseover="this.style.color='#ADADB1'" onmouseout="this.style.color='#6C6C70'">
-        Esqueci minha senha
-      </a>
-    </p>
-
   </div>
+
 </div>
 {% endblock %}
