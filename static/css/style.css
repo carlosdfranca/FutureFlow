@@ -23,10 +23,10 @@
     --accent-primary-hover: #4A0F1C;
     --accent-primary-glow: rgba(107, 26, 42, 0.20);
 
-    /* Accents por tipo de fundo — família bordeaux */
-    --accent-fidc: #6B1A2A;   /* cinnammon */
-    --accent-fii:  #9B3550;   /* wine/rosé */
-    --accent-fip:  #3D1525;   /* bordeaux profundo */
+    /* Accents por tipo de fundo — Amarelo, Verde, Azul */
+    --accent-fidc: #f59e0b;   /* amarelo/âmbar */
+    --accent-fii:  #10b981;   /* verde */
+    --accent-fip:  #3b82f6;   /* azul */
 
     /* Status */
     --status-active: #10b981;
@@ -696,9 +696,9 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 }
 
 /* Badges de tipo e status */
-.badge-tipo-fidc { background-color: rgba(107,26,42,0.22);   color: #C47080; border: 1px solid rgba(107,26,42,0.35); }
-.badge-tipo-fii  { background-color: rgba(155,53,80,0.18);   color: #D08090; border: 1px solid rgba(155,53,80,0.30); }
-.badge-tipo-fip  { background-color: rgba(61,21,37,0.22);    color: #8B5060; border: 1px solid rgba(61,21,37,0.35); }
+.badge-tipo-fidc { background-color: rgba(245,158,11,0.18);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
+.badge-tipo-fii  { background-color: rgba(16,185,129,0.18);  color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
+.badge-tipo-fip  { background-color: rgba(59,130,246,0.18);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
 .badge-ativo     { background-color: rgba(16,185,129,0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .badge-inativo   { background-color: rgba(107,117,133,0.12); color: #8892a0; border: 1px solid rgba(107,117,133,0.25); }
 .badge-tipo-fidc, .badge-tipo-fii, .badge-tipo-fip,
@@ -1445,18 +1445,18 @@ input[type=number] {
     transform: translateY(-5px);
     border-color: rgba(255,255,255,0.11);
 }
-.fundo-card--fidc:hover { box-shadow: 0 14px 44px rgba(107,26,42,0.30), 0 4px 16px rgba(0,0,0,0.45); }
-.fundo-card--fii:hover  { box-shadow: 0 14px 44px rgba(155,53,80,0.25), 0 4px 16px rgba(0,0,0,0.45); }
-.fundo-card--fip:hover  { box-shadow: 0 14px 44px rgba(61,21,37,0.25), 0 4px 16px rgba(0,0,0,0.45); }
+.fundo-card--fidc:hover { box-shadow: 0 14px 44px rgba(245,158,11,0.30), 0 4px 16px rgba(0,0,0,0.45); }
+.fundo-card--fii:hover  { box-shadow: 0 14px 44px rgba(16,185,129,0.30), 0 4px 16px rgba(0,0,0,0.45); }
+.fundo-card--fip:hover  { box-shadow: 0 14px 44px rgba(59,130,246,0.30), 0 4px 16px rgba(0,0,0,0.45); }
 
 /* Colored top bar per type */
 .fundo-card__topbar {
     height: 3px;
     flex-shrink: 0;
 }
-.fundo-card--fidc .fundo-card__topbar { background: linear-gradient(90deg, #6B1A2A, #C47080); }
-.fundo-card--fii  .fundo-card__topbar { background: linear-gradient(90deg, #9B3550, #D08090); }
-.fundo-card--fip  .fundo-card__topbar { background: linear-gradient(90deg, #3D1525, #8B5060); }
+.fundo-card--fidc .fundo-card__topbar { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.fundo-card--fii  .fundo-card__topbar { background: linear-gradient(90deg, #059669, #6ee7b7); }
+.fundo-card--fip  .fundo-card__topbar { background: linear-gradient(90deg, #2563eb, #93c5fd); }
 
 .fundo-card__header {
     padding: 1rem 1.25rem 0.5rem;
@@ -1589,16 +1589,16 @@ input[type=number] {
     color: #F8F5F0;
 }
 .funds-tab-nav .nav-link.funds-tab--fidc.active {
-    border-bottom-color: #6B1A2A;
-    color: #C47080;
+    border-bottom-color: #f59e0b;
+    color: #fbbf24;
 }
 .funds-tab-nav .nav-link.funds-tab--fii.active  {
-    border-bottom-color: #9B3550;
-    color: #D08090;
+    border-bottom-color: #10b981;
+    color: #6ee7b7;
 }
 .funds-tab-nav .nav-link.funds-tab--fip.active  {
-    border-bottom-color: #3D1525;
-    color: #8B5060;
+    border-bottom-color: #3b82f6;
+    color: #93c5fd;
 }
 
 /* Tab count badges */
@@ -1616,25 +1616,25 @@ input[type=number] {
     letter-spacing: 0;
 }
 .tab-badge--todos { background: rgba(136,146,160,0.18); color: #8892a0; }
-.tab-badge--fidc  { background: rgba(107,26,42,0.20);   color: #C47080; }
-.tab-badge--fii   { background: rgba(155,53,80,0.18);   color: #D08090; }
-.tab-badge--fip   { background: rgba(61,21,37,0.20);    color: #8B5060; }
+.tab-badge--fidc  { background: rgba(245,158,11,0.18);  color: #fbbf24; }
+.tab-badge--fii   { background: rgba(16,185,129,0.18);  color: #6ee7b7; }
+.tab-badge--fip   { background: rgba(59,130,246,0.18);  color: #93c5fd; }
 
 /* Empty state variants per type */
 .empty-state-modern--fidc .empty-state-modern__icon-wrap {
-    background: linear-gradient(135deg, rgba(107,26,42,0.18), rgba(107,26,42,0.05));
-    border-color: rgba(107,26,42,0.25);
-    color: #C47080;
+    background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.05));
+    border-color: rgba(245,158,11,0.25);
+    color: #fbbf24;
 }
 .empty-state-modern--fii .empty-state-modern__icon-wrap {
-    background: linear-gradient(135deg, rgba(155,53,80,0.18), rgba(155,53,80,0.05));
-    border-color: rgba(155,53,80,0.25);
-    color: #D08090;
+    background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.05));
+    border-color: rgba(16,185,129,0.25);
+    color: #6ee7b7;
 }
 .empty-state-modern--fip .empty-state-modern__icon-wrap {
-    background: linear-gradient(135deg, rgba(61,21,37,0.20), rgba(61,21,37,0.06));
-    border-color: rgba(61,21,37,0.28);
-    color: #8B5060;
+    background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.06));
+    border-color: rgba(59,130,246,0.25);
+    color: #93c5fd;
 }
 
 /* ================================
