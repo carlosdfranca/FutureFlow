@@ -64,7 +64,7 @@ body {
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    height: 60px;
+    height: 72px;
     display: flex;
     align-items: center;
     margin-bottom: 0;
@@ -98,7 +98,7 @@ body {
 
 /* Logo images — dark/light switching */
 .site-nav__logo {
-    height: 28px;
+    height: 34px;
     width: auto;
     display: block;
     object-fit: contain;
@@ -189,7 +189,7 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     align-items: center;
     gap: 0.3rem;
     padding: 0.35rem 0.7rem;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-decoration: none;

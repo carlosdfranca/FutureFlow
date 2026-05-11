@@ -62,7 +62,7 @@
                 <ul class="site-nav__menu">
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'lastro' %}is-active{% endif %}" href="{% url 'lastro' %}">Lastro &amp; Cessões</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'operacoes' %}is-active{% endif %}" href="{% url 'operacoes' %}">Operações</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'risco' %}is-active{% endif %}" href="{% url 'risco' %}">Risco</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'conformidade' %}is-active{% endif %}" href="{% url 'conformidade' %}">Conformidade</a></li>

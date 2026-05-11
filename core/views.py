@@ -26,8 +26,8 @@ def home(request):
 def limites(request):
     return render(request, "limites.html")
 
-def lastro(request):
-    return render(request, "lastro.html")
+def operacoes(request):
+    return render(request, "operacoes.html")
 
 def risco(request):
     return render(request, "risco.html")
