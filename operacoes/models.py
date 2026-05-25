@@ -142,6 +142,8 @@ class Titulo(models.Model):
     numero_titulo = models.CharField(max_length=100, db_index=True)
     sacado_nome = models.CharField(max_length=200)
     sacado_cpf_cnpj = models.CharField(max_length=18, db_index=True)
+    sacado_endereco = models.CharField(max_length=200, blank=True, default='')
+    sacado_cep = models.CharField(max_length=8, blank=True, default='')
     
     # Valores
     valor_nominal = models.DecimalField(max_digits=16, decimal_places=2)
@@ -195,6 +197,14 @@ class Titulo(models.Model):
             ('H', 'H - > 360 dias'),
         ],
         default='AA'
+    )
+    
+    # Rastreabilidade NF-e
+    chave_nfe = models.CharField(
+        max_length=44,
+        blank=True,
+        default='',
+        help_text='Chave de acesso da NF-e (44 dígitos)'
     )
     
     # Auditoria

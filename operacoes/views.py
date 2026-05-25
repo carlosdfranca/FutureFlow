@@ -58,18 +58,26 @@ def workflow_cessao(request):
                         "numero_titulo": t.numero_titulo,
                         "sacado_nome": t.sacado_nome,
                         "sacado_cpf_cnpj": t.sacado_doc,
+                        "sacado_endereco": t.sacado_endereco,
+                        "sacado_cep": t.sacado_cep,
                         "valor_nominal": t.valor,
                         "valor_aquisicao": t.valor,  # Mesmo valor por padrão
                         "data_vencimento": t.vencimento_iso,
+                        "chave_nfe": t.chave_nfe,
                     })
                 
                 # Criar formset com dados parseados
                 titulos_formset = TituloFormSet(initial=titulos_iniciais)
                 
                 # Preencher dados do cedente no form de operação
+                from datetime import date
                 inicial_operacao = {
-                    'cedente_cnpj': getattr(parsed, 'emitente_cnpj', ''),
-                    'cedente_nome': getattr(parsed, 'emitente_razao_social', ''),
+                    'cedente_cnpj': parsed.partes.cedente_doc,
+                    'cedente_nome': parsed.partes.cedente_nome,
+                    'cedente_endereco': getattr(parsed.partes, 'cedente_endereco', ''),
+                    'numero_contrato': f"NF-{parsed.partes.numero_nota}" if parsed.partes.numero_nota else "",
+                    'data_contrato': date.today(),
+                    'data_aquisicao': date.today(),
                 }
                 cessao_form = CessaoOperacaoForm(initial=inicial_operacao)
                 

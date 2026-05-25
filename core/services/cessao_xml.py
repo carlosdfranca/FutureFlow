@@ -140,6 +140,9 @@ class TituloCessao:
     vencimento_iso: str  # "YYYY-MM-DD"
     tipo_credito: str = "Duplicata"
     numero_titulo: str = ""  # opcional
+    sacado_endereco: str = ""  # Endereço do sacado (destinatário)
+    sacado_cep: str = ""  # CEP do sacado
+    chave_nfe: str = ""  # Chave de acesso da NF-e (44 dígitos)
 
 
 @dataclass(frozen=True)
@@ -150,6 +153,7 @@ class PartesCessao:
     sacado_doc: str  # CPF/CNPJ apenas dígitos
     numero_nota: str = ""     # nNF
     data_emissao_iso: str = ""  # dhEmi / dEmi
+    cedente_endereco: str = ""  # Endereço completo do emitente
 
 
 @dataclass(frozen=True)
@@ -195,11 +199,54 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
 
     cedente_nome = _safe_find_text(emit, "xNome", ns)
     cedente_cnpj = _digits(_safe_find_text(emit, "CNPJ", ns))
+    
+    # Extrair endereço do emitente
+    cedente_endereco = ""
+    ender_emit = _safe_find(emit, "enderEmit", ns)
+    if ender_emit is not None:
+        partes_endereco = []
+        lgr = _safe_find_text(ender_emit, "xLgr", ns)
+        nro = _safe_find_text(ender_emit, "nro", ns)
+        compl = _safe_find_text(ender_emit, "xCpl", ns)
+        bairro = _safe_find_text(ender_emit, "xBairro", ns)
+        mun = _safe_find_text(ender_emit, "xMun", ns)
+        uf = _safe_find_text(ender_emit, "UF", ns)
+        cep = _safe_find_text(ender_emit, "CEP", ns)
+        
+        if lgr:
+            partes_endereco.append(lgr)
+        if nro:
+            partes_endereco.append(f"nº {nro}")
+        if compl:
+            partes_endereco.append(compl)
+        if bairro:
+            partes_endereco.append(bairro)
+        if mun:
+            partes_endereco.append(f"{mun}/{uf}" if uf else mun)
+        if cep:
+            partes_endereco.append(f"CEP: {cep}")
+        
+        cedente_endereco = ", ".join(partes_endereco)
 
     sacado_nome = _safe_find_text(dest, "xNome", ns)
     # Tenta CNPJ primeiro, depois CPF
     sacado_doc = (_digits(_safe_find_text(dest, "CNPJ", ns)) or 
                   _digits(_safe_find_text(dest, "CPF", ns)))
+    
+    # Extrair endereço do SACADO (destinatário)
+    sacado_endereco = ""
+    sacado_cep = ""
+    ender_dest = _safe_find(dest, "enderDest", ns)
+    if ender_dest is not None:
+        lgr = _safe_find_text(ender_dest, "xLgr", ns)
+        nro = _safe_find_text(ender_dest, "nro", ns)
+        
+        if lgr:
+            sacado_endereco = lgr
+            if nro and nro.upper() != "S/N":
+                sacado_endereco += f" {nro}"
+        
+        sacado_cep = _digits(_safe_find_text(ender_dest, "CEP", ns))
 
     numero_nota = ""
     data_emissao = ""
@@ -209,6 +256,18 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
         data_emissao = (_safe_find_text(ide, "dhEmi", ns) or 
                        _safe_find_text(ide, "dEmi", ns))
         data_emissao = data_emissao.strip()
+    
+    # Extrair chave da NF-e (pode estar em infNFe/@Id ou infProt/chNFe)
+    chave_nfe = ""
+    # Primeiro tenta no infProt (mais confiável)
+    inf_prot = root.find(".//infProt", ns) or root.find(".//{{*}}infProt")
+    if inf_prot is not None:
+        chave_nfe = _safe_find_text(inf_prot, "chNFe", ns)
+    # Se não encontrou, tenta extrair do atributo Id do infNFe
+    if not chave_nfe and infnfe is not None:
+        id_attr = infnfe.get("Id", "")
+        if id_attr.startswith("NFe"):
+            chave_nfe = id_attr[3:]  # Remove 'NFe' do início
 
     # Total por produtos (fallback)
     # somar det/prod/vProd
@@ -243,6 +302,9 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                     vencimento_iso=d_venc,  # geralmente já vem YYYY-MM-DD
                     tipo_credito="Duplicata",
                     numero_titulo=n_dup or numero_nota,
+                    sacado_endereco=sacado_endereco,
+                    sacado_cep=sacado_cep,
+                    chave_nfe=chave_nfe,
                 )
             )
 
@@ -257,6 +319,9 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                 vencimento_iso=first.vencimento_iso,
                 tipo_credito=first.tipo_credito,
                 numero_titulo=first.numero_titulo,
+                sacado_endereco=first.sacado_endereco,
+                sacado_cep=first.sacado_cep,
+                chave_nfe=first.chave_nfe,
             )
 
     else:
@@ -270,6 +335,9 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                 vencimento_iso="",
                 tipo_credito="Duplicata",
                 numero_titulo=numero_nota,
+                sacado_endereco=sacado_endereco,
+                sacado_cep=sacado_cep,
+                chave_nfe=chave_nfe,
             )
         )
 
@@ -282,6 +350,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
         sacado_doc=sacado_doc,
         numero_nota=numero_nota,
         data_emissao_iso=data_emissao,
+        cedente_endereco=cedente_endereco,
     )
 
     return ParseResult(partes=partes, titulos=titulos, total=total)

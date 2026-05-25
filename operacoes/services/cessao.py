@@ -61,13 +61,16 @@ def processar_cessao(
             numero_titulo=titulo_data['numero_titulo'],
             sacado_nome=titulo_data['sacado_nome'],
             sacado_cpf_cnpj=titulo_data['sacado_cpf_cnpj'],
+            sacado_endereco=titulo_data.get('sacado_endereco', ''),
+            sacado_cep=titulo_data.get('sacado_cep', ''),
             valor_nominal=titulo_data['valor_nominal'],
             valor_aquisicao=titulo_data['valor_aquisicao'],
             data_emissao=titulo_data.get('data_emissao', operacao.data_aquisicao),
             data_vencimento=titulo_data['data_vencimento'],
             saldo_devedor=titulo_data['valor_nominal'],
             ativo=True,
-            classificacao_risco='AA'  # Inicialmente AA
+            classificacao_risco='AA',  # Inicialmente AA
+            chave_nfe=titulo_data.get('chave_nfe', '')
         )
         
         # Evento de AQUISICAO

@@ -103,6 +103,26 @@ class TituloForm(forms.Form):
         })
     )
     
+    sacado_endereco = forms.CharField(
+        max_length=200,
+        required=False,
+        label="Endereço do Sacado",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Logradouro, número"
+        })
+    )
+    
+    sacado_cep = forms.CharField(
+        max_length=8,
+        required=False,
+        label="CEP do Sacado",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "00000000"
+        })
+    )
+    
     valor_nominal = forms.DecimalField(
         max_digits=16,
         decimal_places=2,
@@ -128,6 +148,16 @@ class TituloForm(forms.Form):
         widget=forms.DateInput(attrs={
             "type": "date",
             "class": "form-control"
+        })
+    )
+    
+    chave_nfe = forms.CharField(
+        max_length=44,
+        required=False,
+        label="Chave NF-e",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "44 dígitos"
         })
     )
 
