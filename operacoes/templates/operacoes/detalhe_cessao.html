@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ operacao.numero_contrato }} - Detalhes{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-file-earmark-text me-2"></i>{{ operacao.numero_contrato }}</h2>
+            <p class="text-muted">Operação de Cessão</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'operacoes:gerar_termo_cessao' operacao.pk %}" class="btn btn-primary">
+                <i class="bi bi-file-word me-2"></i>Gerar Termo
+            </a>
+            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Dados da Operação -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Dados da Operação</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Fundo:</th>
+                            <td>{{ operacao.fundo.nome }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nº Contrato:</th>
+                            <td>{{ operacao.numero_contrato }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data Contrato:</th>
+                            <td>{{ operacao.data_contrato|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data Aquisição:</th>
+                            <td>{{ operacao.data_aquisicao|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if operacao.status == 'CONFIRMADA' %}
+                                    <span class="badge bg-success">Confirmada</span>
+                                {% elif operacao.status == 'RASCUNHO' %}
+                                    <span class="badge bg-warning text-dark">Rascunho</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Cancelada</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Cedente</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">CNPJ:</th>
+                            <td>{{ operacao.cedente_cnpj }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nome:</th>
+                            <td>{{ operacao.cedente_nome }}</td>
+                        </tr>
+                        {% if operacao.cedente_endereco %}
+                        <tr>
+                            <th>Endereço:</th>
+                            <td>{{ operacao.cedente_endereco }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumo Financeiro -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Quantidade de Títulos</h6>
+                    <h3 class="text-primary">{{ titulos.count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Valor Total Nominal</h6>
+                    <h3 class="text-success">R$ {{ operacao.valor_total_nominal|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Valor Total Aquisição</h6>
+                    <h3 class="text-info">R$ {{ operacao.valor_total_aquisicao|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Títulos -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Títulos ({{ titulos.count }})</h5>
+        </div>
+        <div class="card-body">
+            {% if titulos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Sacado</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Vencimento</th>
+                                <th>Valor Nominal</th>
+                                <th>Saldo Devedor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for titulo in titulos %}
+                                <tr>
+                                    <td><strong>{{ titulo.numero_titulo }}</strong></td>
+                                    <td>{{ titulo.sacado_nome }}</td>
+                                    <td>{{ titulo.sacado_cpf_cnpj }}</td>
+                                    <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                                    <td>R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
+                                    <td>R$ {{ titulo.saldo_devedor|floatformat:2 }}</td>
+                                    <td>
+                                        {% if titulo.ativo %}
+                                            <span class="badge bg-success">Ativo</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Baixado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">Nenhum título cadastrado.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if operacao.observacoes %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6 class="mb-0">Observações</h6>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">{{ operacao.observacoes }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

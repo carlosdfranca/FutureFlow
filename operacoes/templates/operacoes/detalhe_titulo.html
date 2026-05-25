@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo.numero_titulo }} - Detalhes{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-file-text me-2"></i>{{ titulo.numero_titulo }}</h2>
+            <p class="text-muted">Título / Recebível</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'operacoes:listar_titulos' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informações do Título</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Número:</th>
+                            <td>{{ titulo.numero_titulo }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fundo:</th>
+                            <td>{{ titulo.fundo.nome }}</td>
+                        </tr>
+                        <tr>
+                            <th>Operação:</th>
+                            <td>
+                                <a href="{% url 'operacoes:detalhe_cessao' titulo.operacao_cessao.pk %}">
+                                    {{ titulo.operacao_cessao.numero_contrato }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Data Emissão:</th>
+                            <td>{{ titulo.data_emissao|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Data Vencimento:</th>
+                            <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if titulo.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Baixado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Sacado</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Nome:</th>
+                            <td>{{ titulo.sacado_nome }}</td>
+                        </tr>
+                        <tr>
+                            <th>CPF/CNPJ:</th>
+                            <td>{{ titulo.sacado_cpf_cnpj }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Valores</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Valor Nominal:</th>
+                            <td><strong>R$ {{ titulo.valor_nominal|floatformat:2 }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Valor Aquisição:</th>
+                            <td>R$ {{ titulo.valor_aquisicao|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Saldo Devedor:</th>
+                            <td><strong>R$ {{ titulo.saldo_devedor|floatformat:2 }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Risco e PDD</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Classificação:</th>
+                            <td><span class="badge bg-info">{{ titulo.classificacao_risco }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>PDD (%):</th>
+                            <td>{{ titulo.percentual_pdd }}%</td>
+                        </tr>
+                        <tr>
+                            <th>PDD (R$):</th>
+                            <td>R$ {{ titulo.valor_pdd|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Eventos -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Histórico de Eventos</h5>
+        </div>
+        <div class="card-body">
+            {% if eventos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Descrição</th>
+                                <th>Responsável</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in eventos %}
+                                <tr>
+                                    <td>{{ evento.data_evento|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ evento.get_tipo_evento_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if evento.valor_evento %}
+                                            R$ {{ evento.valor_evento|floatformat:2 }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ evento.descricao|default:"-" }}</td>
+                                    <td>{{ evento.usuario_responsavel|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">Nenhum evento registrado.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

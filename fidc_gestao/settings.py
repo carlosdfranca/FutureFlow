@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'core',
     'usuarios',
     'fundos',
+    'operacoes',
 ]
 
 MIDDLEWARE = [

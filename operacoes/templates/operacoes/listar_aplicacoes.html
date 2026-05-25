@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Aplicações{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-graph-up-arrow me-2"></i>Aplicações em Ativos</h2>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'operacoes:nova_aplicacao' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="TESOURO">Tesouro Direto</option>
+                        <option value="COTA_FUNDO">Cota de Fundo</option>
+                        <option value="COMPROMISSADA">Compromissada</option>
+                        <option value="OUTROS">Outros</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-search me-2"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo por Tipo -->
+    {% if aplicacoes %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Aplicado</h6>
+                    <h4 class="text-success">
+                        R$ {% widthratio aplicacoes|length 1 1 as total %}
+                        {{ aplicacoes|length }}
+                    </h4>
+                    <small class="text-muted">{{ aplicacoes|length }} aplicações</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabela -->
+    <div class="card">
+        <div class="card-body">
+            {% if aplicacoes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th>Fundo</th>
+                                <th>Valor</th>
+                                <th>Criado Por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in aplicacoes %}
+                                <tr>
+                                    <td>{{ app.data_aplicacao|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if app.tipo_aplicacao == 'TESOURO' %}
+                                            <span class="badge bg-success">{{ app.get_tipo_aplicacao_display }}</span>
+                                        {% elif app.tipo_aplicacao == 'COTA_FUNDO' %}
+                                            <span class="badge bg-primary">{{ app.get_tipo_aplicacao_display }}</span>
+                                        {% elif app.tipo_aplicacao == 'COMPROMISSADA' %}
+                                            <span class="badge bg-info">{{ app.get_tipo_aplicacao_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ app.get_tipo_aplicacao_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ app.descricao }}</strong></td>
+                                    <td>{{ app.fundo.nome }}</td>
+                                    <td><strong>R$ {{ app.valor|floatformat:2 }}</strong></td>
+                                    <td>{{ app.criado_por.get_full_name|default:app.criado_por.username }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Nenhuma aplicação encontrada. 
+                    <a href="{% url 'operacoes:nova_aplicacao' %}">Registrar primeira aplicação</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

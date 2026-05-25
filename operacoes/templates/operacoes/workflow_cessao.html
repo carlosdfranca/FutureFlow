@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nova Cessão - Operações{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-file-earmark-text me-2"></i>Nova Operação de Cessão</h2>
+            <p class="text-muted">Importe XML ou cadastre títulos manualmente</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="cessaoForm">
+        {% csrf_token %}
+
+        <!-- Etapa 1: Upload XML (opcional) -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-up me-2"></i>Etapa 1: Importar XML (Opcional)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="file" name="xml_file" accept=".xml" class="form-control">
+                        <small class="text-muted">Selecione um arquivo XML de NF-e para importar títulos automaticamente</small>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" name="acao" value="parse_xml" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-down-circle me-2"></i>Importar XML
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Etapa 2: Dados da Operação -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Etapa 2: Dados da Operação</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        {{ cessao_form.fundo.label_tag }}
+                        {{ cessao_form.fundo }}
+                        {% if cessao_form.fundo.errors %}
+                            <div class="text-danger">{{ cessao_form.fundo.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.numero_contrato.label_tag }}
+                        {{ cessao_form.numero_contrato }}
+                        {% if cessao_form.numero_contrato.errors %}
+                            <div class="text-danger">{{ cessao_form.numero_contrato.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.data_contrato.label_tag }}
+                        {{ cessao_form.data_contrato }}
+                        {% if cessao_form.data_contrato.errors %}
+                            <div class="text-danger">{{ cessao_form.data_contrato.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.data_aquisicao.label_tag }}
+                        {{ cessao_form.data_aquisicao }}
+                        {% if cessao_form.data_aquisicao.errors %}
+                            <div class="text-danger">{{ cessao_form.data_aquisicao.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="mb-3">Dados do Cedente</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        {{ cessao_form.cedente_cnpj.label_tag }}
+                        {{ cessao_form.cedente_cnpj }}
+                        {% if cessao_form.cedente_cnpj.errors %}
+                            <div class="text-danger">{{ cessao_form.cedente_cnpj.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        {{ cessao_form.cedente_nome.label_tag }}
+                        {{ cessao_form.cedente_nome }}
+                        {% if cessao_form.cedente_nome.errors %}
+                            <div class="text-danger">{{ cessao_form.cedente_nome.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        {{ cessao_form.cedente_endereco.label_tag }}
+                        {{ cessao_form.cedente_endereco }}
+                    </div>
+                    <div class="col-12">
+                        {{ cessao_form.observacoes.label_tag }}
+                        {{ cessao_form.observacoes }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Etapa 3: Títulos -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Etapa 3: Títulos</h5>
+            </div>
+            <div class="card-body">
+                {{ titulos_formset.management_form }}
+                
+                <div id="titulos-container">
+                    {% for form in titulos_formset %}
+                        <div class="titulo-form border rounded p-3 mb-3 bg-light">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    {{ form.numero_titulo.label_tag }}
+                                    {{ form.numero_titulo }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.sacado_nome.label_tag }}
+                                    {{ form.sacado_nome }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.sacado_cpf_cnpj.label_tag }}
+                                    {{ form.sacado_cpf_cnpj }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.valor_nominal.label_tag }}
+                                    {{ form.valor_nominal }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.valor_aquisicao.label_tag }}
+                                    {{ form.valor_aquisicao }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ form.data_vencimento.label_tag }}
+                                    {{ form.data_vencimento }}
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    {{ form.DELETE }}
+                                    <label class="form-check-label ms-2">Remover</label>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn btn-outline-success" id="addTituloBtn">
+                    <i class="bi bi-plus-circle me-2"></i>Adicionar Título
+                </button>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'operacoes:listar_cessoes' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" name="acao" value="confirmar" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>Confirmar e Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Adicionar nova linha de título dinamicamente
+document.getElementById('addTituloBtn').addEventListener('click', function() {
+    const container = document.getElementById('titulos-container');
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const formNum = parseInt(totalForms.value);
+    
+    // Clone do primeiro formulário como template
+    const newForm = container.children[0].cloneNode(true);
+    
+    // Atualizar IDs e names
+    newForm.innerHTML = newForm.innerHTML.replace(/form-0-/g, `form-${formNum}-`);
+    
+    // Limpar valores
+    newForm.querySelectorAll('input').forEach(input => {
+        if (input.type !== 'checkbox') input.value = '';
+    });
+    
+    container.appendChild(newForm);
+    totalForms.value = formNum + 1;
+});
+</script>
+{% endblock %}

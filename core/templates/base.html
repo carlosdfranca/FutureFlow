@@ -62,7 +62,25 @@
                 <ul class="site-nav__menu">
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'operacoes' %}is-active{% endif %}" href="{% url 'operacoes' %}">Operações</a></li>
+                    
+                    <!-- Operações dropdown -->
+                    <li class="site-nav__dropdown-wrap">
+                        <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'operacoes' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i>Operações
+                            <i class="bi bi-chevron-down site-nav__chevron"></i>
+                        </a>
+                        <ul class="site-nav__dropdown dropdown-menu">
+                            <li class="dropdown-header">Cessões</li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:listar_cessoes' %}"><i class="bi bi-list-ul"></i>Ver Cessões</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:workflow_cessao' %}"><i class="bi bi-plus-lg"></i>Nova Cessão</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:listar_titulos' %}"><i class="bi bi-file-text"></i>Títulos</a></li>
+                            <li class="site-nav__dropdown-divider"></li>
+                            <li class="dropdown-header">Aplicações</li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:listar_aplicacoes' %}"><i class="bi bi-graph-up-arrow"></i>Ver Aplicações</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
+                        </ul>
+                    </li>
+                    
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'risco' %}is-active{% endif %}" href="{% url 'risco' %}">Risco</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'conformidade' %}is-active{% endif %}" href="{% url 'conformidade' %}">Conformidade</a></li>

@@ -9,6 +9,7 @@ urlpatterns = [
     path("usuarios/", include("usuarios.urls")),             # perfil e futuros endpoints
     path("", include("core.urls")),                          # base da plataforma   
     path('fundos/', include('fundos.urls')),                 # Fundos
+    path('operacoes/', include('operacoes.urls')),           # Operações (Cessões e Aplicações)
 ]
 
 if settings.DEBUG:

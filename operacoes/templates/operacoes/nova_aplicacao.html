@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nova Aplicação{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-graph-up-arrow me-2"></i>Nova Aplicação em Ativo</h2>
+            <p class="text-muted">Registre uma aplicação do fundo em ativo diverso</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Dados da Aplicação</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            {{ form.fundo.label_tag }}
+                            {{ form.fundo }}
+                            {% if form.fundo.errors %}
+                                <div class="text-danger">{{ form.fundo.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.tipo_aplicacao.label_tag }}
+                            {{ form.tipo_aplicacao }}
+                            {% if form.tipo_aplicacao.errors %}
+                                <div class="text-danger">{{ form.tipo_aplicacao.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted d-block mt-1">
+                                Selecione o tipo de ativo onde o fundo está aplicando
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.descricao.label_tag }}
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="text-danger">{{ form.descricao.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted d-block mt-1">
+                                Ex: "Tesouro IPCA+ 2035" ou "CDB Banco XYZ"
+                            </small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.valor.label_tag }}
+                                    {{ form.valor }}
+                                    {% if form.valor.errors %}
+                                        <div class="text-danger">{{ form.valor.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.data_aplicacao.label_tag }}
+                                    {{ form.data_aplicacao }}
+                                    {% if form.data_aplicacao.errors %}
+                                        <div class="text-danger">{{ form.data_aplicacao.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>Salvar Aplicação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Sobre Aplicações</h6>
+                    <p class="small mb-2">
+                        <strong>Aplicações em Ativos</strong> são investimentos que o fundo realiza,
+                        diferentes das aplicações de cotistas no fundo.
+                    </p>
+                    <hr>
+                    <p class="small mb-1"><strong>Tipos disponíveis:</strong></p>
+                    <ul class="small">
+                        <li><strong>Tesouro Direto:</strong> Títulos públicos</li>
+                        <li><strong>Cota de Fundo:</strong> Investimento em outros fundos</li>
+                        <li><strong>Compromissada:</strong> Operações compromissadas</li>
+                        <li><strong>Outros:</strong> Demais ativos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
