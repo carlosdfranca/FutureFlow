@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views_cpv import workflow_cessao_view
+from .views_cessao import workflow_cessao_view
 
 
 urlpatterns = [

@@ -9,6 +9,7 @@ from usuarios.models import *
 import markdown
 import os
 
+@login_required
 def home(request):
     # Caminho do release_notes.md
     release_path = os.path.join(settings.BASE_DIR, "static", "docs", "release_notes.md")
@@ -23,24 +24,31 @@ def home(request):
         "release_notes": release_html
     })
 
+@login_required
 def limites(request):
     return render(request, "limites.html")
 
+@login_required
 def operacoes(request):
     return render(request, "operacoes.html")
 
+@login_required
 def risco(request):
     return render(request, "risco.html")
 
+@login_required
 def relatorios(request):
     return render(request, "relatorios.html")
 
+@login_required
 def conformidade(request):
     return render(request, "conformidade.html")
 
+@login_required
 def integracoes(request):
     return render(request, "integracoes.html")
 
+@login_required
 def workflow_cessao(request):
     return render(request, "workflow_cessao.html")
 

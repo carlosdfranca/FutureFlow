@@ -133,7 +133,7 @@ def _infer_namespace(root: ET.Element) -> dict[str, str]:
 
 
 @dataclass(frozen=True)
-class CpvTitulo:
+class TituloCessao:
     sacado_nome: str
     sacado_doc: str  # CPF/CNPJ apenas dígitos
     valor: Decimal
@@ -143,7 +143,7 @@ class CpvTitulo:
 
 
 @dataclass(frozen=True)
-class CpvPartes:
+class PartesCessao:
     cedente_nome: str
     cedente_doc: str  # CNPJ apenas dígitos
     sacado_nome: str
@@ -153,9 +153,9 @@ class CpvPartes:
 
 
 @dataclass(frozen=True)
-class CpvParseResult:
-    partes: CpvPartes
-    titulos: list[CpvTitulo]
+class ParseResult:
+    partes: PartesCessao
+    titulos: list[TituloCessao]
     total: Decimal
 
 
@@ -163,7 +163,7 @@ class CpvParseResult:
 # Parser principal
 # ============================================================
 
-def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
+def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
     """
     Lê XML NF-e (vários formatos comuns) e extrai:
       - emit/xNome + emit/CNPJ
@@ -226,7 +226,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
     if cobr is not None:
         dup_nodes = _safe_findall(cobr, "dup", ns)
 
-    titulos: list[CpvTitulo] = []
+    titulos: list[TituloCessao] = []
 
     if dup_nodes:
         for dup in dup_nodes:
@@ -236,7 +236,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
             n_dup = _safe_find_text(dup, "nDup", ns)
 
             titulos.append(
-                CpvTitulo(
+                TituloCessao(
                     sacado_nome=sacado_nome,
                     sacado_doc=sacado_doc,
                     valor=v_dup,
@@ -250,7 +250,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
         # Aqui, por simplicidade, se TODOS forem 0 e existir soma_vprod, coloca tudo no primeiro título.
         if soma_vprod > 0 and all(t.valor == 0 for t in titulos):
             first = titulos[0]
-            titulos[0] = CpvTitulo(
+            titulos[0] = TituloCessao(
                 sacado_nome=first.sacado_nome,
                 sacado_doc=first.sacado_doc,
                 valor=soma_vprod,
@@ -263,7 +263,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
         # Sem duplicata no XML: cria 1 título padrão com vencimento vazio.
         # A tela vai permitir editar vencimento/valor.
         titulos.append(
-            CpvTitulo(
+            TituloCessao(
                 sacado_nome=sacado_nome,
                 sacado_doc=sacado_doc,
                 valor=soma_vprod,
@@ -275,7 +275,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
 
     total = sum((t.valor for t in titulos), Decimal("0"))
 
-    partes = CpvPartes(
+    partes = PartesCessao(
         cedente_nome=cedente_nome,
         cedente_doc=cedente_cnpj,
         sacado_nome=sacado_nome,
@@ -284,14 +284,14 @@ def parse_nfe_xml(xml_bytes: bytes) -> CpvParseResult:
         data_emissao_iso=data_emissao,
     )
 
-    return CpvParseResult(partes=partes, titulos=titulos, total=total)
+    return ParseResult(partes=partes, titulos=titulos, total=total)
 
 
 # ============================================================
 # Utilitário opcional para sua view
 # ============================================================
 
-def parse_nfe_uploaded_file(uploaded_file) -> CpvParseResult:
+def parse_nfe_uploaded_file(uploaded_file) -> ParseResult:
     """
     Aceita request.FILES['xml'] (UploadedFile do Django).
     """

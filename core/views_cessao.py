@@ -5,13 +5,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 
-from core.forms_cpv import (
-    CpvCessaoForm,
+from core.forms_cessao import (
+    CessaoForm,
     TituloCessaoFormSet
 )
 
-from core.services.cpv_xml import parse_nfe_uploaded_file
-from core.services.cpv_doc import render_termo_cessao_docx, render_termo_confirmacao_docx
+from core.services.cessao_xml import parse_nfe_uploaded_file
+from core.services.cessao_doc import render_termo_cessao_docx, render_termo_confirmacao_docx
 
 from fundos.models import Recebiveis, Fundo
 
@@ -24,7 +24,7 @@ TEMPLATE_CONFIRMACAO_DOCX = str(settings.BASE_DIR / "doc_templates" / "termo_con
 @login_required
 def workflow_cessao_view(request):
 
-    cessao_form = CpvCessaoForm()
+    cessao_form = CessaoForm()
     titulos_formset = TituloCessaoFormSet()
 
     parsed_info = None
@@ -44,7 +44,7 @@ def workflow_cessao_view(request):
             if not xml_file:
                 messages.error(request, "Selecione um XML.")
                 return render(request, TEMPLATE_HTML, {
-                    "cessao_form": CpvCessaoForm(),
+                    "cessao_form": CessaoForm(),
                     "titulos_formset": TituloCessaoFormSet(),
                 })
 
@@ -64,7 +64,7 @@ def workflow_cessao_view(request):
             titulos_formset = TituloCessaoFormSet(initial=iniciais)
 
             return render(request, TEMPLATE_HTML, {
-                "cessao_form": CpvCessaoForm(),   # vazio — não valida
+                "cessao_form": CessaoForm(),   # vazio — não valida
                 "titulos_formset": titulos_formset,
             })
 
@@ -82,7 +82,7 @@ def workflow_cessao_view(request):
 
             titulos_formset = TituloCessaoFormSet(data)
 
-            cessao_form = CpvCessaoForm(request.POST)
+            cessao_form = CessaoForm(request.POST)
 
         # =====================================================
         # GERAR — salvar + docx
@@ -90,7 +90,7 @@ def workflow_cessao_view(request):
 
         elif acao == "gerar":
 
-            cessao_form = CpvCessaoForm(request.POST)
+            cessao_form = CessaoForm(request.POST)
             titulos_formset = TituloCessaoFormSet(request.POST)
 
             if not (cessao_form.is_valid() and titulos_formset.is_valid()):
@@ -172,7 +172,7 @@ def workflow_cessao_view(request):
 
         elif acao == "gerar_confirmacao":
 
-            cessao_form = CpvCessaoForm(request.POST)
+            cessao_form = CessaoForm(request.POST)
             titulos_formset = TituloCessaoFormSet(request.POST)
 
             if not (cessao_form.is_valid() and titulos_formset.is_valid()):

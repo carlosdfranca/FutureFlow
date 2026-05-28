@@ -3,10 +3,10 @@ from decimal import Decimal
 from fundos.models import Fundo
 
 # =====================================================
-# FORM — OPERAÇÃO CPV (dados gerais)
+# FORM — OPERAÇÃO DE CESSÃO (dados gerais)
 # =====================================================
 
-class CpvOperacaoForm(forms.Form):
+class CessaoOperacaoForm(forms.Form):
 
     xml_file = forms.FileField(
         label="XML da NF-e",
@@ -138,7 +138,7 @@ TituloCessaoFormSet = forms.formset_factory(
 )
 
 
-class CpvCessaoForm(forms.Form):
+class CessaoForm(forms.Form):
 
     data_aquisicao = forms.DateField(
         widget=forms.DateInput(attrs={
