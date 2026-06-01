@@ -1,0 +1,348 @@
+/* ================================
+   Cinnamon Enterprise Design System
+   Components — Badges & Pills
+================================ */
+
+/* === BASE BADGE === */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    line-height: var(--line-height-snug);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Dot indicator */
+.badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.badge--no-dot::before {
+    display: none;
+}
+
+/* === SUCCESS BADGE === */
+.badge-success {
+    background: rgba(32, 93, 45, 0.12);  /* Success-700 com transparência */
+    color: #205D2D;  /* Success-700 institucional */
+}
+
+/* === WARNING BADGE === */
+.badge-warning {
+    background: rgba(136, 105, 20, 0.12);  /* Warning-700 com transparência */
+    color: #886914;  /* Warning-700 institucional */
+}
+
+/* === ERROR BADGE === */
+.badge-error,
+.badge-danger {
+    background: rgba(125, 31, 31, 0.12);  /* Error-700 com transparência */
+    color: #7D1F1F;  /* Error-700 institucional */
+}
+
+/* === INFO BADGE === */
+.badge-info {
+    background: rgba(31, 77, 125, 0.12);  /* Info-700 com transparência */
+    color: #1F4D7D;  /* Info-700 institucional */
+}
+
+/* === NEUTRAL BADGE === */
+.badge-neutral,
+.badge-secondary {
+    background: var(--color-neutral-bg);
+    color: var(--color-neutral);
+}
+
+/* === PRIMARY BADGE === */
+.badge-primary {
+    background: var(--accent-primary-subtle);
+    color: var(--accent-primary);
+}
+
+/* === STATUS BADGES === */
+.badge-active {
+    background: rgba(32, 93, 45, 0.12);  /* Success-700 */
+    color: #205D2D;
+}
+
+.badge-inactive {
+    background: var(--color-neutral-bg);
+    color: var(--color-neutral);
+}
+
+.badge-pending {
+    background: rgba(136, 105, 20, 0.12);  /* Warning-700 */
+    color: #886914;
+}
+
+/* === FUND TYPE BADGES === */
+.badge-fidc {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--fidc-color);
+}
+
+.badge-fii {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--fii-color);
+}
+
+.badge-fip {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--fip-color);
+}
+
+/* === FILE TYPE BADGES === */
+.badge-pdf {
+    background: rgba(125, 31, 31, 0.12);  /* Error-700 institucional */
+    color: #7D1F1F;
+}
+
+.badge-csv {
+    background: rgba(32, 93, 45, 0.12);  /* Success-700 institucional */
+    color: #205D2D;
+}
+
+.badge-zip {
+    background: rgba(31, 77, 125, 0.12);  /* Info-700 institucional */
+    color: #1F4D7D;
+}
+
+.badge-excel {
+    background: rgba(32, 93, 45, 0.12);  /* Success-700 institucional */
+    color: #205D2D;
+}
+
+/* === SIZE VARIANTS === */
+.badge-sm,
+.badge-small {
+    padding: 0 var(--space-2);
+    font-size: var(--font-size-xs);
+}
+
+.badge-sm::before,
+.badge-small::before {
+    width: 4px;
+    height: 4px;
+}
+
+.badge-lg,
+.badge-large {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
+}
+
+.badge-lg::before,
+.badge-large::before {
+    width: 8px;
+    height: 8px;
+}
+
+/* === OUTLINE VARIANT === */
+.badge-outline {
+    background: transparent;
+    border: var(--border-width-thin) solid currentColor;
+}
+
+/* === SOLID VARIANT (no dot, solid color) === */
+.badge-solid {
+    font-weight: var(--font-weight-bold);
+}
+
+.badge-solid::before {
+    display: none;
+}
+
+.badge-solid.badge-success {
+    background: var(--color-success);
+    color: white;
+}
+
+.badge-solid.badge-warning {
+    background: var(--color-warning);
+    color: white;
+}
+
+.badge-solid.badge-error,
+.badge-solid.badge-danger {
+    background: var(--color-error);
+    color: white;
+}
+
+.badge-solid.badge-info {
+    background: var(--color-info);
+    color: white;
+}
+
+.badge-solid.badge-primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+/* === PILL (como badge mas sem dot, mais largo) === */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+}
+
+.pill-primary {
+    background: var(--accent-primary-subtle);
+    color: var(--accent-primary);
+}
+
+.pill-secondary {
+    background: var(--color-neutral-bg);
+    color: var(--text-secondary);
+}
+
+/* === COUNT BADGE (for notifications) === */
+.badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+.badge-count::before {
+    display: none;
+}
+
+.badge-count-sm {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+}
+
+/* === TAB BADGE (usado em tabs para contadores) === */
+.tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--surface-raised);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    margin-left: var(--space-2);
+}
+
+.tab-badge--todos {
+    background: var(--slate-200);
+    color: var(--slate-600);
+}
+
+.tab-badge--fidc {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--fidc-color);
+}
+
+.tab-badge--fii {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--fii-color);
+}
+
+.tab-badge--fip {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--fip-color);
+}
+
+/* === RENTABILITY BADGE (up/down arrows) === */
+.rentability-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.rentability-badge::before {
+    display: none;
+}
+
+.rentability-badge--up {
+    color: var(--color-success);
+}
+
+.rentability-badge--up::after {
+    content: "↑";
+    font-size: var(--font-size-base);
+}
+
+.rentability-badge--down {
+    color: var(--color-error);
+}
+
+.rentability-badge--down::after {
+    content: "↓";
+    font-size: var(--font-size-base);
+}
+
+.rentability-badge--neutral {
+    color: var(--text-tertiary);
+}
+
+.rentability-badge--neutral::after {
+    content: "→";
+    font-size: var(--font-size-base);
+}
+
+/* === BADGE GROUP === */
+.badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* === INTERACTIVE BADGE (clickable/hoverable) === */
+.badge-interactive {
+    cursor: pointer;
+    transition: var(--transition-all);
+}
+
+.badge-interactive:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .badge {
+        font-size: var(--font-size-xs);
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .badge::before {
+        width: 5px;
+        height: 5px;
+    }
+}

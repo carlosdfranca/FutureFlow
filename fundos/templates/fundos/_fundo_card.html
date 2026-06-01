@@ -4,17 +4,17 @@
     <div class="fundo-card__header">
         <div class="d-flex gap-2 flex-wrap">
             {% if fundo.tipo_fundo == 'FIDC' %}
-                <span class="badge-tipo-fidc">{{ fundo.get_tipo_fundo_display }}</span>
+                <span class="badge badge-fidc badge--no-dot">{{ fundo.get_tipo_fundo_display }}</span>
             {% elif fundo.tipo_fundo == 'FII' %}
-                <span class="badge-tipo-fii">{{ fundo.get_tipo_fundo_display }}</span>
+                <span class="badge badge-fii badge--no-dot">{{ fundo.get_tipo_fundo_display }}</span>
             {% else %}
-                <span class="badge-tipo-fip">{{ fundo.get_tipo_fundo_display }}</span>
+                <span class="badge badge-fip badge--no-dot">{{ fundo.get_tipo_fundo_display }}</span>
             {% endif %}
         </div>
         {% if fundo.ativo %}
-            <span class="badge-ativo">Ativo</span>
+            <span class="badge badge-active">Ativo</span>
         {% else %}
-            <span class="badge-inativo">Inativo</span>
+            <span class="badge badge-inactive">Inativo</span>
         {% endif %}
     </div>
 
@@ -40,11 +40,11 @@
     </div>
 
     <div class="fundo-card__footer">
-        <a href="{% url 'fundos:editar_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-            <i class="bi bi-pencil me-1"></i>Editar
+        <a href="{% url 'fundos:editar_fundo' fundo_id=fundo.id %}" class="btn btn-ghost btn-sm">
+            <i class="bi bi-pencil"></i>Editar
         </a>
-        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds">
-            <i class="bi bi-graph-up-arrow me-1"></i>Informes
+        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-graph-up-arrow"></i>Informes
         </a>
     </div>
 </div>

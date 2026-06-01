@@ -1,0 +1,272 @@
+/* ================================
+   Cinnamon Enterprise Design System
+   Components — Buttons
+================================ */
+
+/* === BASE BUTTON === */
+.btn,
+button.btn,
+a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: var(--radius-md);
+    border: var(--border-width-medium) solid transparent;
+    cursor: pointer;
+    transition: var(--transition-all);
+    user-select: none;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[disabled],
+.btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* === PRIMARY BUTTON === */
+.btn-primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--btn-primary-bg);
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--btn-primary-hover);
+    border-color: var(--btn-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    color: var(--btn-primary-text);
+}
+
+.btn-primary:active:not(:disabled) {
+    background: var(--accent-primary-active);
+    border-color: var(--accent-primary-active);
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+}
+
+/* === SECONDARY BUTTON === */
+.btn-secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--btn-secondary-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--btn-secondary-hover-bg);
+    border-color: var(--border-emphasis);
+    color: var(--text-primary);
+}
+
+.btn-secondary:active:not(:disabled) {
+    background: var(--active-overlay);
+    transform: scale(0.98);
+}
+
+/* === OUTLINE BUTTON === */
+.btn-outline {
+    background: transparent;
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.btn-outline:hover:not(:disabled) {
+    background: var(--accent-primary);
+    color: var(--btn-primary-text);
+    border-color: var(--accent-primary);
+}
+
+.btn-outline:active:not(:disabled) {
+    background: var(--accent-primary-hover);
+    border-color: var(--accent-primary-hover);
+    transform: scale(0.98);
+}
+
+/* === GHOST BUTTON === */
+.btn-ghost {
+    background: transparent;
+    color: var(--accent-primary);
+    border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--btn-ghost-hover-bg);
+    color: var(--accent-primary-hover);
+}
+
+.btn-ghost:active:not(:disabled) {
+    background: var(--accent-primary-subtle);
+    transform: scale(0.96);
+}
+
+/* === DANGER/DESTRUCTIVE BUTTON === */
+.btn-danger {
+    background: var(--color-error);
+    color: var(--ivory-50);
+    border-color: var(--color-error);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--error-700);
+    border-color: var(--error-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-error);
+    color: var(--ivory-50);
+}
+
+.btn-danger:active:not(:disabled) {
+    background: var(--error-600);
+    transform: translateY(0);
+}
+
+/* === SUCCESS BUTTON === */
+.btn-success {
+    background: var(--color-success);
+    color: var(--ivory-50);
+    border-color: var(--color-success);
+}
+
+.btn-success:hover:not(:disabled) {
+    background: var(--success-700);
+    border-color: var(--success-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-success);
+    color: var(--ivory-50);
+}
+
+.btn-success:active:not(:disabled) {
+    background: var(--success-600);
+    transform: translateY(0);
+}
+
+/* === SIZE VARIANTS === */
+.btn-sm,
+.btn-small {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+    gap: var(--space-1);
+}
+
+.btn-lg,
+.btn-large {
+    padding: var(--space-4) var(--space-6);
+    font-size: var(--font-size-md);
+    gap: var(--space-3);
+}
+
+/* === FULL WIDTH === */
+.btn-block,
+.btn-full {
+    width: 100%;
+}
+
+/* === ICON BUTTONS === */
+.btn-icon {
+    padding: var(--space-3);
+    aspect-ratio: 1;
+    width: auto;
+    min-width: auto;
+}
+
+.btn-icon.btn-sm {
+    padding: var(--space-2);
+}
+
+.btn-icon.btn-lg {
+    padding: var(--space-4);
+}
+
+/* === BUTTON GROUP === */
+.btn-group {
+    display: inline-flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.btn-group .btn {
+    flex-shrink: 0;
+}
+
+/* === LOADING STATE === */
+.btn.is-loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.btn.is-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* === BOOTSTRAP OVERRIDE === */
+/* Garante que os novos estilos sobrescrevem o Bootstrap quando ambos são usados */
+.btn-primary-ds,
+.btn.btn-primary-ds {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--btn-primary-bg);
+}
+
+.btn-primary-ds:hover:not(:disabled),
+.btn.btn-primary-ds:hover:not(:disabled) {
+    background: var(--btn-primary-hover);
+    border-color: var(--btn-primary-hover);
+    color: var(--btn-primary-text);
+}
+
+/* === LINK AS BUTTON === */
+a.btn {
+    text-decoration: none;
+}
+
+a.btn:hover {
+    text-decoration: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .btn {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-size-sm);
+    }
+    
+    .btn-lg {
+        padding: var(--space-3) var(--space-5);
+        font-size: var(--font-size-base);
+    }
+}

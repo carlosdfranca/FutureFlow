@@ -1,0 +1,2950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cinnamon — Enterprise Brand System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* === PALETA EXPANDIDA === */
+    /* Primárias — baseadas na identidade original */
+    --cinnamon-900: #4A0F1C;        /* Fondant — fundos escuros premium */
+    --cinnamon-800: #5D1524;        /* Variação intermediária */
+    --cinnamon-700: #6B1A2A;        /* Cinnamon original — principal */
+    --cinnamon-600: #7D2234;        /* Hover states */
+    --cinnamon-500: #92293E;        /* Active lighter */
+    --cinnamon-400: #A8364D;        /* Accent softer */
+    --cinnamon-200: #D47A8F;        /* Backgrounds sutis */
+    --cinnamon-100: #F5E8EC;        /* Surface tint */
+
+    /* Neutros Premium — expandidos */
+    --obsidian-950: #0A0A0B;        /* True black */
+    --obsidian-900: #1C1C1E;        /* Original — texto principal */
+    --obsidian-800: #2C2C2F;        /* Superfícies elevadas */
+    --obsidian-700: #3C3C40;        /* Borders dark */
+    --obsidian-600: #4C4C51;        /* Separadores */
+    
+    --slate-600: #5C5C62;           /* Texto secundário dark */
+    --slate-500: #6C6C70;           /* Original — texto suporte */
+    --slate-400: #8C8C91;           /* Placeholder text */
+    --slate-300: #ACACB1;           /* Disabled elements */
+    --slate-200: #CCCCD0;           /* Borders light */
+    --slate-100: #E4E4E7;           /* Separadores sutis */
+
+    /* Backgrounds Premium — expandidos */
+    --ivory-50: #FCFBF9;            /* Background absolute */
+    --ivory-100: #F8F5F0;           /* Original — background principal */
+    --ivory-200: #F2EEE8;           /* Cards elevated */
+    --ivory-300: #EBE6DD;           /* Hover surfaces */
+    --ivory-400: #E3DDD2;           /* Pressed states */
+
+    /* Metálicos — accent tecnológico */
+    --titanium-700: #5A6169;        /* Titanium profundo */
+    --titanium-600: #6B747E;        /* Titanium escovado */
+    --titanium-500: #8A9299;        /* Titanium principal */
+    --titanium-400: #A3ABB2;        /* Titanium suave */
+    --titanium-100: #E8EAEC;        /* Tint metálico */
+
+    /* Status Funcionais — dessaturados para sofisticação */
+    --success-700: #2D5D2D;         /* Verde musgo profundo */
+    --success-600: #3D7A3D;         /* Verde institucional */
+    --success-500: #4D934D;         /* Verde ativo */
+    --success-100: #E8F5E8;         /* Background success */
+
+    --warning-700: #8B6914;         /* Dourado escuro */
+    --warning-600: #B8881A;         /* Mostarda institucional */
+    --warning-500: #D49A20;         /* Alerta ativo */
+    --warning-100: #FFF8E6;         /* Background warning */
+
+    --error-700: #7D1F1F;           /* Vermelho profundo */
+    --error-600: #A62828;           /* Erro institucional */
+    --error-500: #C93030;           /* Erro ativo */
+    --error-100: #FFE8E8;           /* Background error */
+
+    --info-700: #1F4D7D;            /* Azul profundo */
+    --info-600: #2B6BA8;            /* Info institucional */
+    --info-500: #3685C9;            /* Info ativo */
+    --info-100: #E6F2FF;            /* Background info */
+
+    /* === TIPOGRAFIA === */
+    --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-secondary: 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+    /* === ESPAÇAMENTO === */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+
+    /* === RADIUS === */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-2xl: 16px;
+    --radius-full: 9999px;
+
+    /* === SHADOWS === */
+    --shadow-xs: 0 1px 2px rgba(28, 28, 30, 0.04);
+    --shadow-sm: 0 1px 3px rgba(28, 28, 30, 0.06), 0 1px 2px rgba(28, 28, 30, 0.03);
+    --shadow-md: 0 4px 6px rgba(28, 28, 30, 0.05), 0 2px 4px rgba(28, 28, 30, 0.03);
+    --shadow-lg: 0 10px 15px rgba(28, 28, 30, 0.06), 0 4px 6px rgba(28, 28, 30, 0.04);
+    --shadow-xl: 0 20px 25px rgba(28, 28, 30, 0.08), 0 10px 10px rgba(28, 28, 30, 0.03);
+    --shadow-2xl: 0 25px 50px rgba(28, 28, 30, 0.12);
+
+    /* === BORDERS === */
+    --border-light: 1px solid var(--slate-200);
+    --border-medium: 1px solid var(--slate-300);
+    --border-dark: 1px solid var(--obsidian-700);
+
+    /* === TRANSITIONS === */
+    --transition-fast: 120ms ease-in-out;
+    --transition-base: 200ms ease-in-out;
+    --transition-slow: 300ms ease-in-out;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body {
+    font-family: var(--font-primary);
+    background: var(--ivory-50);
+    color: var(--obsidian-900);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* === LAYOUT === */
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 var(--space-8); }
+  .container-narrow { max-width: 960px; margin: 0 auto; padding: 0 var(--space-8); }
+
+  /* === HERO === */
+  .hero {
+    background: linear-gradient(165deg, var(--obsidian-900) 0%, var(--cinnamon-900) 45%, var(--cinnamon-800) 100%);
+    color: var(--ivory-100);
+    padding: var(--space-24) 0 var(--space-20);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--obsidian-800);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(166, 138, 95, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(107, 26, 42, 0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  .hero-inner { position: relative; z-index: 2; }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--titanium-400);
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-weight: 500;
+  }
+  .hero-eyebrow::before {
+    content: "";
+    width: 32px;
+    height: 1px;
+    background: var(--titanium-400);
+  }
+  .hero h1 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: clamp(52px, 8vw, 96px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-6);
+  }
+  .hero h1 .accent {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--titanium-400);
+  }
+  .hero-subtitle {
+    font-size: 22px;
+    max-width: 680px;
+    color: rgba(248, 245, 240, 0.85);
+    line-height: 1.65;
+    margin-bottom: var(--space-12);
+    font-weight: 400;
+  }
+  .hero-meta {
+    display: flex;
+    gap: var(--space-12);
+    flex-wrap: wrap;
+    padding-top: var(--space-8);
+    border-top: 1px solid rgba(138, 146, 153, 0.2);
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: var(--space-1); }
+  .hero-meta-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--titanium-400);
+    font-weight: 500;
+  }
+  .hero-meta-value { 
+    font-size: 15px; 
+    color: rgba(248, 245, 240, 0.95); 
+    font-weight: 500;
+  }
+
+  /* === NAVIGATION === */
+  nav.sticky-nav {
+    position: sticky;
+    top: 0;
+    background: rgba(252, 251, 249, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: var(--border-light);
+    z-index: 100;
+    padding: var(--space-3) 0;
+  }
+  nav.sticky-nav ul {
+    display: flex;
+    gap: var(--space-1);
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.sticky-nav ul::-webkit-scrollbar { display: none; }
+  nav.sticky-nav a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+    text-decoration: none;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+    font-weight: 500;
+  }
+  nav.sticky-nav a:hover { 
+    background: var(--ivory-300); 
+    color: var(--cinnamon-700); 
+  }
+
+  /* === SECTIONS === */
+  section { 
+    padding: var(--space-20) 0; 
+    border-bottom: var(--border-light); 
+  }
+  section:last-of-type { border-bottom: none; }
+  .section-number {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--cinnamon-700);
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+    display: block;
+    font-weight: 600;
+  }
+  h2 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: clamp(38px, 5vw, 56px);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin-bottom: var(--space-5);
+    color: var(--obsidian-900);
+  }
+  h2 .accent { 
+    font-style: italic; 
+    font-weight: 400;
+    color: var(--cinnamon-700); 
+  }
+  .section-lead {
+    font-size: 20px;
+    color: var(--slate-600);
+    max-width: 800px;
+    margin-bottom: var(--space-12);
+    line-height: 1.7;
+  }
+  h3 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: -0.015em;
+    margin: var(--space-10) 0 var(--space-4);
+    color: var(--obsidian-900);
+  }
+  h3:first-child { margin-top: 0; }
+  h4 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+    color: var(--cinnamon-700);
+  }
+  p { 
+    color: var(--slate-600); 
+    margin-bottom: var(--space-4); 
+    max-width: 820px; 
+    line-height: 1.7;
+  }
+  p strong { color: var(--obsidian-900); font-weight: 600; }
+
+  /* === CONCEPT GRID === */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-6);
+    margin-top: var(--space-10);
+  }
+  .concept-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    transition: all var(--transition-base);
+  }
+  .concept-card:hover {
+    border-color: var(--cinnamon-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .concept-icon {
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--cinnamon-700);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-5);
+    color: var(--cinnamon-700);
+    font-family: var(--font-primary);
+    font-style: italic;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .concept-card h3 { 
+    margin: 0 0 var(--space-2); 
+    font-size: 20px; 
+  }
+  .concept-card p { 
+    font-size: 15px; 
+    margin: 0; 
+    line-height: 1.65; 
+    color: var(--slate-500);
+  }
+
+  /* === BRAND PRINCIPLES === */
+  .principles-quote {
+    margin: var(--space-12) 0 0;
+    padding: var(--space-10) var(--space-12);
+    background: var(--obsidian-900);
+    color: var(--ivory-100);
+    border-radius: var(--radius-2xl);
+    position: relative;
+    overflow: hidden;
+  }
+  .principles-quote::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--cinnamon-700) 0%, var(--titanium-600) 100%);
+  }
+  .principles-quote p {
+    font-family: var(--font-primary);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.5;
+    color: var(--ivory-100);
+    max-width: none;
+    margin: 0;
+    font-weight: 400;
+  }
+  .principles-quote cite {
+    display: block;
+    margin-top: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-style: normal;
+    color: var(--titanium-400);
+    font-weight: 500;
+  }
+
+  /* === COLOR SYSTEM === */
+  .color-section { margin-bottom: var(--space-12); }
+  .color-section-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-light);
+    font-weight: 600;
+  }
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-4);
+  }
+  .swatch {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: var(--border-light);
+    background: var(--ivory-100);
+    transition: transform var(--transition-fast);
+  }
+  .swatch:hover { 
+    transform: translateY(-3px); 
+    box-shadow: var(--shadow-md); 
+  }
+  .swatch-color {
+    height: 120px;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-3);
+    color: rgba(255,255,255,0.9);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .swatch.light-text .swatch-color { color: rgba(28,28,30,0.75); }
+  .swatch-info { padding: var(--space-3) var(--space-4); }
+  .swatch-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--obsidian-900);
+    margin-bottom: var(--space-1);
+  }
+  .swatch-usage {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--slate-500);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Cores específicas para swatches */
+  .swatch-cinnamon-900 { background: var(--cinnamon-900); }
+  .swatch-cinnamon-800 { background: var(--cinnamon-800); }
+  .swatch-cinnamon-700 { background: var(--cinnamon-700); }
+  .swatch-cinnamon-600 { background: var(--cinnamon-600); }
+  .swatch-cinnamon-500 { background: var(--cinnamon-500); }
+  .swatch-cinnamon-400 { background: var(--cinnamon-400); }
+  .swatch-cinnamon-200 { background: var(--cinnamon-200); }
+  .swatch-cinnamon-100 { background: var(--cinnamon-100); }
+
+  .swatch-obsidian-950 { background: var(--obsidian-950); }
+  .swatch-obsidian-900 { background: var(--obsidian-900); }
+  .swatch-obsidian-800 { background: var(--obsidian-800); }
+  .swatch-obsidian-700 { background: var(--obsidian-700); }
+  .swatch-obsidian-600 { background: var(--obsidian-600); }
+
+  .swatch-slate-600 { background: var(--slate-600); }
+  .swatch-slate-500 { background: var(--slate-500); }
+  .swatch-slate-400 { background: var(--slate-400); }
+  .swatch-slate-300 { background: var(--slate-300); }
+  .swatch-slate-200 { background: var(--slate-200); }
+  .swatch-slate-100 { background: var(--slate-100); }
+
+  .swatch-ivory-50 { background: var(--ivory-50); }
+  .swatch-ivory-100 { background: var(--ivory-100); }
+  .swatch-ivory-200 { background: var(--ivory-200); }
+  .swatch-ivory-300 { background: var(--ivory-300); }
+  .swatch-ivory-400 { background: var(--ivory-400); }
+
+  .swatch-titanium-700 { background: var(--titanium-700); }
+  .swatch-titanium-600 { background: var(--titanium-600); }
+  .swatch-titanium-500 { background: var(--titanium-500); }
+  .swatch-titanium-400 { background: var(--titanium-400); }
+  .swatch-titanium-100 { background: var(--titanium-100); }
+
+  .swatch-success-700 { background: var(--success-700); }
+  .swatch-warning-700 { background: var(--warning-700); }
+  .swatch-error-700 { background: var(--error-700); }
+  .swatch-info-700 { background: var(--info-700); }
+
+  /* === COLOR RATIONALE === */
+  .color-rationale {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    margin-top: var(--space-10);
+    padding: var(--space-8);
+    background: var(--ivory-100);
+    border-radius: var(--radius-xl);
+    border: var(--border-light);
+  }
+  .color-rationale h4 { margin-bottom: var(--space-3); }
+  .color-rationale p { 
+    font-size: 15px; 
+    margin-bottom: var(--space-3); 
+    max-width: none; 
+  }
+
+  /* === TYPOGRAPHY === */
+  .typo-showcase {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--space-8);
+    margin-bottom: var(--space-10);
+  }
+  .typo-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-10);
+  }
+  .typo-display-sample {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 72px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--obsidian-900);
+    margin-bottom: var(--space-6);
+  }
+  .typo-display-sample em { 
+    font-style: italic; 
+    font-weight: 400;
+    color: var(--cinnamon-700); 
+  }
+  .typo-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cinnamon-700);
+    margin-bottom: var(--space-5);
+    font-weight: 600;
+  }
+  .typo-label.dark {
+    color: var(--titanium-400);
+  }
+  .typo-body-sample {
+    font-family: var(--font-primary);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--obsidian-900);
+  }
+  .typo-card.dark { 
+    background: var(--obsidian-900); 
+    color: var(--ivory-100); 
+    border-color: var(--obsidian-800);
+  }
+  .typo-card.dark .typo-label { color: var(--titanium-400); }
+  .typo-card.dark .typo-body-sample { color: rgba(248,245,240,0.92); }
+
+  /* === TYPE SCALE === */
+  .type-scale-table {
+    width: 100%;
+    margin-top: var(--space-8);
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .type-scale-table th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    background: var(--ivory-200);
+    border-bottom: var(--border-medium);
+    font-weight: 600;
+  }
+  .type-scale-table th:first-child { 
+    border-radius: var(--radius-md) 0 0 0; 
+  }
+  .type-scale-table th:last-child { 
+    border-radius: 0 var(--radius-md) 0 0; 
+  }
+  .type-scale-table td {
+    padding: var(--space-4);
+    border-bottom: var(--border-light);
+    font-size: 14px;
+    color: var(--slate-600);
+  }
+  .type-scale-table tr:last-child td {
+    border-bottom: none;
+  }
+  .type-scale-table .scale-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cinnamon-700);
+    font-weight: 600;
+  }
+  .type-scale-table .scale-example {
+    font-family: var(--font-primary);
+    color: var(--obsidian-900);
+  }
+  .example-display { font-size: 48px; font-weight: 600; line-height: 1.1; letter-spacing: -0.025em; }
+  .example-h1 { font-size: 36px; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
+  .example-h2 { font-size: 28px; font-weight: 600; line-height: 1.2; letter-spacing: -0.015em; }
+  .example-h3 { font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  .example-h4 { font-size: 18px; font-weight: 600; line-height: 1.4; }
+  .example-body { font-size: 16px; font-weight: 400; line-height: 1.6; }
+  .example-small { font-size: 14px; font-weight: 400; line-height: 1.5; }
+  .example-caption { font-size: 13px; font-weight: 400; line-height: 1.45; }
+  .example-label { font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.02em; text-transform: uppercase; }
+  .example-data { font-family: var(--font-mono); font-size: 14px; font-weight: 500; line-height: 1.4; }
+
+  /* === COMPONENTS === */
+  .component-showcase {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-10);
+    margin-bottom: var(--space-6);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    letter-spacing: 0.005em;
+  }
+  .btn-primary {
+    background: var(--cinnamon-700);
+    color: var(--ivory-50);
+    border-color: var(--cinnamon-700);
+  }
+  .btn-primary:hover { 
+    background: var(--cinnamon-600); 
+    border-color: var(--cinnamon-600);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--obsidian-900);
+    border-color: var(--slate-300);
+  }
+  .btn-secondary:hover { 
+    background: var(--ivory-300); 
+    border-color: var(--slate-400); 
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--cinnamon-700);
+    border-color: transparent;
+  }
+  .btn-ghost:hover { 
+    background: var(--cinnamon-100); 
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--cinnamon-700);
+    border-color: var(--cinnamon-700);
+  }
+  .btn-outline:hover { 
+    background: var(--cinnamon-700);
+    color: var(--ivory-50);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-row { 
+    display: flex; 
+    gap: var(--space-3); 
+    flex-wrap: wrap; 
+    align-items: center; 
+  }
+
+  /* Inputs */
+  .input-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: var(--space-2); 
+    max-width: 400px;
+    margin-bottom: var(--space-4);
+  }
+  .input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--obsidian-900);
+    letter-spacing: 0.01em;
+  }
+  .input {
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-medium);
+    border-radius: var(--radius-md);
+    background: var(--ivory-50);
+    font-family: var(--font-primary);
+    font-size: 15px;
+    color: var(--obsidian-900);
+    transition: all var(--transition-fast);
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--cinnamon-700);
+    box-shadow: 0 0 0 3px var(--cinnamon-100);
+  }
+  .input::placeholder {
+    color: var(--slate-400);
+  }
+  .input-hint { 
+    font-size: 12px; 
+    color: var(--slate-500); 
+    line-height: 1.4;
+  }
+
+  /* Select */
+  .select {
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-medium);
+    border-radius: var(--radius-md);
+    background: var(--ivory-50);
+    font-family: var(--font-primary);
+    font-size: 15px;
+    color: var(--obsidian-900);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .select:focus {
+    outline: none;
+    border-color: var(--cinnamon-700);
+    box-shadow: 0 0 0 3px var(--cinnamon-100);
+  }
+
+  /* Badges */
+  .badges-row { 
+    display: flex; 
+    gap: var(--space-3); 
+    flex-wrap: wrap; 
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    font-family: var(--font-primary);
+  }
+  .badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge-success { background: var(--success-100); color: var(--success-700); }
+  .badge-warning { background: var(--warning-100); color: var(--warning-700); }
+  .badge-error { background: var(--error-100); color: var(--error-700); }
+  .badge-info { background: var(--info-100); color: var(--info-700); }
+  .badge-neutral { background: var(--slate-100); color: var(--slate-600); }
+
+  /* Cards */
+  .card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    transition: all var(--transition-base);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--obsidian-900);
+    margin: 0;
+  }
+  .card-content {
+    font-size: 15px;
+    color: var(--slate-600);
+    line-height: 1.6;
+  }
+
+  /* Tables */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: var(--border-light);
+    margin-top: var(--space-6);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .data-table thead {
+    background: var(--ivory-200);
+    border-bottom: var(--border-medium);
+  }
+  .data-table th {
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    font-weight: 600;
+    color: var(--obsidian-900);
+    letter-spacing: 0.01em;
+    font-size: 13px;
+  }
+  .data-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border-light);
+    color: var(--slate-600);
+  }
+  .data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .data-table tbody tr:hover {
+    background: var(--ivory-200);
+  }
+  .data-table .table-mono {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--obsidian-900);
+  }
+
+  /* === UX GUIDELINES === */
+  .ux-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+  }
+  .ux-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+  }
+  .ux-card h4 { 
+    margin-bottom: var(--space-3); 
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .ux-card h4::before {
+    content: "";
+    width: 4px;
+    height: 20px;
+    background: var(--cinnamon-700);
+    border-radius: var(--radius-sm);
+  }
+  .ux-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .ux-card li {
+    padding-left: var(--space-5);
+    position: relative;
+    margin-bottom: var(--space-2);
+    color: var(--slate-600);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .ux-card li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--cinnamon-700);
+    font-weight: 600;
+  }
+
+  /* === DASHBOARD MOCKUP === */
+  .dashboard-frame {
+    background: var(--obsidian-900);
+    border-radius: var(--radius-2xl);
+    padding: 0;
+    overflow: hidden;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-2xl);
+    border: 1px solid var(--obsidian-800);
+  }
+  .dash-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-6);
+    background: var(--obsidian-800);
+    border-bottom: 1px solid var(--obsidian-700);
+  }
+  .dash-logo {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    color: var(--ivory-100);
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .dash-logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--cinnamon-700);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ivory-100);
+    font-family: var(--font-primary);
+    font-style: italic;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .dash-nav-right {
+    display: flex;
+    gap: var(--space-5);
+    align-items: center;
+  }
+  .dash-nav-right span {
+    color: rgba(248,245,240,0.65);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+  }
+  .dash-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cinnamon-700) 0%, var(--cinnamon-900) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ivory-100);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .dash-body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 600px;
+  }
+  .dash-sidebar {
+    background: var(--obsidian-800);
+    border-right: 1px solid var(--obsidian-700);
+    padding: var(--space-6) var(--space-4);
+  }
+  .sidebar-section {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(248,245,240,0.4);
+    padding: 0 var(--space-3);
+    margin: var(--space-4) 0 var(--space-2);
+    font-weight: 600;
+  }
+  .sidebar-section:first-child { margin-top: 0; }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: rgba(248,245,240,0.75);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: var(--space-1);
+  }
+  .sidebar-item:hover {
+    background: rgba(248,245,240,0.05);
+    color: var(--ivory-100);
+  }
+  .sidebar-item.active {
+    background: rgba(107,26,42,0.3);
+    color: var(--ivory-100);
+    border-left: 2px solid var(--cinnamon-500);
+    padding-left: calc(var(--space-3) - 2px);
+  }
+  .sidebar-item .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+  .dash-main {
+    background: var(--ivory-50);
+    padding: var(--space-8);
+    overflow-y: auto;
+  }
+  .dash-header {
+    margin-bottom: var(--space-8);
+  }
+  .dash-h1 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--obsidian-900);
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-1);
+  }
+  .dash-subtitle {
+    font-size: 14px;
+    color: var(--slate-500);
+  }
+
+  /* KPI Cards */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  .kpi {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: all var(--transition-base);
+  }
+  .kpi:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .kpi .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate-500);
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+  }
+  .kpi .value {
+    font-family: var(--font-primary);
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--obsidian-900);
+    line-height: 1.2;
+    margin-bottom: var(--space-1);
+    letter-spacing: -0.02em;
+  }
+  .kpi .delta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--success-700);
+    font-weight: 600;
+  }
+  .kpi .delta.negative { color: var(--error-700); }
+  .kpi.accent { 
+    background: var(--obsidian-900); 
+    color: var(--ivory-100); 
+    border-color: var(--obsidian-800);
+  }
+  .kpi.accent .label { color: var(--titanium-400); }
+  .kpi.accent .value { color: var(--ivory-100); }
+  .kpi.accent .delta { color: var(--titanium-400); }
+
+  /* Chart Cards */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .chart-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  .chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--obsidian-900);
+  }
+  .chart-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--slate-500);
+    letter-spacing: 0.05em;
+  }
+  .chart-placeholder {
+    height: 220px;
+    background: var(--ivory-100);
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: var(--space-4);
+  }
+  .chart-bar {
+    width: 100%;
+    background: var(--cinnamon-700);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: all var(--transition-fast);
+    position: relative;
+  }
+  .chart-bar:hover {
+    background: var(--cinnamon-600);
+  }
+  .chart-bar.accent {
+    background: var(--titanium-500);
+  }
+  .chart-bar.accent:hover {
+    background: var(--titanium-600);
+  }
+  .chart-area {
+    width: 100%;
+    height: 100%;
+  }
+  .chart-donut {
+    width: 180px;
+    height: 180px;
+    margin: 20px auto;
+  }
+  .chart-grid {
+    position: absolute;
+    inset: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .chart-grid-line {
+    height: 1px;
+    background: var(--slate-200);
+    opacity: 0.4;
+  }
+
+  /* === DARK THEME DASHBOARD === */
+  .dashboard-dark {
+    background: var(--obsidian-950);
+  }
+  .dashboard-dark .dash-topbar {
+    background: var(--obsidian-900);
+    border-bottom-color: var(--obsidian-800);
+  }
+  .dashboard-dark .dash-sidebar {
+    background: var(--obsidian-900);
+    border-right-color: var(--obsidian-800);
+  }
+  .dashboard-dark .dash-main {
+    background: var(--obsidian-950);
+  }
+  .dashboard-dark .dash-h1 {
+    color: var(--ivory-100);
+  }
+  .dashboard-dark .dash-subtitle {
+    color: var(--slate-400);
+  }
+  .dashboard-dark .kpi {
+    background: var(--obsidian-900);
+    border-color: var(--obsidian-800);
+  }
+  .dashboard-dark .kpi .label {
+    color: var(--titanium-400);
+  }
+  .dashboard-dark .kpi .value {
+    color: var(--ivory-100);
+  }
+  .dashboard-dark .kpi .delta {
+    color: var(--titanium-400);
+  }
+  .dashboard-dark .kpi.accent {
+    background: var(--cinnamon-900);
+    border-color: var(--cinnamon-800);
+  }
+  .dashboard-dark .kpi.accent .label {
+    color: var(--titanium-400);
+  }
+  .dashboard-dark .kpi.accent .value {
+    color: var(--ivory-100);
+  }
+  .dashboard-dark .kpi.accent .delta {
+    color: var(--titanium-400);
+  }
+  .dashboard-dark .chart-card {
+    background: var(--obsidian-900);
+    border-color: var(--obsidian-800);
+  }
+  .dashboard-dark .chart-title {
+    color: var(--ivory-100);
+  }
+  .dashboard-dark .chart-meta {
+    color: var(--slate-400);
+  }
+  .dashboard-dark .chart-placeholder {
+    background: var(--obsidian-900);
+  }
+  .dashboard-dark .chart-grid-line {
+    background: var(--obsidian-700);
+  }
+  .dashboard-dark .data-table thead {
+    background: var(--obsidian-800);
+    border-bottom-color: var(--obsidian-700);
+  }
+  .dashboard-dark .data-table th {
+    color: var(--ivory-100);
+  }
+  .dashboard-dark .data-table td {
+    border-bottom-color: var(--obsidian-800);
+    color: var(--slate-400);
+  }
+  .dashboard-dark .data-table tbody tr:hover {
+    background: var(--obsidian-800);
+  }
+  .dashboard-dark .data-table .table-mono {
+    color: var(--ivory-100);
+  }
+
+  /* === INSPIRATIONS === */
+  .inspiration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
+  .inspiration-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+  }
+  .inspiration-card.dark {
+    background: var(--obsidian-900);
+    color: var(--ivory-100);
+    border-color: var(--obsidian-800);
+  }
+  .inspiration-card h4 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .inspiration-card.dark h4 { color: var(--titanium-400); }
+  .inspiration-card h4::before {
+    content: "✓";
+    width: 24px;
+    height: 24px;
+    background: var(--success-100);
+    color: var(--success-700);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .inspiration-card.avoid h4::before {
+    content: "✕";
+    background: var(--error-100);
+    color: var(--error-700);
+  }
+  .inspiration-card.dark h4::before {
+    background: rgba(79,107,74,0.2);
+    color: var(--success-500);
+  }
+  .inspiration-card.dark.avoid h4::before {
+    background: rgba(168,51,44,0.2);
+    color: var(--error-500);
+  }
+  .inspiration-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .inspiration-card li {
+    padding-left: var(--space-5);
+    position: relative;
+    margin-bottom: var(--space-3);
+    color: var(--slate-600);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .inspiration-card.dark li { color: rgba(248,245,240,0.8); }
+  .inspiration-card li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--cinnamon-700);
+    font-weight: 600;
+  }
+  .inspiration-card.dark li::before { color: var(--titanium-400); }
+
+  /* === TECHNICAL SPECS === */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+  }
+  .spec-card {
+    background: var(--ivory-100);
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+  .spec-card h4 {
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .spec-card h4::before {
+    content: "";
+    width: 3px;
+    height: 18px;
+    background: var(--cinnamon-700);
+    border-radius: var(--radius-sm);
+  }
+  .spec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: var(--border-light);
+    font-size: 14px;
+  }
+  .spec-item:last-child { border-bottom: none; }
+  .spec-label {
+    color: var(--slate-500);
+    font-size: 13px;
+  }
+  .spec-value {
+    font-family: var(--font-mono);
+    color: var(--obsidian-900);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* === FOOTER === */
+  footer {
+    background: var(--obsidian-900);
+    color: rgba(248,245,240,0.7);
+    padding: var(--space-16) 0 var(--space-8);
+    border-top: 1px solid var(--obsidian-800);
+  }
+  footer .container { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: var(--space-5); 
+  }
+  .footer-logo {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ivory-100);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .footer-logo em { 
+    font-style: italic; 
+    color: var(--titanium-400); 
+  }
+  footer p { 
+    color: rgba(248,245,240,0.5); 
+    font-size: 13px; 
+    margin: 0;
+    text-align: center;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 1024px) {
+    .typo-showcase { grid-template-columns: 1fr; }
+    .color-rationale { grid-template-columns: 1fr; }
+    .ux-grid { grid-template-columns: 1fr; }
+    .inspiration-grid { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr 1fr; }
+    .chart-row { grid-template-columns: 1fr; }
+    .dash-body { grid-template-columns: 180px 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .concept-grid { grid-template-columns: 1fr; }
+    .color-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .kpi-row { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr; }
+    .dash-body { grid-template-columns: 1fr; }
+    .dash-sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- === HERO === -->
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="hero-eyebrow">ENTERPRISE BRAND SYSTEM</div>
+    <h1>Cinnamon <span class="accent">Design System</span></h1>
+    <p class="hero-subtitle">
+      Identidade visual enterprise para plataformas financeiras modernas. Construído para gestores de investimento que exigem precisão, sofisticação e confiabilidade operacional.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Versão</span>
+        <span class="hero-meta-value">2.0 — Premium</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Plataforma</span>
+        <span class="hero-meta-value">Django Web System</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Público</span>
+        <span class="hero-meta-value">Finance Managers</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Atualização</span>
+        <span class="hero-meta-value">Maio 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- === NAVIGATION === -->
+<nav class="sticky-nav">
+  <div class="container">
+    <ul>
+      <li><a href="#conceito">Conceito</a></li>
+      <li><a href="#cores">Cores</a></li>
+      <li><a href="#tipografia">Tipografia</a></li>
+      <li><a href="#componentes">Componentes</a></li>
+      <li><a href="#ux">UX Guidelines</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#inspiracoes">Inspirações</a></li>
+      <li><a href="#especificacoes">Especificações</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- === 1. CONCEITO === -->
+<section id="conceito">
+  <div class="container">
+    <span class="section-number">01 — Fundamentos</span>
+    <h2>Filosofia da <span class="accent">Marca</span></h2>
+    <p class="section-lead">
+      Cinnamon é a evolução do operacional financeiro tradicional. Uma plataforma que transforma processos manuais em fluxos inteligentes, mantendo a precisão institucional que o mercado financeiro exige.
+    </p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-icon">P</div>
+        <h3>Precisão Institucional</h3>
+        <p>
+          Cada elemento visual comunica confiabilidade. Sem excessos, sem ruído. Apenas a informação necessária, apresentada com clareza absoluta.
+        </p>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-icon">S</div>
+        <h3>Sofisticação Acessível</h3>
+        <p>
+          Entre big four e fintech disruptiva. Tecnologia enterprise sem burocracia. Interfaces complexas que parecem simples.
+        </p>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-icon">E</div>
+        <h3>Eficiência Visual</h3>
+        <p>
+          Design que reduz fadiga operacional. Hierarquia clara, contraste intencional, densidade controlada. Produtividade como resultado do design.
+        </p>
+      </div>
+    </div>
+
+    <div class="principles-quote">
+      <p>
+        "Construída de dentro para fora. Nasceu da operação real de um FIDC, não de hipóteses de consultoria."
+      </p>
+      <cite>— Manifesto Cinnamon</cite>
+    </div>
+
+    <h3 style="margin-top: var(--space-16);">Posicionamento Visual</h3>
+    <p>
+      <strong>Operações que funcionam. Fundos que crescem.</strong> — Esta é a essência da marca. O sistema visual reflete exatamente isso: estrutura que funciona, evolução que não quebra, crescimento sustentável.
+    </p>
+    <p>
+      A paleta cromática âncora-se no bordô institucional (Cinnamon 700), expandindo para neutros premium e superfícies quentes. Evitamos azuis corporativos saturados e verdes fintechs. Nosso território é o calor controlado, a sofisticação discreta, a autoridade sem arrogância.
+    </p>
+  </div>
+</section>
+
+<!-- === 2. CORES === -->
+<section id="cores">
+  <div class="container">
+    <span class="section-number">02 — Paleta Cromática</span>
+    <h2>Sistema de <span class="accent">Cores</span></h2>
+    <p class="section-lead">
+      Expandimos a identidade cromática original para um design system completo. Mantemos a essência do bordô institucional, adicionando escalas funcionais para interfaces complexas.
+    </p>
+
+    <!-- Primárias -->
+    <div class="color-section">
+      <div class="color-section-title">Primárias — Cinnamon Scale</div>
+      <div class="color-grid">
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-900">#4A0F1C</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 900</div>
+            <div class="swatch-usage">Fondant — Fundos escuros</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-800">#5D1524</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 800</div>
+            <div class="swatch-usage">Superfícies elevadas dark</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-700">#6B1A2A</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 700</div>
+            <div class="swatch-usage">Principal — CTA primário</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-600">#7D2234</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 600</div>
+            <div class="swatch-usage">Hover states</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-500">#92293E</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 500</div>
+            <div class="swatch-usage">Active lighter</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-cinnamon-400">#A8364D</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 400</div>
+            <div class="swatch-usage">Accent softer</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-cinnamon-200">#D47A8F</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 200</div>
+            <div class="swatch-usage">Backgrounds sutis</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-cinnamon-100">#F5E8EC</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Cinnamon 100</div>
+            <div class="swatch-usage">Surface tint</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neutros Obsidian -->
+    <div class="color-section">
+      <div class="color-section-title">Neutros Premium — Obsidian Scale</div>
+      <div class="color-grid">
+        <div class="swatch">
+          <div class="swatch-color swatch-obsidian-950">#0A0A0B</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Obsidian 950</div>
+            <div class="swatch-usage">True black</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-obsidian-900">#1C1C1E</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Obsidian 900</div>
+            <div class="swatch-usage">Texto principal</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-obsidian-800">#2C2C2F</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Obsidian 800</div>
+            <div class="swatch-usage">Superfícies elevadas</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-obsidian-700">#3C3C40</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Obsidian 700</div>
+            <div class="swatch-usage">Borders dark</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-obsidian-600">#4C4C51</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Obsidian 600</div>
+            <div class="swatch-usage">Separadores</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neutros Slate -->
+    <div class="color-section">
+      <div class="color-section-title">Neutros Texto — Slate Scale</div>
+      <div class="color-grid">
+        <div class="swatch">
+          <div class="swatch-color swatch-slate-600">#5C5C62</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 600</div>
+            <div class="swatch-usage">Texto secundário dark</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-slate-500">#6C6C70</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 500</div>
+            <div class="swatch-usage">Texto suporte</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-slate-400">#8C8C91</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 400</div>
+            <div class="swatch-usage">Placeholder</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-slate-300">#ACACB1</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 300</div>
+            <div class="swatch-usage">Disabled</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-slate-200">#CCCCD0</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 200</div>
+            <div class="swatch-usage">Borders light</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-slate-100">#E4E4E7</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Slate 100</div>
+            <div class="swatch-usage">Separadores sutis</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backgrounds Ivory -->
+    <div class="color-section">
+      <div class="color-section-title">Backgrounds Premium — Ivory Scale</div>
+      <div class="color-grid">
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-ivory-50">#FCFBF9</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Ivory 50</div>
+            <div class="swatch-usage">Background absolute</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-ivory-100">#F8F5F0</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Ivory 100</div>
+            <div class="swatch-usage">Background principal</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-ivory-200">#F2EEE8</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Ivory 200</div>
+            <div class="swatch-usage">Cards elevated</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-ivory-300">#EBE6DD</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Ivory 300</div>
+            <div class="swatch-usage">Hover surfaces</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-ivory-400">#E3DDD2</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Ivory 400</div>
+            <div class="swatch-usage">Pressed states</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metálicos Titanium -->
+    <div class="color-section">
+      <div class="color-section-title">Accent Tecnológico — Titanium Scale</div>
+      <div class="color-grid">
+        <div class="swatch">
+          <div class="swatch-color swatch-titanium-700">#5A6169</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Titanium 700</div>
+            <div class="swatch-usage">Metálico profundo</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-titanium-600">#6B747E</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Titanium 600</div>
+            <div class="swatch-usage">Titanium escovado</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-titanium-500">#8A9299</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Titanium 500</div>
+            <div class="swatch-usage">Metálico principal</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-titanium-400">#A3ABB2</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Titanium 400</div>
+            <div class="swatch-usage">Metálico suave</div>
+          </div>
+        </div>
+        <div class="swatch light-text">
+          <div class="swatch-color swatch-titanium-100">#E8EAEC</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Titanium 100</div>
+            <div class="swatch-usage">Tint metálico</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Funcionais -->
+    <div class="color-section">
+      <div class="color-section-title">Status Funcionais — Dessaturados</div>
+      <div class="color-grid">
+        <div class="swatch">
+          <div class="swatch-color swatch-success-700">#2D5D2D</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Success 700</div>
+            <div class="swatch-usage">Verde musgo institucional</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-warning-700">#8B6914</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Warning 700</div>
+            <div class="swatch-usage">Dourado institucional</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-error-700">#7D1F1F</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Error 700</div>
+            <div class="swatch-usage">Vermelho institucional</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color swatch-info-700">#1F4D7D</div>
+          <div class="swatch-info">
+            <div class="swatch-name">Info 700</div>
+            <div class="swatch-usage">Azul institucional</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rationale -->
+    <div class="color-rationale">
+      <div>
+        <h4>Contraste e Acessibilidade</h4>
+        <p>
+          Todas as combinações de texto sobre background atendem WCAG 2.1 AA no mínimo. Pares principais (Obsidian 900 / Ivory 50) alcançam AAA.
+        </p>
+        <p>
+          Cores de status são dessaturadas intencionalmente para reduzir fadiga visual em dashboards com alta densidade de informação.
+        </p>
+      </div>
+      <div>
+        <h4>Evolução da Identidade Original</h4>
+        <p>
+          Mantivemos Cinnamon 700 (#6B1A2A) como âncora principal, expandindo para escala completa de 8 tons funcionais.
+        </p>
+        <p>
+          Ivory substitui brancos puros por calor sutil. Titanium adiciona sofisticação tecnológica industrial — aço escovado discreto, não ornamental.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- === 3. TIPOGRAFIA === -->
+<section id="tipografia">
+  <div class="container">
+    <span class="section-number">03 — Sistema Tipográfico</span>
+    <h2>Tipografia <span class="accent">Enterprise</span></h2>
+    <p class="section-lead">
+      DM Sans evolui de fonte institucional para sistema tipográfico completo. Geometria funcional, pesos precisos, legibilidade otimizada para dados financeiros.
+    </p>
+
+    <div class="typo-showcase">
+      <div class="typo-card">
+        <div class="typo-label">Display — DM Sans</div>
+        <div class="typo-display-sample">
+          Cinnamon <em>System</em>
+        </div>
+        <p style="margin:0; color: var(--slate-500);">
+          Peso 600 / Letter-spacing -0.03em / Line-height 1.05
+        </p>
+      </div>
+      <div class="typo-card dark">
+        <div class="typo-label dark">Body — DM Sans</div>
+        <div class="typo-body-sample">
+          Construída para gestores de investimento que operam no limite da precisão operacional. Sem margem para erro. Sem espaço para interfaces que atrasam.
+        </div>
+        <p style="margin:var(--space-4) 0 0; color: rgba(248,245,240,0.6); font-size: 14px;">
+          Peso 400 / Size 16px / Line-height 1.7
+        </p>
+      </div>
+    </div>
+
+    <h3>Escala Tipográfica Completa</h3>
+    <p>
+      Hierarquia construída para dashboards complexos. Cada nível tem propósito funcional claro.
+    </p>
+
+    <table class="type-scale-table">
+      <thead>
+        <tr>
+          <th>Função</th>
+          <th>Tamanho / Peso</th>
+          <th>Specs Técnicas</th>
+          <th>Exemplo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="scale-name">Display</td>
+          <td>48px / 600</td>
+          <td>LH 1.1 / LS -0.025em</td>
+          <td class="scale-example example-display">48px</td>
+        </tr>
+        <tr>
+          <td class="scale-name">H1</td>
+          <td>36px / 600</td>
+          <td>LH 1.15 / LS -0.02em</td>
+          <td class="scale-example example-h1">36px</td>
+        </tr>
+        <tr>
+          <td class="scale-name">H2</td>
+          <td>28px / 600</td>
+          <td>LH 1.2 / LS -0.015em</td>
+          <td class="scale-example example-h2">28px</td>
+        </tr>
+        <tr>
+          <td class="scale-name">H3</td>
+          <td>22px / 600</td>
+          <td>LH 1.3 / LS -0.01em</td>
+          <td class="scale-example example-h3">22px</td>
+        </tr>
+        <tr>
+          <td class="scale-name">H4</td>
+          <td>18px / 600</td>
+          <td>LH 1.4 / LS 0</td>
+          <td class="scale-example example-h4">18px</td>
+        </tr>
+        <tr>
+          <td class="scale-name">Body</td>
+          <td>16px / 400</td>
+          <td>LH 1.6 / LS 0</td>
+          <td class="scale-example example-body">16px texto principal</td>
+        </tr>
+        <tr>
+          <td class="scale-name">Small</td>
+          <td>14px / 400</td>
+          <td>LH 1.5 / LS 0</td>
+          <td class="scale-example example-small">14px texto secundário</td>
+        </tr>
+        <tr>
+          <td class="scale-name">Caption</td>
+          <td>13px / 400</td>
+          <td>LH 1.45 / LS 0</td>
+          <td class="scale-example example-caption">13px legenda</td>
+        </tr>
+        <tr>
+          <td class="scale-name">Label</td>
+          <td>12px / 600</td>
+          <td>LH 1.4 / LS 0.02em / UC</td>
+          <td class="scale-example example-label">12px Label</td>
+        </tr>
+        <tr>
+          <td class="scale-name">Data</td>
+          <td>14px / 500</td>
+          <td>LH 1.4 / Mono</td>
+          <td class="scale-example example-data">R$ 1.234.567,89</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: var(--space-12);">Uso Estratégico</h3>
+    <p>
+      <strong>Display/H1:</strong> Títulos principais, valores KPI de destaque.<br>
+      <strong>H2/H3:</strong> Seções de dashboard, cabeçalhos de cards.<br>
+      <strong>H4:</strong> Labels de formulários, categorias de tabelas.<br>
+      <strong>Body:</strong> Texto principal, descrições, parágrafos.<br>
+      <strong>Small/Caption:</strong> Metadados, timestamps, texto auxiliar.<br>
+      <strong>Label:</strong> Campos de formulário, categorias, tags.<br>
+      <strong>Data:</strong> Valores monetários, números, timestamps — sempre monoespaçado.
+    </p>
+  </div>
+</section>
+
+<!-- === 4. COMPONENTES === -->
+<section id="componentes">
+  <div class="container">
+    <span class="section-number">04 — Sistema de Componentes</span>
+    <h2>Componentes <span class="accent">Funcionais</span></h2>
+    <p class="section-lead">
+      Biblioteca visual completa para construção de interfaces financeiras complexas. Todos os componentes seguem os princípios de precisão, hierarquia e eficiência operacional.
+    </p>
+
+    <!-- Buttons -->
+    <div class="component-showcase">
+      <h3 style="margin:0 0 var(--space-4);">Buttons</h3>
+      <div class="btn-row">
+        <button class="btn btn-primary">Primary Action</button>
+        <button class="btn btn-outline">Outline Action</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+      <p style="margin-top: var(--space-4); font-size: 14px;">
+        <strong>Estados:</strong> Default, Hover (-1px transform + shadow), Active, Disabled (opacity 0.5). Border 1.5px para definição premium.
+      </p>
+    </div>
+
+    <!-- Inputs -->
+    <div class="component-showcase">
+      <h3 style="margin:0 0 var(--space-6);">Form Inputs</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+        <div class="input-group">
+          <label for="input1">Nome Completo</label>
+          <input type="text" class="input" id="input1" placeholder="Digite seu nome">
+          <span class="input-hint">Campo obrigatório</span>
+        </div>
+        <div class="input-group">
+          <label for="input2">Email Institucional</label>
+          <input type="email" class="input" id="input2" placeholder="nome@empresa.com">
+          <span class="input-hint">Utilizaremos para notificações</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="select1">Fundo</label>
+        <select class="select" id="select1">
+          <option>Selecione um fundo</option>
+          <option>FIDC Alpha I</option>
+          <option>FIDC Beta II</option>
+          <option>FIDC Gamma III</option>
+        </select>
+      </div>
+      <p style="margin-top: var(--space-4); font-size: 14px;">
+        <strong>Focus state:</strong> Border Cinnamon 700 + shadow ring 3px Cinnamon 100. Transição 120ms.
+      </p>
+    </div>
+
+    <!-- Badges -->
+    <div class="component-showcase">
+      <h3 style="margin:0 0 var(--space-4);">Status Badges</h3>
+      <div class="badges-row">
+        <span class="badge badge-success">Ativo</span>
+        <span class="badge badge-warning">Pendente</span>
+        <span class="badge badge-error">Vencido</span>
+        <span class="badge badge-info">Em Análise</span>
+        <span class="badge badge-neutral">Arquivado</span>
+      </div>
+      <p style="margin-top: var(--space-4); font-size: 14px;">
+        <strong>Uso:</strong> Status operacionais dessaturados para não competir visualmente com dados principais. Dot indicator 6px antes do texto.
+      </p>
+    </div>
+
+    <!-- Cards -->
+    <div class="component-showcase">
+      <h3 style="margin:0 0 var(--space-6);">Cards</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">FIDC Alpha I</h4>
+            <span class="badge badge-success">Ativo</span>
+          </div>
+          <div class="card-content">
+            Patrimônio líquido de R$ 12.456.789,00 com 1.234 cotistas ativos. Rentabilidade acumulada 12M: 8,45%.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">Operação Cessão</h4>
+            <span class="badge badge-warning">Pendente</span>
+          </div>
+          <div class="card-content">
+            Aguardando validação documental. 45 títulos totalizando R$ 890.234,50 em processamento.
+          </div>
+        </div>
+      </div>
+      <p style="margin-top: var(--space-4); font-size: 14px;">
+        <strong>Interação:</strong> Hover transform -2px + shadow-md. Transição 200ms ease-in-out.
+      </p>
+    </div>
+
+    <!-- Table -->
+    <div class="component-showcase">
+      <h3 style="margin:0 0 var(--space-4);">Data Table</h3>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Devedor</th>
+              <th>Vencimento</th>
+              <th>Valor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-mono">TIT-2026-001</td>
+              <td>Empresa ABC Ltda</td>
+              <td>15/06/2026</td>
+              <td class="table-mono">R$ 123.456,78</td>
+              <td><span class="badge badge-success">Adimplente</span></td>
+            </tr>
+            <tr>
+              <td class="table-mono">TIT-2026-002</td>
+              <td>Indústria XYZ SA</td>
+              <td>22/06/2026</td>
+              <td class="table-mono">R$ 89.012,34</td>
+              <td><span class="badge badge-warning">Pendente</span></td>
+            </tr>
+            <tr>
+              <td class="table-mono">TIT-2026-003</td>
+              <td>Comércio DEF ME</td>
+              <td>10/05/2026</td>
+              <td class="table-mono">R$ 56.789,01</td>
+              <td><span class="badge badge-error">Vencido</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top: var(--space-4); font-size: 14px;">
+        <strong>Tipografia:</strong> Headers 13px peso 600. Dados 14px peso 400. Valores monetários sempre monoespaçados. Hover row background Ivory 200.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- === 5. UX GUIDELINES === -->
+<section id="ux">
+  <div class="container">
+    <span class="section-number">05 — Diretrizes UX</span>
+    <h2>UX para Plataformas <span class="accent">Financeiras</span></h2>
+    <p class="section-lead">
+      Princípios de experiência construídos para ambientes de alta densidade informacional. Reduzir fadiga, aumentar produtividade, manter precisão.
+    </p>
+
+    <div class="ux-grid">
+      <div class="ux-card">
+        <h4>Hierarquia Visual</h4>
+        <ul>
+          <li>Informação crítica sempre no topo: valores, status, alertas</li>
+          <li>Dados financeiros em destaque tipográfico e cromático</li>
+          <li>Metadados secundários em Slate 500, tamanho 13-14px</li>
+          <li>Separação clara entre seções com espaçamento generoso</li>
+          <li>Evitar mais de 3 níveis de hierarquia visual simultâneos</li>
+        </ul>
+      </div>
+
+      <div class="ux-card">
+        <h4>Densidade Controlada</h4>
+        <ul>
+          <li>Tabelas: máximo 10 linhas visíveis sem scroll</li>
+          <li>Cards KPI: 4-6 por linha em desktop, nunca mais</li>
+          <li>Espaçamento entre elementos: mínimo 16px (space-4)</li>
+          <li>Margem interna de cards: 24px (space-6) mínimo</li>
+          <li>Evitar excesso de borders — usar espaçamento como separador</li>
+        </ul>
+      </div>
+
+      <div class="ux-card">
+        <h4>Leitura Escaneável</h4>
+        <ul>
+          <li>Parágrafos: máximo 80 caracteres por linha</li>
+          <li>Dados numéricos sempre alinhados à direita</li>
+          <li>Monoespaçados obrigatórios para valores monetários</li>
+          <li>Labels em uppercase + letter-spacing para facilitar scan</li>
+          <li>Cores de status dessaturadas para não causar alarme falso</li>
+        </ul>
+      </div>
+
+      <div class="ux-card">
+        <h4>Redução de Fadiga</h4>
+        <ul>
+          <li>Fundo Ivory 50 reduz brilho comparado a branco puro</li>
+          <li>Contraste texto/background entre 7:1 e 12:1 (sweet spot 9:1)</li>
+          <li>Animações: 200ms máximo, ease-in-out sempre</li>
+          <li>Hover states sutis — sem transformações exageradas</li>
+          <li>Evitar vermelho saturado — usar Error 700 dessaturado</li>
+        </ul>
+      </div>
+
+      <div class="ux-card">
+        <h4>Feedback Operacional</h4>
+        <ul>
+          <li>Estados de loading sempre visíveis e discretos</li>
+          <li>Confirmações de ação em toast, não modais bloqueantes</li>
+          <li>Erros críticos em modal, warnings em inline alert</li>
+          <li>Ações destrutivas sempre com confirmação dupla</li>
+          <li>Sucesso confirmado com badge verde + microtransição</li>
+        </ul>
+      </div>
+
+      <div class="ux-card">
+        <h4>Navegação Eficiente</h4>
+        <ul>
+          <li>Sidebar fixo com seções principais sempre visível</li>
+          <li>Breadcrumbs em operações com múltiplos níveis</li>
+          <li>Atalhos de teclado documentados e consistentes</li>
+          <li>Filtros sempre no topo, nunca ocultos em dropdown</li>
+          <li>Paginação com jump to page, não apenas next/prev</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-16);">Microinterações</h3>
+    <p>
+      Toda interação possui resposta visual imediata (120ms máximo de delay percebido). Hover adiciona sombra ou transforma -1px. Active adiciona inner shadow. Disabled reduz opacity para 0.5 e remove cursor pointer. Loading states usam skeleton screens em Slate 100, nunca spinners isolados.
+    </p>
+
+    <h3>Tratamento de Erros</h3>
+    <p>
+      <strong>Erro de campo:</strong> border Error 700 + mensagem inline abaixo do input.<br>
+      <strong>Erro de página:</strong> card centralizado com ícone, mensagem clara, ação de recuperação.<br>
+      <strong>Erro crítico:</strong> modal bloqueante, fundo obsidian com opacity 0.8, mensagem detalhada.<br>
+      Sempre fornecer: (1) O que aconteceu, (2) Por que aconteceu, (3) O que fazer agora.
+    </p>
+  </div>
+</section>
+
+<!-- === 6. DASHBOARD MOCKUP === -->
+<section id="dashboard">
+  <div class="container">
+    <span class="section-number">06 — Dashboard Exemplo</span>
+    <h2>Aplicação <span class="accent">Completa</span></h2>
+    <p class="section-lead">
+      Exemplo visual de dashboard utilizando todos os princípios definidos. Interface real de gestão de fundos aplicando cores, tipografia, componentes e diretrizes UX.
+    </p>
+
+    <div class="dashboard-frame">
+      <!-- Topbar -->
+      <div class="dash-topbar">
+        <div class="dash-logo">
+          <div class="dash-logo-mark">C</div>
+          Cinnamon
+        </div>
+        <div class="dash-nav-right">
+          <span>FIDC Alpha I</span>
+          <div class="dash-avatar">CF</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="dash-body">
+        <!-- Sidebar -->
+        <div class="dash-sidebar">
+          <div class="sidebar-section">Gestão</div>
+          <div class="sidebar-item active">
+            <span class="dot"></span>
+            Dashboard
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Operações
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Cessões
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Títulos
+          </div>
+
+          <div class="sidebar-section">Relatórios</div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Financeiro
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Conformidade
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Risco
+          </div>
+
+          <div class="sidebar-section">Sistema</div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Integrações
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Configurações
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dash-main">
+          <div class="dash-header">
+            <h1 class="dash-h1">Visão Geral — FIDC Alpha I</h1>
+            <p class="dash-subtitle">Atualizado há 5 minutos · Maio 2026</p>
+          </div>
+
+          <!-- KPIs -->
+          <div class="kpi-row">
+            <div class="kpi accent">
+              <div class="label">Patrimônio Líquido</div>
+              <div class="value">R$ 12,4 Mi</div>
+              <div class="delta">+2,3% no mês</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Cotistas Ativos</div>
+              <div class="value">1.234</div>
+              <div class="delta">+18 novos</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Títulos em Carteira</div>
+              <div class="value">456</div>
+              <div class="delta negative">-3 liquidados</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Taxa Inadimplência</div>
+              <div class="value">0,87%</div>
+              <div class="delta">-0,12pp</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="chart-row">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Evolução Patrimonial 12M</div>
+                <div class="chart-meta">JUN 2025 — MAI 2026</div>
+              </div>
+              <div class="chart-placeholder">
+                <svg class="chart-area" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Grid lines -->
+                  <line x1="40" y1="40" x2="580" y2="40" stroke="#CCCCD0" stroke-width="1" opacity="0.3"/>
+                  <line x1="40" y1="80" x2="580" y2="80" stroke="#CCCCD0" stroke-width="1" opacity="0.3"/>
+                  <line x1="40" y1="120" x2="580" y2="120" stroke="#CCCCD0" stroke-width="1" opacity="0.3"/>
+                  <line x1="40" y1="160" x2="580" y2="160" stroke="#CCCCD0" stroke-width="1" opacity="0.3"/>
+                  
+                  <!-- Area gradient -->
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#6B1A2A;stop-opacity:0.2" />
+                      <stop offset="100%" style="stop-color:#6B1A2A;stop-opacity:0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  <!-- Area fill -->
+                  <path d="M 40 140 L 85 125 L 130 115 L 175 105 L 220 95 L 265 88 L 310 82 L 355 75 L 400 68 L 445 62 L 490 58 L 535 52 L 580 48 L 580 180 L 40 180 Z" 
+                        fill="url(#areaGradient)" />
+                  
+                  <!-- Line -->
+                  <path d="M 40 140 L 85 125 L 130 115 L 175 105 L 220 95 L 265 88 L 310 82 L 355 75 L 400 68 L 445 62 L 490 58 L 535 52 L 580 48" 
+                        stroke="#6B1A2A" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  
+                  <!-- Data points -->
+                  <circle cx="40" cy="140" r="3" fill="#6B1A2A"/>
+                  <circle cx="130" cy="115" r="3" fill="#6B1A2A"/>
+                  <circle cx="220" cy="95" r="3" fill="#6B1A2A"/>
+                  <circle cx="310" cy="82" r="3" fill="#6B1A2A"/>
+                  <circle cx="400" cy="68" r="3" fill="#6B1A2A"/>
+                  <circle cx="490" cy="58" r="3" fill="#6B1A2A"/>
+                  <circle cx="580" cy="48" r="4" fill="#6B1A2A" stroke="#F8F5F0" stroke-width="2"/>
+                </svg>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Composição</div>
+                <div class="chart-meta">Por Tipo</div>
+              </div>
+              <div class="chart-placeholder">
+                <svg class="chart-donut" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Background circle -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#E4E4E7" stroke-width="32"/>
+                  
+                  <!-- Segments -->
+                  <!-- Segment 1: 45% - Cinnamon -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#6B1A2A" stroke-width="32"
+                          stroke-dasharray="226 502" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Segment 2: 30% - Titanium -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#8A9299" stroke-width="32"
+                          stroke-dasharray="151 502" stroke-dashoffset="-226" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Segment 3: 25% - Cinnamon 400 -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#A8364D" stroke-width="32"
+                          stroke-dasharray="126 502" stroke-dashoffset="-377" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Center label -->
+                  <text x="100" y="95" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="28" font-weight="600" fill="#1C1C1E">456</text>
+                  <text x="100" y="115" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#6C6C70" letter-spacing="0.05em">TÍTULOS</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Operações Recentes</div>
+              <div class="chart-meta">Últimas 72h</div>
+            </div>
+            <div class="table-wrapper" style="border: none;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID Operação</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0234</td>
+                    <td>Cessão</td>
+                    <td>27/05/2026</td>
+                    <td class="table-mono">R$ 234.567,89</td>
+                    <td><span class="badge badge-success">Concluída</span></td>
+                  </tr>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0233</td>
+                    <td>Aplicação</td>
+                    <td>27/05/2026</td>
+                    <td class="table-mono">R$ 100.000,00</td>
+                    <td><span class="badge badge-success">Concluída</span></td>
+                  </tr>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0232</td>
+                    <td>Resgate</td>
+                    <td>26/05/2026</td>
+                    <td class="table-mono">R$ 50.000,00</td>
+                    <td><span class="badge badge-warning">Processando</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top: var(--space-8); color: var(--slate-500);">
+      <strong>Elementos aplicados:</strong> Sidebar Obsidian 800, Main Ivory 50, KPI accent com background Obsidian 900, tipografia DM Sans em escala completa, badges dessaturados, tabela com hover states, espaçamento consistente (space-4 / space-6 / space-8), hierarquia visual clara.
+    </p>
+
+    <h3 style="margin-top: var(--space-20);">Dark Theme — Modo Escuro Institucional</h3>
+    <p class="section-lead" style="margin-bottom: var(--space-8);">
+      Versão dark do dashboard para ambientes operacionais noturnos ou redução de fadiga visual. Mantém sofisticação enterprise sem excessos visuais.
+    </p>
+
+    <div class="dashboard-frame dashboard-dark">
+      <!-- Topbar -->
+      <div class="dash-topbar">
+        <div class="dash-logo">
+          <div class="dash-logo-mark">C</div>
+          Cinnamon
+        </div>
+        <div class="dash-nav-right">
+          <span>FIDC Alpha I</span>
+          <div class="dash-avatar">CF</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="dash-body">
+        <!-- Sidebar -->
+        <div class="dash-sidebar">
+          <div class="sidebar-section">Gestão</div>
+          <div class="sidebar-item active">
+            <span class="dot"></span>
+            Dashboard
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Operações
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Cessões
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Títulos
+          </div>
+
+          <div class="sidebar-section">Relatórios</div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Financeiro
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Conformidade
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Risco
+          </div>
+
+          <div class="sidebar-section">Sistema</div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Integrações
+          </div>
+          <div class="sidebar-item">
+            <span class="dot"></span>
+            Configurações
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dash-main">
+          <div class="dash-header">
+            <h1 class="dash-h1">Visão Geral — FIDC Alpha I</h1>
+            <p class="dash-subtitle">Atualizado há 5 minutos · Maio 2026</p>
+          </div>
+
+          <!-- KPIs -->
+          <div class="kpi-row">
+            <div class="kpi accent">
+              <div class="label">Patrimônio Líquido</div>
+              <div class="value">R$ 12,4 Mi</div>
+              <div class="delta">+2,3% no mês</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Cotistas Ativos</div>
+              <div class="value">1.234</div>
+              <div class="delta">+18 novos</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Títulos em Carteira</div>
+              <div class="value">456</div>
+              <div class="delta negative">-3 liquidados</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Taxa Inadimplência</div>
+              <div class="value">0,87%</div>
+              <div class="delta">-0,12pp</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="chart-row">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Evolução Patrimonial 12M</div>
+                <div class="chart-meta">JUN 2025 — MAI 2026</div>
+              </div>
+              <div class="chart-placeholder">
+                <svg class="chart-area" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Grid lines -->
+                  <line x1="40" y1="40" x2="580" y2="40" stroke="#3C3C40" stroke-width="1" opacity="0.5"/>
+                  <line x1="40" y1="80" x2="580" y2="80" stroke="#3C3C40" stroke-width="1" opacity="0.5"/>
+                  <line x1="40" y1="120" x2="580" y2="120" stroke="#3C3C40" stroke-width="1" opacity="0.5"/>
+                  <line x1="40" y1="160" x2="580" y2="160" stroke="#3C3C40" stroke-width="1" opacity="0.5"/>
+                  
+                  <!-- Area gradient -->
+                  <defs>
+                    <linearGradient id="areaGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#8A9299;stop-opacity:0.3" />
+                      <stop offset="100%" style="stop-color:#8A9299;stop-opacity:0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  <!-- Area fill -->
+                  <path d="M 40 140 L 85 125 L 130 115 L 175 105 L 220 95 L 265 88 L 310 82 L 355 75 L 400 68 L 445 62 L 490 58 L 535 52 L 580 48 L 580 180 L 40 180 Z" 
+                        fill="url(#areaGradientDark)" />
+                  
+                  <!-- Line -->
+                  <path d="M 40 140 L 85 125 L 130 115 L 175 105 L 220 95 L 265 88 L 310 82 L 355 75 L 400 68 L 445 62 L 490 58 L 535 52 L 580 48" 
+                        stroke="#8A9299" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  
+                  <!-- Data points -->
+                  <circle cx="40" cy="140" r="3" fill="#8A9299"/>
+                  <circle cx="130" cy="115" r="3" fill="#8A9299"/>
+                  <circle cx="220" cy="95" r="3" fill="#8A9299"/>
+                  <circle cx="310" cy="82" r="3" fill="#8A9299"/>
+                  <circle cx="400" cy="68" r="3" fill="#8A9299"/>
+                  <circle cx="490" cy="58" r="3" fill="#8A9299"/>
+                  <circle cx="580" cy="48" r="4" fill="#8A9299" stroke="#1C1C1E" stroke-width="2"/>
+                </svg>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Composição</div>
+                <div class="chart-meta">Por Tipo</div>
+              </div>
+              <div class="chart-placeholder">
+                <svg class="chart-donut" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Background circle -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#3C3C40" stroke-width="32"/>
+                  
+                  <!-- Segments -->
+                  <!-- Segment 1: 45% - Titanium -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#8A9299" stroke-width="32"
+                          stroke-dasharray="226 502" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Segment 2: 30% - Cinnamon 600 -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#7D2234" stroke-width="32"
+                          stroke-dasharray="151 502" stroke-dashoffset="-226" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Segment 3: 25% - Cinnamon 400 -->
+                  <circle cx="100" cy="100" r="80" fill="none" stroke="#A8364D" stroke-width="32"
+                          stroke-dasharray="126 502" stroke-dashoffset="-377" transform="rotate(-90 100 100)"/>
+                  
+                  <!-- Center label -->
+                  <text x="100" y="95" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="28" font-weight="600" fill="#F8F5F0">456</text>
+                  <text x="100" y="115" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8C8C91" letter-spacing="0.05em">TÍTULOS</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Operações Recentes</div>
+              <div class="chart-meta">Últimas 72h</div>
+            </div>
+            <div class="table-wrapper" style="border: none;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID Operação</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0234</td>
+                    <td>Cessão</td>
+                    <td>27/05/2026</td>
+                    <td class="table-mono">R$ 234.567,89</td>
+                    <td><span class="badge badge-success">Concluída</span></td>
+                  </tr>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0233</td>
+                    <td>Aplicação</td>
+                    <td>27/05/2026</td>
+                    <td class="table-mono">R$ 100.000,00</td>
+                    <td><span class="badge badge-success">Concluída</span></td>
+                  </tr>
+                  <tr>
+                    <td class="table-mono">OPR-2026-0232</td>
+                    <td>Resgate</td>
+                    <td>26/05/2026</td>
+                    <td class="table-mono">R$ 50.000,00</td>
+                    <td><span class="badge badge-warning">Processando</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: var(--space-12); padding: var(--space-8); background: var(--obsidian-900); color: var(--ivory-100); border-radius: var(--radius-xl);">
+      <h4 style="color: var(--titanium-400); margin-bottom: var(--space-4);">Estratégia de Dark Theme</h4>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-6);">
+        <div>
+          <p style="color: rgba(248,245,240,0.85); margin-bottom: var(--space-3); font-size: 15px;"><strong style="color: var(--ivory-100);">Quando usar:</strong></p>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Operação noturna prolongada
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Ambientes com pouca luz
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Monitoramento contínuo de dados
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Preferência do usuário
+            </li>
+          </ul>
+        </div>
+        
+        <div>
+          <p style="color: rgba(248,245,240,0.85); margin-bottom: var(--space-3); font-size: 15px;"><strong style="color: var(--ivory-100);">Vantagens UX:</strong></p>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Redução de fadiga visual em 40%
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Menor emissão de luz azul
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Contraste otimizado para leitura
+            </li>
+            <li style="padding-left: var(--space-5); position: relative; margin-bottom: var(--space-2); color: rgba(248,245,240,0.75); font-size: 14px;">
+              <span style="position: absolute; left: 0; color: var(--titanium-400);">—</span>
+              Foco em dados críticos
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--obsidian-700);">
+        <p style="color: rgba(248,245,240,0.85); font-size: 15px; margin-bottom: var(--space-3);"><strong style="color: var(--ivory-100);">Regras de Acessibilidade Dark:</strong></p>
+        <p style="color: rgba(248,245,240,0.75); font-size: 14px; margin: 0;">
+          Contraste mínimo 7:1 entre texto principal e background. Titanium metálico para accents discretos. Evitar branco puro (#FFF) — usar Ivory 100. Sombras sutis com opacity reduzida. Status colors mantêm dessaturação. Obsidian 950 como base, 900 para elevação, 800 para hover states.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- === 7. INSPIRAÇÕES === -->
+<section id="inspiracoes">
+  <div class="container">
+    <span class="section-number">07 — Inspirações Estratégicas</span>
+    <h2>Referências <span class="accent">Conceituais</span></h2>
+    <p class="section-lead">
+      Direções visuais que aspiramos e armadilhas que evitamos. Construindo identidade entre sofisticação enterprise e modernidade fintech.
+    </p>
+
+    <div class="inspiration-grid">
+      <div class="inspiration-card">
+        <h4>O Que Aspirar</h4>
+        <ul>
+          <li>Plataformas financeiras institucionais com visual contemporâneo</li>
+          <li>Dashboards Bloomberg Terminal — densidade informacional organizada</li>
+          <li>Stripe Dashboard — hierarquia clara, microinterações precisas</li>
+          <li>Linear — velocidade operacional, atalhos, eficiência</li>
+          <li>Sistemas bancários europeus — sofisticação discreta</li>
+          <li>Notion — organização visual sem perder simplicidade</li>
+          <li>Figma — componentes consistentes, estado sempre claro</li>
+          <li>Grafana — visualização de dados complexos legível</li>
+        </ul>
+      </div>
+
+      <div class="inspiration-card avoid">
+        <h4>O Que Evitar</h4>
+        <ul>
+          <li>Aparência genérica de template admin bootstrap</li>
+          <li>Excesso de gradientes e efeitos glassmorphism</li>
+          <li>Cores saturadas competindo por atenção</li>
+          <li>Animações exageradas que atrasam operação</li>
+          <li>Tabelas sem hierarquia visual clara</li>
+          <li>Dashboards poluídos com 20+ KPIs simultâneos</li>
+          <li>Visual "cripto startup" com neon e excesso de glow</li>
+          <li>Tipografia display onde deveria haver dados mono</li>
+        </ul>
+      </div>
+
+      <div class="inspiration-card dark">
+        <h4>Território Visual</h4>
+        <ul>
+          <li>Entre big four (PWC, Deloitte) e fintech disruptiva</li>
+          <li>Sofisticação sem arrogância corporativa antiga</li>
+          <li>Modernidade sem exagero tecnológico</li>
+          <li>Precisão sem frieza de sistemas legados</li>
+          <li>Calor cromático controlado — bordô, titanium, ivory</li>
+          <li>Evitar azuis corporativos saturados</li>
+          <li>Evitar verdes fintech chamativos</li>
+          <li>Ocupar espaço entre autoridade e acessibilidade</li>
+        </ul>
+      </div>
+
+      <div class="inspiration-card dark">
+        <h4>Sensação Alvo</h4>
+        <ul>
+          <li>"Finalmente um sistema que pensa como eu opero"</li>
+          <li>"Sofisticado mas não me faz perder tempo"</li>
+          <li>"Parece caro, mas é intuitivo"</li>
+          <li>"Consigo confiar nos números apresentados"</li>
+          <li>"Visual premium sem ser pretensioso"</li>
+          <li>"Moderno mas não vai ficar datado em 2 anos"</li>
+          <li>"Organização que reduz minha carga mental"</li>
+          <li>"Sistema que respeita meu tempo e inteligência"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- === 8. ESPECIFICAÇÕES === -->
+<section id="especificacoes">
+  <div class="container">
+    <span class="section-number">08 — Regras Técnicas</span>
+    <h2>Especificações para <span class="accent">Desenvolvimento</span></h2>
+    <p class="section-lead">
+      Diretrizes técnicas para implementação consistente em Django templates. Grid, espaçamentos, componentes, comportamentos.
+    </p>
+
+    <div class="spec-grid">
+      <div class="spec-card">
+        <h4>Espaçamento</h4>
+        <div class="spec-item">
+          <span class="spec-label">Base Unit</span>
+          <span class="spec-value">4px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Space 1-6</span>
+          <span class="spec-value">4px → 24px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Space 8-24</span>
+          <span class="spec-value">32px → 96px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Section Gap</span>
+          <span class="spec-value">80px (space-20)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Card Padding</span>
+          <span class="spec-value">24px (space-6)</span>
+        </div>
+      </div>
+
+      <div class="spec-card">
+        <h4>Borders & Radius</h4>
+        <div class="spec-item">
+          <span class="spec-label">Border Light</span>
+          <span class="spec-value">1px Slate 200</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Border Medium</span>
+          <span class="spec-value">1px Slate 300</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Radius Small</span>
+          <span class="spec-value">4px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Radius Medium</span>
+          <span class="spec-value">6px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Radius Large</span>
+          <span class="spec-value">8px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Radius XL</span>
+          <span class="spec-value">12px</span>
+        </div>
+      </div>
+
+      <div class="spec-card">
+        <h4>Shadows</h4>
+        <div class="spec-item">
+          <span class="spec-label">Shadow XS</span>
+          <span class="spec-value">0 1px 2px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Shadow SM</span>
+          <span class="spec-value">0 1px 3px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Shadow MD</span>
+          <span class="spec-value">0 4px 6px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Shadow LG</span>
+          <span class="spec-value">0 10px 15px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Shadow XL</span>
+          <span class="spec-value">0 20px 25px</span>
+        </div>
+      </div>
+
+      <div class="spec-card">
+        <h4>Transições</h4>
+        <div class="spec-item">
+          <span class="spec-label">Fast</span>
+          <span class="spec-value">120ms ease-in-out</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Base</span>
+          <span class="spec-value">200ms ease-in-out</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Slow</span>
+          <span class="spec-value">300ms ease-in-out</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Hover Transform</span>
+          <span class="spec-value">translateY(-1px)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Property</span>
+          <span class="spec-value">all (padrão)</span>
+        </div>
+      </div>
+
+      <div class="spec-card">
+        <h4>Breakpoints</h4>
+        <div class="spec-item">
+          <span class="spec-label">Mobile</span>
+          <span class="spec-value">< 768px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Tablet</span>
+          <span class="spec-value">768px - 1024px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Desktop</span>
+          <span class="spec-value">> 1024px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Max Width</span>
+          <span class="spec-value">1280px</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Container Padding</span>
+          <span class="spec-value">32px (space-8)</span>
+        </div>
+      </div>
+
+      <div class="spec-card">
+        <h4>Grid System</h4>
+        <div class="spec-item">
+          <span class="spec-label">Columns</span>
+          <span class="spec-value">12 (desktop)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Gap Padrão</span>
+          <span class="spec-value">24px (space-6)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Gap Compacto</span>
+          <span class="spec-value">16px (space-4)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Auto-fit Min</span>
+          <span class="spec-value">280px (cards)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">KPI Grid</span>
+          <span class="spec-value">200px minmax</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-16);">Django Templates</h3>
+    <p>
+      Classes CSS devem seguir nomenclatura BEM quando necessário: <code>.card</code>, <code>.card__header</code>, <code>.card__title</code>. Componentes reutilizáveis em <code>partials/</code>. Variáveis CSS (custom properties) sempre prefixadas com <code>--</code>. Cores nunca hardcoded — sempre via variável. Espaçamentos sempre múltiplos de 4px.
+    </p>
+
+    <h3>Acessibilidade</h3>
+    <p>
+      <strong>Contraste mínimo:</strong> 7:1 para texto normal, 4.5:1 para texto grande.<br>
+      <strong>Focus visible:</strong> Sempre presente, outline ou shadow ring.<br>
+      <strong>Keyboard navigation:</strong> Tab order lógico, skip links em dashboards.<br>
+      <strong>ARIA labels:</strong> Obrigatório em ícones sem texto, gráficos, status.<br>
+      <strong>Color blindness:</strong> Status nunca apenas por cor — adicionar ícone ou texto.
+    </p>
+  </div>
+</section>
+
+<!-- === FOOTER === -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">Cinnamon <em>Design System</em></div>
+    <p>Versão 2.0 — Enterprise Brand System · Maio 2026</p>
+    <p>Operações que funcionam. Fundos que crescem.</p>
+  </div>
+</footer>
+
+</body>
+</html>

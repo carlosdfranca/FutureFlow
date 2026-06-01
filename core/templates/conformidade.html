@@ -9,7 +9,7 @@
     <div class="card mb-4">
         <div class="card-body d-flex justify-content-between align-items-center">
             <h6 class="mb-0">🛡️ Conformidade – Políticas & Evidências</h6>
-            <a href="{% static 'docs/politicas_evidencias.zip' %}" target="_blank" class="btn btn-sm btn-outline-primary btn-custom">
+            <a href="{% static 'docs/politicas_evidencias.zip' %}" target="_blank" class="btn btn-sm btn-outline">
                 <i class="bi bi-archive"></i> Políticas & Evidências
             </a>
         </div>
@@ -21,21 +21,21 @@
             <div class="card text-center h-100">
                 <h6>Relatórios em Conformidade</h6>
                 <h3>92%</h3>
-                <span class="badge bg-success px-3">OK</span>
+                <span class="badge badge-success">OK</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-center h-100">
                 <h6>Evidências Pendentes</h6>
                 <h3>3</h3>
-                <span class="badge bg-warning text-dark px-3">Alerta</span>
+                <span class="badge badge-warning">Alerta</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-center h-100">
                 <h6>Não Conformes</h6>
                 <h3>1</h3>
-                <span class="badge bg-danger px-3">Crítico</span>
+                <span class="badge badge-error">Crítico</span>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
                 <tbody>
                     <tr>
                         <td>Política de Crédito</td>
-                        <td><span class="badge bg-success">OK</span></td>
+                        <td><span class="badge badge-success">OK</span></td>
                         <td>
                             <a href="{% static 'docs/politicas_evidencias.zip' %}" target="_blank">
                                 <i class="bi bi-archive text-warning"></i>
@@ -65,7 +65,7 @@
                     </tr>
                     <tr>
                         <td>Cadastro de Investidores</td>
-                        <td><span class="badge bg-warning text-dark">Pendente</span></td>
+                        <td><span class="badge badge-warning">Pendente</span></td>
                         <td>
                             <a href="{% static 'docs/informe_mensal.pdf' %}" target="_blank">
                                 <i class="bi bi-file-earmark-pdf text-danger"></i>
@@ -76,7 +76,7 @@
                     <tr>
                         <td>Relatório CVM</td>
                         <td>
-                            <span class="badge bg-danger">Não Conforme</span>
+                            <span class="badge badge-error">Não Conforme</span>
                             <i class="bi bi-bell-fill text-danger ms-1" title="Trigger: Workflow acionado"></i>
                         </td>
                         <td>

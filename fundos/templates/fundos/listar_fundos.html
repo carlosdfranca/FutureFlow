@@ -16,9 +16,9 @@
                 {% if request.empresa_ativa %}{{ request.empresa_ativa.nome }}{% endif %}
             </p>
         </div>
-        <div>
-            <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem; font-size:0.9rem;">
-                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+        <div class="page-hero__actions">
+            <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>Novo Fundo
             </a>
         </div>
     </div>
@@ -129,8 +129,8 @@
                     </div>
                     <p class="empty-state-modern__title">Nenhum FIDC cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento em Direitos Creditórios para esta empresa.</p>
-                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i>Novo Fundo
                     </a>
                 </div>
                 {% endif %}
@@ -160,8 +160,8 @@
                     </div>
                     <p class="empty-state-modern__title">Nenhum FII cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento Imobiliário para esta empresa.</p>
-                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i>Novo Fundo
                     </a>
                 </div>
                 {% endif %}
@@ -191,8 +191,8 @@
                     </div>
                     <p class="empty-state-modern__title">Nenhum FIP cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento em Participações para esta empresa.</p>
-                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                    <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i>Novo Fundo
                     </a>
                 </div>
                 {% endif %}

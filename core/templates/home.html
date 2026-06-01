@@ -1,182 +1,208 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Cinnamon FutureFlow{% endblock %}
+{% block title %}Dashboard - Cinnamon{% endblock %}
 
 {% block content %}
-<div class="container my-4">
 
-    <!-- Topbar -->
-    <nav class="navbar navbar-custom d-flex justify-content-between align-items-center mb-4">
-        <span class="navbar-brand fw-bold">Fundo Classe A</span>
-        <div class="d-flex align-items-center">
-            <small class="text-white me-3">Período: M-1</small>
-            <button class="btn btn-sm btn-outline-primary">Trocar fundo/classe</button>
-            <img src="https://via.placeholder.com/40" class="rounded-circle ms-3" alt="avatar">
+<!-- Hero Banner -->
+<div class="page-hero page-hero--compact">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <i class="bi bi-speedometer2"></i>Dashboard
+            </p>
+            <h1 class="page-hero__title">Visão Geral</h1>
+            <p class="page-hero__subtitle">
+                {% if request.empresa_ativa %}{{ request.empresa_ativa.nome }} · {% endif %}Fundo Classe A · Período M-1
+            </p>
         </div>
-    </nav>
+        <div class="page-hero__actions">
+            <button class="btn btn-outline">
+                <i class="bi bi-arrow-repeat"></i>Trocar Fundo
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
 
     <!-- KPIs principais -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card text-center h-100">
-                <h6>PL do Fundo</h6>
-                <h3>R$ 120.000.000</h3>
-                <small class="text-success">+2,5% vs M-1 <i class="bi bi-arrow-up"></i></small>
+    <div class="kpi-grid mb-5 stagger-children">
+        <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card__label">
+                <i class="bi bi-cash-stack"></i>PL do Fundo
+            </div>
+            <div class="kpi-card__value">R$ 120M</div>
+            <div class="kpi-card__footer">
+                <span class="rentability-badge rentability-badge--up">+2,5%</span>
+                <span class="kpi-card__footer-text">vs M-1</span>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center h-100">
-                <h6>Inadimplência 30/60/90+</h6>
-                <h3>3,2%</h3>
-                <span class="badge bg-success px-3">OK</span>
+        <div class="kpi-card kpi-card--green">
+            <div class="kpi-card__label">
+                <i class="bi bi-shield-check"></i>Inadimplência 30/60/90+
+            </div>
+            <div class="kpi-card__value">3,2%</div>
+            <div class="kpi-card__footer">
+                <span class="badge badge-success">OK</span>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center h-100">
-                <h6>Limites vs Utilizado</h6>
-                <div class="progress mb-2" style="height: 8px;">
-                    <div class="progress-bar bg-warning" style="width: 70%;"></div>
+        <div class="kpi-card kpi-card--orange">
+            <div class="kpi-card__label">
+                <i class="bi bi-speedometer"></i>Limites vs Utilizado
+            </div>
+            <div class="kpi-card__value">70%</div>
+            <div class="kpi-card__footer">
+                <span class="badge badge-warning">Alerta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs secundários -->
+    <div class="kpi-grid mb-5">
+        <div class="kpi-card kpi-card--cinnamon">
+            <div class="kpi-card__label">Top 10 Sacados</div>
+            <div class="kpi-card__value">45%</div>
+        </div>
+        <div class="kpi-card kpi-card--cinnamon">
+            <div class="kpi-card__label">PDD</div>
+            <div class="kpi-card__value">2,1%</div>
+        </div>
+        <div class="kpi-card kpi-card--cinnamon">
+            <div class="kpi-card__label">Fluxo D+30</div>
+            <div class="kpi-card__value">R$ 12M</div>
+        </div>
+        <div class="kpi-card kpi-card--cinnamon">
+            <div class="kpi-card__label">Overcollateral</div>
+            <div class="kpi-card__value">105%</div>
+        </div>
+        <div class="kpi-card kpi-card--cinnamon">
+            <div class="kpi-card__label">Não Elegíveis</div>
+            <div class="kpi-card__value">3,8%</div>
+        </div>
+    </div>
+
+    <!-- Downloads -->
+    <div class="card mb-5">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">
+                    <i class="bi bi-download"></i>Downloads
+                </h3>
+                <p class="card-subtitle">Documentos e relatórios disponíveis</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/metodologias_aderencia.pdf' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-file-earmark-pdf"></i>
+                            Metodologias & Aderência
+                        </span>
+                        <span class="badge badge-pdf badge--no-dot">PDF</span>
+                    </a>
                 </div>
-                <small>Status: <span class="text-warning">Alerta</span></small>
-            </div>
-        </div>
-    </div>
-
-    <!-- KPIs-Chave em mini cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-2 col-6">
-            <div class="card text-center h-100">
-                <h6>Top 10 Sacados</h6>
-                <h4>45%</h4>
-            </div>
-        </div>
-        <div class="col-md-2 col-6">
-            <div class="card text-center h-100">
-                <h6>PDD</h6>
-                <h4>2,1%</h4>
-            </div>
-        </div>
-        <div class="col-md-2 col-6">
-            <div class="card text-center h-100">
-                <h6>Fluxo D+30</h6>
-                <h4>R$ 12M</h4>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card text-center h-100">
-                <h6>Overcollateral</h6>
-                <h4>105%</h4>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="card text-center h-100">
-                <h6>Não Elegíveis</h6>
-                <h4>3,8%</h4>
-            </div>
-        </div>
-    </div>
-
-    <!-- Downloads em grade -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card p-3">
-                <h6 class="mb-3">Downloads</h6>
-                <div class="row g-3">
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/metodologias_aderencia.pdf' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-file-earmark-pdf"></i> Metodologias & Aderência
-                            <span class="badge badge-pdf">PDF</span>
-                        </a>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/politicas_evidencias.zip' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-archive"></i> Políticas & Evidências
-                            <span class="badge badge-zip">ZIP</span>
-                        </a>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/mapa_conciliacao.pdf' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-diagram-3"></i> Mapa de Conciliação
-                            <span class="badge badge-pdf">PDF</span>
-                        </a>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-journal-text"></i> Log de Auditoria
-                            <span class="badge badge-csv">CSV</span>
-                        </a>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/informe_mensal.pdf' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-file-text"></i> Informe Mensal
-                            <span class="badge badge-pdf">PDF</span>
-                        </a>
-                    </div>
-                    <div class="col-md-4 col-6">
-                        <a href="{% static 'docs/laudo_precificacao.pdf' %}" target="_blank" class="btn-download w-100">
-                            <i class="bi bi-cash-coin"></i> Laudo de Precificação
-                            <span class="badge badge-pdf">PDF</span>
-                        </a>
-                    </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/politicas_evidencias.zip' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-archive"></i>
+                            Políticas & Evidências
+                        </span>
+                        <span class="badge badge-zip badge--no-dot">ZIP</span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/mapa_conciliacao.pdf' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-diagram-3"></i>
+                            Mapa de Conciliação
+                        </span>
+                        <span class="badge badge-pdf badge--no-dot">PDF</span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-journal-text"></i>
+                            Log de Auditoria
+                        </span>
+                        <span class="badge badge-csv badge--no-dot">CSV</span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/informe_mensal.pdf' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-file-text"></i>
+                            Informe Mensal
+                        </span>
+                        <span class="badge badge-pdf badge--no-dot">PDF</span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% static 'docs/laudo_precificacao.pdf' %}" target="_blank" 
+                       class="btn btn-ghost w-100 justify-content-between">
+                        <span>
+                            <i class="bi bi-cash-coin"></i>
+                            Laudo de Precificação
+                        </span>
+                        <span class="badge badge-pdf badge--no-dot">PDF</span>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Área de gráficos -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <h6>Evolução Mensal Patrimônio Consolidado</h6>
+    <!-- Gráficos -->
+    <div class="card-grid mb-5">
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h4 class="chart-card__title">Evolução Mensal Patrimônio Consolidado</h4>
+            </div>
+            <div class="chart-card__body">
                 <div id="grafico-patrimonio" class="grafico"></div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <h6>Captação Mensal - Últimos 6 meses</h6>
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h4 class="chart-card__title">Captação Mensal - Últimos 6 meses</h4>
+            </div>
+            <div class="chart-card__body">
                 <div id="grafico-captacao" class="grafico"></div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <h6>Patrimônio por Classe de Ativos</h6>
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h4 class="chart-card__title">Patrimônio por Classe de Ativos</h4>
+            </div>
+            <div class="chart-card__body">
                 <div id="grafico-classe-ativos" class="grafico"></div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <h6>Patrimônio por Tipo de Produto</h6>
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h4 class="chart-card__title">Patrimônio por Tipo de Produto</h4>
+            </div>
+            <div class="chart-card__body">
                 <div id="grafico-tipo-produto" class="grafico"></div>
             </div>
         </div>
     </div>
 
     <!-- Release Notes -->
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <h6>Release Notes</h6>
-                <div class="markdown-content">
-                    {{ release_notes|safe }}
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="bi bi-megaphone"></i>Release Notes
+            </h3>
         </div>
-    </div>
-
-    <!-- Paginação -->
-    <div class="row mt-4">
-        <div class="col">
-            <nav aria-label="Navegação de páginas">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item active"><a class="page-link" href="{% url 'home' %}">Home</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'limites' %}">Limites</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'operacoes' %}">Operações</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'risco' %}">Risco</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'relatorios' %}">Relatórios</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'conformidade' %}">Conformidade</a></li>
-                    <li class="page-item"><a class="page-link" href="{% url 'integracoes' %}">Integrações</a></li>
-                </ul>
-            </nav>
+        <div class="card-body markdown-content">
+            {{ release_notes|safe }}
         </div>
     </div>
 

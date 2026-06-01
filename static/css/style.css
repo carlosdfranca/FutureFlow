@@ -513,15 +513,15 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     border-radius: 6px;
 }
 
-/* Cores específicas para formatos */
+/* Cores específicas para formatos - INSTITUCIONAL */
 .badge-pdf {
-    background-color: #b12323 !important;
+    background-color: #7D1F1F !important;  /* Error-700 institucional */
 }
 .badge-zip {
-    background-color: #3742fa !important;
+    background-color: #1F4D7D !important;  /* Info-700 institucional */
 }
 .badge-csv {
-    background-color: #4b883b !important;
+    background-color: #205D2D !important;  /* Success-700 institucional */
 }
 
 .text-muted {
@@ -694,11 +694,11 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     font-weight: 500;
 }
 
-/* Badges de tipo e status */
+/* Badges de tipo e status - INSTITUCIONAL */
 .badge-tipo-fidc { background-color: rgba(245,158,11,0.18);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.35); }
 .badge-tipo-fii  { background-color: rgba(16,185,129,0.18);  color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
 .badge-tipo-fip  { background-color: rgba(59,130,246,0.18);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
-.badge-ativo     { background-color: rgba(16,185,129,0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+.badge-ativo     { background-color: rgba(32,93,45,0.15);  color: #205D2D; border: 1px solid rgba(32,93,45,0.3); }  /* Success-700 institucional */
 .badge-inativo   { background-color: rgba(107,117,133,0.12); color: #8892a0; border: 1px solid rgba(107,117,133,0.25); }
 .badge-tipo-fidc, .badge-tipo-fii, .badge-tipo-fip,
 .badge-ativo, .badge-inativo {
@@ -844,30 +844,30 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     transform: translateY(-1px);
 }
 
-/* Success — verde */
+/* Success — verde institucional */
 .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    background: linear-gradient(135deg, #205D2D 0%, #2D7A3D 100%) !important;
     color: #fff !important;
     border: 1px solid transparent !important;
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 2px 10px rgba(32, 93, 45, 0.25);
 }
 .btn-success:hover {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #2D7A3D 0%, #3D934D 100%) !important;
+    box-shadow: 0 4px 20px rgba(32, 93, 45, 0.4);
     color: #fff !important;
     transform: translateY(-1px);
 }
 
-/* Danger — vermelho */
+/* Danger — vermelho institucional */
 .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    background: linear-gradient(135deg, #7D1F1F 0%, #A62828 100%) !important;
     color: #fff !important;
     border: 1px solid transparent !important;
-    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
+    box-shadow: 0 2px 10px rgba(125, 31, 31, 0.25);
 }
 .btn-danger:hover {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #A62828 0%, #C93030 100%) !important;
+    box-shadow: 0 4px 20px rgba(125, 31, 31, 0.4);
     color: #fff !important;
     transform: translateY(-1px);
 }

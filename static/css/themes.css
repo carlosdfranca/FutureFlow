@@ -1,0 +1,356 @@
+/* ================================
+   Cinnamon Enterprise Design System
+   Themes — Dark & Light Mode
+================================ */
+
+/* === DARK THEME (DEFAULT) === */
+:root,
+html[data-theme="dark"] {
+    /* Surfaces */
+    --surface-1: var(--obsidian-950);
+    --surface-2: #111113;
+    --surface-3: var(--obsidian-900);
+    --surface-raised: var(--obsidian-800);
+    --surface-elevated: var(--obsidian-700);
+
+    /* Text */
+    --text-primary: var(--ivory-100);
+    --text-secondary: var(--slate-200);
+    --text-tertiary: var(--slate-400);
+    --text-muted: var(--slate-500);
+    --text-disabled: var(--slate-600);
+
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --border-emphasis: var(--obsidian-600);
+
+    /* Backgrounds overlay */
+    --bg-overlay: rgba(10, 10, 11, 0.85);
+    --bg-backdrop: rgba(0, 0, 0, 0.6);
+
+    /* Interactive states */
+    --hover-overlay: rgba(255, 255, 255, 0.05);
+    --active-overlay: rgba(255, 255, 255, 0.08);
+    --focus-ring: var(--cinnamon-700);
+    --focus-ring-offset: var(--obsidian-950);
+
+    /* Accent primary (Cinnamon) */
+    --accent-primary: var(--cinnamon-700);
+    --accent-primary-hover: var(--cinnamon-600);
+    --accent-primary-active: var(--cinnamon-500);
+    --accent-primary-subtle: rgba(107, 26, 42, 0.14);
+    --accent-primary-emphasis: var(--cinnamon-900);
+
+    /* Semantic colors */
+    --color-success: var(--success-500);
+    --color-success-bg: rgba(77, 147, 77, 0.12);
+    --color-success-border: var(--success-700);
+
+    --color-warning: var(--warning-500);
+    --color-warning-bg: rgba(212, 154, 32, 0.12);
+    --color-warning-border: var(--warning-700);
+
+    --color-error: var(--error-500);
+    --color-error-bg: rgba(201, 48, 48, 0.12);
+    --color-error-border: var(--error-700);
+
+    --color-info: var(--info-500);
+    --color-info-bg: rgba(54, 133, 201, 0.12);
+    --color-info-border: var(--info-700);
+
+    /* Neutral colors */
+    --color-neutral: var(--slate-500);
+    --color-neutral-bg: rgba(108, 108, 112, 0.12);
+    --color-neutral-border: var(--slate-600);
+
+    /* Shadows (darker for dark mode) */
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 10px 36px rgba(0, 0, 0, 0.5);
+    --shadow-dropdown: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.7);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(28, 28, 30, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: var(--blur-lg);
+
+    /* Input states */
+    --input-bg: var(--surface-3);
+    --input-border: var(--border-default);
+    --input-border-hover: var(--border-strong);
+    --input-border-focus: var(--accent-primary);
+    --input-placeholder: var(--slate-400);
+
+    /* Card states */
+    --card-bg: var(--surface-2);
+    --card-bg-hover: var(--surface-raised);
+    --card-border: var(--border-subtle);
+    --card-shadow: var(--shadow-card);
+    --card-shadow-hover: var(--shadow-card-hover);
+
+    /* Navigation */
+    --nav-bg: rgba(17, 17, 19, 0.94);
+    --nav-border: var(--border-subtle);
+    --nav-link: var(--text-secondary);
+    --nav-link-hover: var(--text-primary);
+    --nav-link-active: var(--text-primary);
+    --nav-link-active-bg: var(--accent-primary-subtle);
+
+    /* Buttons */
+    --btn-primary-bg: var(--accent-primary);
+    --btn-primary-hover: var(--accent-primary-hover);
+    --btn-primary-text: var(--ivory-50);
+    --btn-secondary-bg: transparent;
+    --btn-secondary-border: var(--border-strong);
+    --btn-secondary-hover-bg: var(--hover-overlay);
+    --btn-ghost-hover-bg: var(--accent-primary-subtle);
+
+    /* Tables */
+    --table-header-bg: var(--surface-raised);
+    --table-row-hover: var(--hover-overlay);
+    --table-border: var(--border-subtle);
+
+    /* Fund type accents (mantém compatibilidade) */
+    --fidc-color: var(--accent-fidc);
+    --fii-color: var(--accent-fii);
+    --fip-color: var(--accent-fip);
+}
+
+/* === LIGHT THEME === */
+html[data-theme="light"] {
+    /* Surfaces */
+    --surface-1: var(--ivory-50);
+    --surface-2: var(--ivory-100);
+    --surface-3: #FFFFFF;
+    --surface-raised: var(--ivory-200);
+    --surface-elevated: var(--ivory-300);
+
+    /* Text */
+    --text-primary: var(--obsidian-900);
+    --text-secondary: var(--slate-600);
+    --text-tertiary: var(--slate-500);
+    --text-muted: var(--slate-400);
+    --text-disabled: var(--slate-300);
+
+    /* Borders */
+    --border-subtle: var(--slate-100);
+    --border-default: var(--slate-200);
+    --border-strong: var(--slate-300);
+    --border-emphasis: var(--slate-400);
+
+    /* Backgrounds overlay */
+    --bg-overlay: rgba(252, 251, 249, 0.95);
+    --bg-backdrop: rgba(0, 0, 0, 0.3);
+
+    /* Interactive states */
+    --hover-overlay: rgba(0, 0, 0, 0.04);
+    --active-overlay: rgba(0, 0, 0, 0.08);
+    --focus-ring: var(--cinnamon-700);
+    --focus-ring-offset: var(--ivory-50);
+
+    /* Accent primary (Cinnamon) */
+    --accent-primary: var(--cinnamon-700);
+    --accent-primary-hover: var(--cinnamon-600);
+    --accent-primary-active: var(--cinnamon-500);
+    --accent-primary-subtle: var(--cinnamon-100);
+    --accent-primary-emphasis: var(--cinnamon-900);
+
+    /* Semantic colors */
+    --color-success: var(--success-600);
+    --color-success-bg: var(--success-100);
+    --color-success-border: var(--success-600);
+
+    --color-warning: var(--warning-600);
+    --color-warning-bg: var(--warning-100);
+    --color-warning-border: var(--warning-600);
+
+    --color-error: var(--error-600);
+    --color-error-bg: var(--error-100);
+    --color-error-border: var(--error-600);
+
+    --color-info: var(--info-600);
+    --color-info-bg: var(--info-100);
+    --color-info-border: var(--info-600);
+
+    /* Neutral colors */
+    --color-neutral: var(--slate-600);
+    --color-neutral-bg: var(--slate-100);
+    --color-neutral-border: var(--slate-300);
+
+    /* Shadows (lighter for light mode) */
+    --shadow-color: rgba(28, 28, 30, 0.15);
+    --shadow-card: var(--shadow-sm);
+    --shadow-card-hover: var(--shadow-md);
+    --shadow-dropdown: var(--shadow-lg);
+    --shadow-modal: var(--shadow-2xl);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(252, 251, 249, 0.94);
+    --glass-border: var(--border-default);
+    --glass-blur: var(--blur-lg);
+
+    /* Input states */
+    --input-bg: var(--surface-3);
+    --input-border: var(--border-default);
+    --input-border-hover: var(--border-strong);
+    --input-border-focus: var(--accent-primary);
+    --input-placeholder: var(--slate-400);
+
+    /* Card states */
+    --card-bg: var(--surface-2);
+    --card-bg-hover: var(--surface-raised);
+    --card-border: var(--border-default);
+    --card-shadow: var(--shadow-card);
+    --card-shadow-hover: var(--shadow-card-hover);
+
+    /* Navigation */
+    --nav-bg: var(--glass-bg);
+    --nav-border: var(--border-default);
+    --nav-link: var(--text-secondary);
+    --nav-link-hover: var(--text-primary);
+    --nav-link-active: var(--accent-primary);
+    --nav-link-active-bg: var(--accent-primary-subtle);
+
+    /* Buttons */
+    --btn-primary-bg: var(--accent-primary);
+    --btn-primary-hover: var(--accent-primary-hover);
+    --btn-primary-text: var(--ivory-50);
+    --btn-secondary-bg: transparent;
+    --btn-secondary-border: var(--border-strong);
+    --btn-secondary-hover-bg: var(--surface-raised);
+    --btn-ghost-hover-bg: var(--accent-primary-subtle);
+
+    /* Tables */
+    --table-header-bg: var(--ivory-200);
+    --table-row-hover: var(--hover-overlay);
+    --table-border: var(--border-default);
+
+    /* Fund type accents */
+    --fidc-color: var(--accent-fidc);
+    --fii-color: var(--accent-fii);
+    --fip-color: var(--accent-fip);
+}
+
+/* === APPLY THEME COLORS TO BODY === */
+body {
+    background-color: var(--surface-1);
+    color: var(--text-primary);
+    transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+/* === THEME-AWARE COMPONENT OVERRIDES === */
+
+/* Links */
+a {
+    color: var(--accent-primary);
+    transition: var(--transition-colors);
+}
+
+a:hover {
+    color: var(--accent-primary-hover);
+}
+
+/* Selection */
+::selection {
+    background-color: var(--accent-primary);
+    color: var(--ivory-50);
+}
+
+::-moz-selection {
+    background-color: var(--accent-primary);
+    color: var(--ivory-50);
+}
+
+/* Scrollbar (Webkit browsers) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface-2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-emphasis);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-emphasis) var(--surface-2);
+}
+
+/* === FOCUS VISIBLE === */
+*:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* === DISABLED STATE === */
+:disabled,
+[disabled],
+[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* === PREFERS REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* === HIGH CONTRAST MODE === */
+@media (prefers-contrast: high) {
+    :root,
+    html[data-theme="dark"],
+    html[data-theme="light"] {
+        --border-subtle: var(--border-strong);
+        --border-default: var(--border-emphasis);
+    }
+}
+
+/* === THEME TRANSITION === */
+html {
+    transition: background-color var(--transition-slow);
+}
+
+body,
+body * {
+    transition-property: background-color, color, border-color;
+    transition-duration: var(--transition-base);
+    transition-timing-function: ease-in-out;
+}
+
+/* Prevent transition on page load */
+.no-transition,
+.no-transition * {
+    transition: none !important;
+}

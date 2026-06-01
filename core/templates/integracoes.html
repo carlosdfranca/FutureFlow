@@ -9,7 +9,7 @@
     <div class="card mb-4">
         <div class="card-body d-flex justify-content-between align-items-center">
             <h6 class="mb-0">🔗 Integrações – Sistemas Externos</h6>
-            <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank" class="btn btn-sm btn-outline-primary btn-custom">
+            <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank" class="btn btn-sm btn-outline">
                 <i class="bi bi-journal-text"></i> Log de Integrações
             </a>
         </div>
@@ -21,21 +21,21 @@
             <div class="card text-center h-100">
                 <h6>Integrações Ativas</h6>
                 <h3>4</h3>
-                <span class="badge bg-success px-3">OK</span>
+                <span class="badge badge-success">OK</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-center h-100">
                 <h6>Pendentes</h6>
                 <h3>2</h3>
-                <span class="badge bg-warning text-dark px-3">Aguardando</span>
+                <span class="badge badge-warning">Aguardando</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card text-center h-100">
                 <h6>Com Erros</h6>
                 <h3>1</h3>
-                <span class="badge bg-danger px-3">Falha</span>
+                <span class="badge badge-error">Falha</span>
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@
                     <tr>
                         <td>Banco Custodiante</td>
                         <td>25/09/2025 14:32</td>
-                        <td><span class="badge bg-success">OK</span></td>
+                        <td><span class="badge badge-success">OK</span></td>
                         <td>
                             <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank">
                                 <i class="bi bi-file-earmark-text text-light"></i>
@@ -66,7 +66,7 @@
                     <tr>
                         <td>ERP Financeiro</td>
                         <td>25/09/2025 10:05</td>
-                        <td><span class="badge bg-warning text-dark">Pendente</span></td>
+                        <td><span class="badge badge-warning">Pendente</span></td>
                         <td>
                             <a href="{% static 'docs/log_auditoria.csv' %}" target="_blank">
                                 <i class="bi bi-file-earmark-text text-light"></i>
@@ -77,7 +77,7 @@
                         <td>Contabilidade Interna</td>
                         <td>24/09/2025 19:47</td>
                         <td>
-                            <span class="badge bg-danger">Erro</span>
+                            <span class="badge badge-error">Erro</span>
                             <i class="bi bi-bell-fill text-danger ms-1" title="Trigger: Workflow acionado"></i>
                         </td>
                         <td>

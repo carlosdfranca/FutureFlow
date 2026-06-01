@@ -1,0 +1,313 @@
+/* ================================
+   Cinnamon Enterprise Design System
+   Design Tokens — Foundation Layer
+================================ */
+
+:root {
+    /* === PALETA EXPANDIDA === */
+    
+    /* Primárias — Cinnamon (Bordeaux Premium) */
+    --cinnamon-900: #4A0F1C;        /* Fondant — fundos escuros premium */
+    --cinnamon-800: #5D1524;        /* Variação intermediária */
+    --cinnamon-700: #6B1A2A;        /* Cinnamon principal — brand color */
+    --cinnamon-600: #7D2234;        /* Hover states */
+    --cinnamon-500: #92293E;        /* Active lighter */
+    --cinnamon-400: #A8364D;        /* Accent softer */
+    --cinnamon-200: #D47A8F;        /* Backgrounds sutis */
+    --cinnamon-100: #F5E8EC;        /* Surface tint */
+
+    /* Neutros Premium — Obsidian (Escuros) */
+    --obsidian-950: #0A0A0B;        /* True black */
+    --obsidian-900: #1C1C1E;        /* Texto principal dark */
+    --obsidian-800: #2C2C2F;        /* Superfícies elevadas */
+    --obsidian-700: #3C3C40;        /* Borders dark */
+    --obsidian-600: #4C4C51;        /* Separadores */
+    
+    /* Neutros Premium — Slate (Médios) */
+    --slate-600: #5C5C62;           /* Texto secundário dark */
+    --slate-500: #6C6C70;           /* Texto suporte */
+    --slate-400: #8C8C91;           /* Placeholder text */
+    --slate-300: #ACACB1;           /* Disabled elements */
+    --slate-200: #CCCCD0;           /* Borders light */
+    --slate-100: #E4E4E7;           /* Separadores sutis */
+
+    /* Backgrounds Premium — Ivory (Claros) */
+    --ivory-50: #FCFBF9;            /* Background absolute */
+    --ivory-100: #F8F5F0;           /* Background principal */
+    --ivory-200: #F2EEE8;           /* Cards elevated */
+    --ivory-300: #EBE6DD;           /* Hover surfaces */
+    --ivory-400: #E3DDD2;           /* Pressed states */
+
+    /* Metálicos — Titanium (Accent tecnológico) */
+    --titanium-700: #5A6169;        /* Titanium profundo */
+    --titanium-600: #6B747E;        /* Titanium escovado */
+    --titanium-500: #8A9299;        /* Titanium principal */
+    --titanium-400: #A3ABB2;        /* Titanium suave */
+    --titanium-100: #E8EAEC;        /* Tint metálico */
+
+    /* Status Funcionais — Success (Verde dessaturado) */
+    --success-700: #205D2D;         /* Verde musgo institucional */
+    --success-600: #2D7A3D;         /* Verde médio */
+    --success-500: #3D934D;         /* Verde ativo */
+    --success-100: #E8F5E8;         /* Background success */
+
+    /* Status Funcionais — Warning (Dourado/Mostarda) */
+    --warning-700: #886914;         /* Dourado institucional */
+    --warning-600: #B8881A;         /* Mostarda médio */
+    --warning-500: #D49A20;         /* Alerta ativo */
+    --warning-100: #FFF8E6;         /* Background warning */
+
+    /* Status Funcionais — Error (Vermelho dessaturado) */
+    --error-700: #7D1F1F;           /* Vermelho profundo */
+    --error-600: #A62828;           /* Erro institucional */
+    --error-500: #C93030;           /* Erro ativo */
+    --error-100: #FFE8E8;           /* Background error */
+
+    /* Status Funcionais — Info (Azul dessaturado) */
+    --info-700: #1F4D7D;            /* Azul profundo */
+    --info-600: #2B6BA8;            /* Info institucional */
+    --info-500: #3685C9;            /* Info ativo */
+    --info-100: #E6F2FF;           /* Background info */
+
+    /* Accents por tipo de fundo (compatibilidade com sistema atual) */
+    --accent-fidc: #f59e0b;         /* Amarelo/âmbar para FIDC */
+    --accent-fii:  #10b981;         /* Verde para FII */
+    --accent-fip:  #3b82f6;         /* Azul para FIP */
+
+    /* === TIPOGRAFIA === */
+    --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', 'Consolas', monospace;
+
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+
+    /* Font Sizes */
+    --font-size-xs: 0.688rem;       /* 11px */
+    --font-size-sm: 0.75rem;        /* 12px */
+    --font-size-base: 0.875rem;     /* 14px */
+    --font-size-md: 0.938rem;       /* 15px */
+    --font-size-lg: 1rem;           /* 16px */
+    --font-size-xl: 1.125rem;       /* 18px */
+    --font-size-2xl: 1.375rem;      /* 22px */
+    --font-size-3xl: 1.625rem;      /* 26px */
+    --font-size-4xl: 2.25rem;       /* 36px */
+    --font-size-5xl: 3rem;          /* 48px */
+    --font-size-6xl: 3.5rem;        /* 56px */
+
+    /* Line Heights */
+    --line-height-tight: 1.15;
+    --line-height-snug: 1.3;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.6;
+    --line-height-loose: 1.7;
+
+    /* Letter Spacing */
+    --letter-spacing-tighter: -0.03em;
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.025em;
+    --letter-spacing-wider: 0.05em;
+    --letter-spacing-widest: 0.1em;
+    --letter-spacing-ultra: 0.14em;
+    --letter-spacing-extreme: 0.18em;
+
+    /* === ESPAÇAMENTO === */
+    --space-0: 0;
+    --space-1: 0.25rem;             /* 4px */
+    --space-2: 0.5rem;              /* 8px */
+    --space-3: 0.75rem;             /* 12px */
+    --space-4: 1rem;                /* 16px */
+    --space-5: 1.25rem;             /* 20px */
+    --space-6: 1.5rem;              /* 24px */
+    --space-7: 1.75rem;             /* 28px */
+    --space-8: 2rem;                /* 32px */
+    --space-10: 2.5rem;             /* 40px */
+    --space-12: 3rem;               /* 48px */
+    --space-14: 3.5rem;             /* 56px */
+    --space-16: 4rem;               /* 64px */
+    --space-20: 5rem;               /* 80px */
+    --space-24: 6rem;               /* 96px */
+
+    /* === BORDER RADIUS === */
+    --radius-none: 0;
+    --radius-sm: 0.25rem;           /* 4px */
+    --radius-md: 0.375rem;          /* 6px */
+    --radius-lg: 0.5rem;            /* 8px */
+    --radius-xl: 0.75rem;           /* 12px */
+    --radius-2xl: 1rem;             /* 16px */
+    --radius-3xl: 1.5rem;           /* 24px */
+    --radius-full: 624.9375rem;     /* 9999px */
+
+    /* === SHADOWS === */
+    --shadow-xs: 0 1px 2px rgba(28, 28, 30, 0.04);
+    --shadow-sm: 0 1px 3px rgba(28, 28, 30, 0.06), 0 1px 2px rgba(28, 28, 30, 0.03);
+    --shadow-md: 0 4px 6px rgba(28, 28, 30, 0.05), 0 2px 4px rgba(28, 28, 30, 0.03);
+    --shadow-lg: 0 10px 15px rgba(28, 28, 30, 0.06), 0 4px 6px rgba(28, 28, 30, 0.04);
+    --shadow-xl: 0 20px 25px rgba(28, 28, 30, 0.08), 0 10px 10px rgba(28, 28, 30, 0.03);
+    --shadow-2xl: 0 25px 50px rgba(28, 28, 30, 0.12);
+    --shadow-inner: inset 0 2px 4px rgba(28, 28, 30, 0.06);
+
+    /* Colored Shadows (para hover effects) */
+    --shadow-cinnamon: 0 10px 30px rgba(107, 26, 42, 0.20);
+    --shadow-success: 0 10px 30px rgba(45, 93, 45, 0.15);
+    --shadow-warning: 0 10px 30px rgba(139, 105, 20, 0.15);
+    --shadow-error: 0 10px 30px rgba(125, 31, 31, 0.15);
+
+    /* === BORDERS === */
+    --border-width-thin: 1px;
+    --border-width-medium: 1.5px;
+    --border-width-thick: 2px;
+    --border-width-extra: 3px;
+
+    /* Border Styles (serão combinados com cores dos temas) */
+    --border-style: solid;
+
+    /* === TRANSITIONS === */
+    --transition-fast: 120ms ease-in-out;
+    --transition-base: 200ms ease-in-out;
+    --transition-slow: 300ms ease-in-out;
+    --transition-slower: 450ms ease-in-out;
+
+    /* Transition Properties */
+    --transition-all: all var(--transition-base);
+    --transition-colors: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+    --transition-transform: transform var(--transition-base);
+    --transition-opacity: opacity var(--transition-base);
+
+    /* === Z-INDEX === */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+
+    /* === BREAKPOINTS (para uso em JS) === */
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+
+    /* === MISC === */
+    --blur-sm: 8px;
+    --blur-md: 12px;
+    --blur-lg: 16px;
+    --blur-xl: 24px;
+
+    --opacity-0: 0;
+    --opacity-10: 0.1;
+    --opacity-20: 0.2;
+    --opacity-30: 0.3;
+    --opacity-40: 0.4;
+    --opacity-50: 0.5;
+    --opacity-60: 0.6;
+    --opacity-70: 0.7;
+    --opacity-80: 0.8;
+    --opacity-90: 0.9;
+    --opacity-100: 1;
+}
+
+/* === GLOBAL RESETS & DEFAULTS === */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    scroll-padding-top: 72px; /* altura do navbar */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    font-weight: var(--font-weight-normal);
+}
+
+/* === UTILITY CLASSES === */
+
+/* Spacing utilities */
+.mt-0 { margin-top: var(--space-0); }
+.mt-1 { margin-top: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-5 { margin-top: var(--space-5); }
+.mt-6 { margin-top: var(--space-6); }
+.mt-8 { margin-top: var(--space-8); }
+.mt-10 { margin-top: var(--space-10); }
+.mt-12 { margin-top: var(--space-12); }
+
+.mb-0 { margin-bottom: var(--space-0); }
+.mb-1 { margin-bottom: var(--space-1); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-5 { margin-bottom: var(--space-5); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mb-8 { margin-bottom: var(--space-8); }
+.mb-10 { margin-bottom: var(--space-10); }
+.mb-12 { margin-bottom: var(--space-12); }
+
+.pt-0 { padding-top: var(--space-0); }
+.pt-2 { padding-top: var(--space-2); }
+.pt-4 { padding-top: var(--space-4); }
+.pt-6 { padding-top: var(--space-6); }
+.pt-8 { padding-top: var(--space-8); }
+
+.pb-0 { padding-bottom: var(--space-0); }
+.pb-2 { padding-bottom: var(--space-2); }
+.pb-4 { padding-bottom: var(--space-4); }
+.pb-6 { padding-bottom: var(--space-6); }
+.pb-8 { padding-bottom: var(--space-8); }
+
+/* Text utilities */
+.font-primary { font-family: var(--font-primary); }
+.font-secondary { font-family: var(--font-secondary); }
+.font-mono { font-family: var(--font-mono); }
+
+.font-light { font-weight: var(--font-weight-light); }
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+
+.letter-spacing-wide { letter-spacing: var(--letter-spacing-wide); }
+.letter-spacing-wider { letter-spacing: var(--letter-spacing-wider); }
+.letter-spacing-widest { letter-spacing: var(--letter-spacing-widest); }
+
+/* Layout utilities */
+.container-wide {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+}
+
+.container-narrow {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+}
