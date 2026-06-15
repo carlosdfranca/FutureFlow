@@ -75,11 +75,14 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'operacoes:detalhe_cessao' op.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'operacoes:detalhe_cessao' op.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalhes">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{% url 'operacoes:gerar_termo_cessao' op.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <a href="{% url 'operacoes:gerar_termo_cessao' op.pk %}" class="btn btn-sm btn-outline-secondary" title="Gerar Termo DOCX">
                                             <i class="bi bi-file-word"></i>
+                                        </a>
+                                        <a href="{% url 'operacoes:cnab_parametros' op.pk %}" class="btn btn-sm btn-outline-dark" title="Gerar CNAB">
+                                            <i class="bi bi-file-earmark-text"></i>
                                         </a>
                                     </td>
                                 </tr>

@@ -206,7 +206,19 @@ class Titulo(models.Model):
         default='',
         help_text='Chave de acesso da NF-e (44 dígitos)'
     )
-    
+
+    # Campos CNAB
+    tipo_titulo = models.CharField(
+        max_length=2,
+        default='01',
+        help_text='Tipo do título para CNAB (01=Duplicata Mercantil, 02=Duplicata Serviços, 03=NP, etc.)'
+    )
+    coobrigacao = models.CharField(
+        max_length=2,
+        default='01',
+        help_text='Coobrigação para CNAB (01=Com coobrigação, 02=Sem coobrigação)'
+    )
+
     # Auditoria
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)

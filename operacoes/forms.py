@@ -202,3 +202,25 @@ class AplicacaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['fundo'].queryset = Fundo.objects.filter(ativo=True)
+
+
+# ============================================
+# FORMS: CNAB
+# ============================================
+
+class CnabParametrosForm(forms.Form):
+    dtl = forms.DateField(
+        label='Data de Liquidação (DTL)',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    cdo = forms.CharField(
+        label='Código Originador (CDO)',
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 01'})
+    )
+    ocorrencia = forms.CharField(
+        label='Ocorrência',
+        max_length=2,
+        initial='01',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '01'})
+    )

@@ -9,6 +9,8 @@ urlpatterns = [
     path('cessoes/nova/', views.workflow_cessao, name='workflow_cessao'),
     path('cessoes/<uuid:pk>/', views.detalhe_cessao, name='detalhe_cessao'),
     path('cessoes/<uuid:pk>/termo/', views.gerar_termo_cessao, name='gerar_termo_cessao'),
+    path('cessoes/<uuid:pk>/cnab/', views.cnab_parametros, name='cnab_parametros'),
+    path('cessoes/<uuid:pk>/cnab/download/', views.download_cnab_cessao, name='download_cnab_cessao'),
     
     # Títulos
     path('titulos/', views.listar_titulos, name='listar_titulos'),

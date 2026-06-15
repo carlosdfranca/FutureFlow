@@ -2,13 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.conf import settings
 from decimal import Decimal
 
-from .models import OperacaoCessao, Titulo, EventoTitulo, Aplicacao
-from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm
+from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
+from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm
 from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
+from .utils.cnab_service import gerar_cnab_stream
+from .utils.cnab_utils import rp
 
 # Importar serviços existentes do core
 from core.services.cessao_xml import parse_nfe_uploaded_file
@@ -315,6 +318,82 @@ def listar_aplicacoes(request):
     return render(request, "operacoes/listar_aplicacoes.html", {
         "aplicacoes": aplicacoes,
     })
+
+
+# ============================================
+# VIEWS: CNAB
+# ============================================
+
+@login_required
+def cnab_parametros(request, pk):
+    """Exibe formulário de parâmetros antes de gerar o CNAB"""
+    operacao = get_object_or_404(OperacaoCessao, pk=pk)
+    form = CnabParametrosForm()
+    return render(request, 'operacoes/cnab_parametros.html', {
+        'form': form,
+        'operacao': operacao,
+    })
+
+
+@login_required
+def download_cnab_cessao(request, pk):
+    """Gera e retorna o arquivo CNAB da cessão como download"""
+    operacao = get_object_or_404(
+        OperacaoCessao.objects.prefetch_related('titulos'), pk=pk
+    )
+    form = CnabParametrosForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'operacoes/cnab_parametros.html', {
+            'form': form,
+            'operacao': operacao,
+        })
+
+    titulos = operacao.titulos.filter(ativo=True).prefetch_related('eventos')
+
+    base_data = []
+    for titulo in titulos:
+        valor_liquidado = titulo.eventos.filter(
+            tipo_evento__in=[
+                TipoEventoTitulo.LIQUIDACAO_PARCIAL,
+                TipoEventoTitulo.LIQUIDACAO_TOTAL,
+            ]
+        ).aggregate(total=Sum('valor_evento'))['total'] or Decimal('0')
+
+        cpf_cnpj_limpo = rp(titulo.sacado_cpf_cnpj)
+        identificacao_sacado = "1" if len(cpf_cnpj_limpo) <= 11 else "2"
+
+        base_data.append({
+            "CNPJ_CEDENTE": operacao.cedente_cnpj,
+            "NOME_CEDENTE": operacao.cedente_nome,
+            "SEU_NUMERO": titulo.numero_titulo,
+            "NU_DOCUMENTO": titulo.numero_titulo,
+            "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
+            "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
+            "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
+            "NM_SACADO": titulo.sacado_nome,
+            "VL_PAGO": str(valor_liquidado).replace('.', ','),
+            "IDENTIFICACAO_CPF_CNPJ_SACADO": identificacao_sacado,
+            "ENDERECO": titulo.sacado_endereco,
+            "CEP": titulo.sacado_cep,
+            "TP_TITULO": titulo.tipo_titulo,
+            "DT_EMISSAO_TITULO": titulo.data_emissao.strftime('%d/%m/%Y'),
+            "COOBRIGACAO": titulo.coobrigacao,
+            "IDENTIFICACAO_CPF_CNPJ_CEDENTE": "02",
+            "NFE": titulo.chave_nfe,
+            "VALOR_PAGO_TITULO": str(titulo.valor_aquisicao).replace('.', ','),
+        })
+
+    menu_data = {
+        "DTL": form.cleaned_data['dtl'].strftime('%d/%m/%Y'),
+        "CDO": form.cleaned_data['cdo'],
+        "OCORRENCIA": form.cleaned_data['ocorrencia'],
+    }
+
+    buffer = gerar_cnab_stream(base_data, menu_data)
+    filename = f"CNAB_{operacao.numero_contrato}.txt"
+    response = HttpResponse(buffer.read(), content_type='text/plain; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 # ============================================

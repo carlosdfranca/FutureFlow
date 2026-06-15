@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gerar CNAB — {{ operacao.numero_contrato }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 600px;">
+    <div class="mb-4">
+        <a href="{% url 'operacoes:listar_cessoes' %}" class="text-decoration-none text-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Voltar para Cessões
+        </a>
+    </div>
+
+    <h4 class="mb-1"><i class="bi bi-file-earmark-text me-2"></i>Gerar arquivo CNAB</h4>
+    <p class="text-muted mb-4">
+        Cessão <strong>{{ operacao.numero_contrato }}</strong> — {{ operacao.cedente_nome }}
+    </p>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url 'operacoes:download_cnab_cessao' operacao.pk %}">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="{{ form.dtl.id_for_label }}" class="form-label">{{ form.dtl.label }}</label>
+                    {{ form.dtl }}
+                    {% if form.dtl.errors %}
+                        <div class="text-danger small mt-1">{{ form.dtl.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.cdo.id_for_label }}" class="form-label">{{ form.cdo.label }}</label>
+                    {{ form.cdo }}
+                    {% if form.cdo.errors %}
+                        <div class="text-danger small mt-1">{{ form.cdo.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.ocorrencia.id_for_label }}" class="form-label">{{ form.ocorrencia.label }}</label>
+                    {{ form.ocorrencia }}
+                    {% if form.ocorrencia.errors %}
+                        <div class="text-danger small mt-1">{{ form.ocorrencia.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text">01 = Remessa/Aquisição, 06 = Liquidação Total, 14 = Liquidação Parcial</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-download me-2"></i>Baixar CNAB
+                    </button>
+                    <a href="{% url 'operacoes:listar_cessoes' %}" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
