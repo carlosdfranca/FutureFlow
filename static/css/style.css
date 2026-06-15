@@ -2215,3 +2215,27 @@ html[data-theme="light"] .login-form-subtitle {
 }
 html[data-theme="light"] .login-form-logo.site-nav__logo--dark  { display: none; }
 html[data-theme="light"] .login-form-logo.site-nav__logo--light { display: block; }
+
+/* ============================================================
+   Badge DS — sistema unificado de badges temáticos
+   Compatível com dark/light mode via rgba (sem variáveis)
+   ============================================================ */
+.badge-ds {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.6;
+}
+.badge-ds--green  { background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.30); }
+.badge-ds--amber  { background: rgba(245,158,11,0.15);  color: #fbbf24; border-color: rgba(245,158,11,0.30); }
+.badge-ds--red    { background: rgba(239,68,68,0.15);   color: #f87171; border-color: rgba(239,68,68,0.30);  }
+.badge-ds--blue   { background: rgba(59,130,246,0.15);  color: #93c5fd; border-color: rgba(59,130,246,0.30); }
+.badge-ds--gray   { background: rgba(107,117,133,0.12); color: #8892a0; border-color: rgba(107,117,133,0.25); }
+.badge-ds--purple { background: rgba(139,92,246,0.15);  color: #c4b5fd; border-color: rgba(139,92,246,0.30); }

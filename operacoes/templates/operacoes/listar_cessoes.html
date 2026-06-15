@@ -1,103 +1,157 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Operações de Cessão{% endblock %}
+{% block title %}Cessões de Crédito{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-file-earmark-text me-2"></i>Operações de Cessão</h2>
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">Operações</p>
+            <h1 class="page-hero__title">Cessões de Crédito</h1>
+            <p class="page-hero__subtitle">Gerencie e monitore todas as operações de cessão registradas no sistema.</p>
         </div>
-        <div class="col-auto">
+        <div>
             <a href="{% url 'operacoes:workflow_cessao' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Nova Cessão
             </a>
         </div>
     </div>
+</div>
+
+<div class="container-fluid px-4">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card__value">{{ totais.count|default:0 }}</div>
+            <div class="kpi-card__label">Total de Operações</div>
+            <i class="bi bi-file-earmark-text kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--green">
+            <div class="kpi-card__value" style="font-size:1.15rem;">R$ {{ totais.total_nominal|default:0|floatformat:2 }}</div>
+            <div class="kpi-card__label">Valor Nominal Total</div>
+            <i class="bi bi-cash-stack kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+            <div class="kpi-card__value" style="font-size:1.15rem;">R$ {{ totais.total_aquisicao|default:0|floatformat:2 }}</div>
+            <div class="kpi-card__label">Valor de Aquisição Total</div>
+            <i class="bi bi-receipt kpi-card__ghost-icon"></i>
+        </div>
+    </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="RASCUNHO">Rascunho</option>
-                        <option value="CONFIRMADA">Confirmada</option>
-                        <option value="CANCELADA">Cancelada</option>
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="bi bi-search me-2"></i>Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <form method="get" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.06em;">Filtrar por</span>
+            <select name="status" class="form-select form-select-sm" style="width:auto; min-width:160px;">
+                <option value="">Todos os status</option>
+                <option value="RASCUNHO" {% if request.GET.status == 'RASCUNHO' %}selected{% endif %}>Rascunho</option>
+                <option value="CONFIRMADA" {% if request.GET.status == 'CONFIRMADA' %}selected{% endif %}>Confirmada</option>
+                <option value="CANCELADA" {% if request.GET.status == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+            </select>
+            <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+            {% if request.GET.status %}
+                <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                    <i class="bi bi-x me-1"></i>Limpar
+                </a>
+            {% endif %}
+        </form>
     </div>
 
     <!-- Tabela -->
-    <div class="card">
-        <div class="card-body">
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-list-ul me-1"></i>Operações de Cessão
+            </span>
             {% if operacoes %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Nº Contrato</th>
-                                <th>Cedente</th>
-                                <th>Fundo</th>
-                                <th>Data Aquisição</th>
-                                <th>Valor Nominal</th>
-                                <th>Valor Aquisição</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for op in operacoes %}
-                                <tr>
-                                    <td><strong>{{ op.numero_contrato }}</strong></td>
-                                    <td>{{ op.cedente_nome }}</td>
-                                    <td>{{ op.fundo.nome }}</td>
-                                    <td>{{ op.data_aquisicao|date:"d/m/Y" }}</td>
-                                    <td>R$ {{ op.valor_total_nominal|floatformat:2 }}</td>
-                                    <td>R$ {{ op.valor_total_aquisicao|floatformat:2 }}</td>
-                                    <td>
-                                        {% if op.status == 'CONFIRMADA' %}
-                                            <span class="badge bg-success">Confirmada</span>
-                                        {% elif op.status == 'RASCUNHO' %}
-                                            <span class="badge bg-warning text-dark">Rascunho</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Cancelada</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'operacoes:detalhe_cessao' op.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalhes">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="{% url 'operacoes:gerar_termo_cessao' op.pk %}" class="btn btn-sm btn-outline-secondary" title="Gerar Termo DOCX">
-                                            <i class="bi bi-file-word"></i>
-                                        </a>
-                                        <a href="{% url 'operacoes:cnab_parametros' op.pk %}" class="btn btn-sm btn-outline-dark" title="Gerar CNAB">
-                                            <i class="bi bi-file-earmark-text"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Nenhuma operação de cessão encontrada. 
-                    <a href="{% url 'operacoes:workflow_cessao' %}">Criar primeira cessão</a>
-                </div>
+                <span class="badge-ds badge-ds--blue">{{ operacoes|length }} registros</span>
             {% endif %}
         </div>
+
+        {% if operacoes %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nº Contrato</th>
+                            <th>Cedente</th>
+                            <th>Fundo</th>
+                            <th>Data Aquisição</th>
+                            <th>Valor Nominal</th>
+                            <th>Valor Aquisição</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in operacoes %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'operacoes:detalhe_cessao' op.pk %}"
+                                       style="color:var(--text-primary); font-weight:600; text-decoration:none;">
+                                        {{ op.numero_contrato }}
+                                    </a>
+                                </td>
+                                <td style="color:var(--text-secondary);">{{ op.cedente_nome }}</td>
+                                <td style="color:var(--text-secondary);">{{ op.fundo.nome }}</td>
+                                <td style="color:var(--text-secondary);">{{ op.data_aquisicao|date:"d/m/Y" }}</td>
+                                <td style="font-weight:500;">R$ {{ op.valor_total_nominal|floatformat:2 }}</td>
+                                <td style="font-weight:500;">R$ {{ op.valor_total_aquisicao|floatformat:2 }}</td>
+                                <td>
+                                    {% if op.status == 'CONFIRMADA' %}
+                                        <span class="badge-ds badge-ds--green">Confirmada</span>
+                                    {% elif op.status == 'RASCUNHO' %}
+                                        <span class="badge-ds badge-ds--amber">Rascunho</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--red">Cancelada</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex; gap:0.35rem; justify-content:flex-end;">
+                                        <a href="{% url 'operacoes:detalhe_cessao' op.pk %}"
+                                           class="btn-icon-ds btn-icon-ds--blue" title="Ver detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'operacoes:gerar_termo_cessao' op.pk %}"
+                                           class="btn-icon-ds btn-icon-ds--blue" title="Gerar Termo DOCX">
+                                            <i class="bi bi-file-word"></i>
+                                        </a>
+                                        <a href="{% url 'operacoes:cnab_parametros' op.pk %}"
+                                           class="btn-icon-ds btn-icon-ds--blue" title="Gerar CNAB">
+                                            <i class="bi bi-file-earmark-arrow-down"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h5 class="empty-state-modern__title">Nenhuma cessão encontrada</h5>
+                <p class="empty-state-modern__text">
+                    {% if request.GET.status %}
+                        Nenhuma operação corresponde ao filtro selecionado.
+                    {% else %}
+                        Ainda não há operações de cessão registradas. Comece criando a primeira.
+                    {% endif %}
+                </p>
+                <a href="{% url 'operacoes:workflow_cessao' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Cessão
+                </a>
+            </div>
+        {% endif %}
     </div>
+
 </div>
 {% endblock %}

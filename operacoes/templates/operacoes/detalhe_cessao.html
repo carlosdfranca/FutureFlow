@@ -1,60 +1,105 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ operacao.numero_contrato }} - Detalhes{% endblock %}
+{% block title %}{{ operacao.numero_contrato }} — Cessão{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-file-earmark-text me-2"></i>{{ operacao.numero_contrato }}</h2>
-            <p class="text-muted">Operação de Cessão</p>
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'operacoes:listar_cessoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                &rsaquo; {{ operacao.numero_contrato }}
+            </p>
+            <h1 class="page-hero__title">{{ operacao.numero_contrato }}</h1>
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem; flex-wrap:wrap;">
+                {% if operacao.status == 'CONFIRMADA' %}
+                    <span class="badge-ds badge-ds--green">Confirmada</span>
+                {% elif operacao.status == 'RASCUNHO' %}
+                    <span class="badge-ds badge-ds--amber">Rascunho</span>
+                {% else %}
+                    <span class="badge-ds badge-ds--red">Cancelada</span>
+                {% endif %}
+                <span style="font-size:0.82rem; color:var(--text-secondary);">
+                    <i class="bi bi-calendar3 me-1"></i>{{ operacao.data_aquisicao|date:"d/m/Y" }}
+                </span>
+            </div>
         </div>
-        <div class="col-auto">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <a href="{% url 'operacoes:gerar_termo_cessao' operacao.pk %}" class="btn btn-primary">
                 <i class="bi bi-file-word me-2"></i>Gerar Termo
             </a>
-            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn btn-secondary">
+            <a href="{% url 'operacoes:cnab_parametros' operacao.pk %}" class="btn-ghost-ds">
+                <i class="bi bi-file-earmark-arrow-down me-2"></i>CNAB
+            </a>
+            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>
+</div>
 
-    <!-- Dados da Operação -->
-    <div class="row mb-4">
+<div class="container-fluid px-4 pb-5">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card__value">{{ titulos|length }}</div>
+            <div class="kpi-card__label">Quantidade de Títulos</div>
+            <i class="bi bi-files kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--green">
+            <div class="kpi-card__value" style="font-size:1.1rem;">R$ {{ operacao.valor_total_nominal|floatformat:2 }}</div>
+            <div class="kpi-card__label">Valor Nominal Total</div>
+            <i class="bi bi-cash-stack kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+            <div class="kpi-card__value" style="font-size:1.1rem;">R$ {{ operacao.valor_total_aquisicao|floatformat:2 }}</div>
+            <div class="kpi-card__label">Valor de Aquisição Total</div>
+            {% if desagio_pct %}
+                <div class="kpi-card__sub">Deságio: {{ desagio_pct }}%</div>
+            {% endif %}
+            <i class="bi bi-receipt kpi-card__ghost-icon"></i>
+        </div>
+    </div>
+
+    <!-- Dados da Operação + Cedente -->
+    <div class="row g-4 mb-4">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Dados da Operação</h5>
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; height:100%;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-file-earmark-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Dados da Operação</span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm">
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
                         <tr>
-                            <th width="40%">Fundo:</th>
-                            <td>{{ operacao.fundo.nome }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Fundo</th>
+                            <td style="border-color:var(--border-color);">{{ operacao.fundo.nome }}</td>
                         </tr>
                         <tr>
-                            <th>Nº Contrato:</th>
-                            <td>{{ operacao.numero_contrato }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Nº Contrato</th>
+                            <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.numero_contrato }}</td>
                         </tr>
                         <tr>
-                            <th>Data Contrato:</th>
-                            <td>{{ operacao.data_contrato|date:"d/m/Y" }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Contrato</th>
+                            <td style="border-color:var(--border-color);">{{ operacao.data_contrato|date:"d/m/Y" }}</td>
                         </tr>
                         <tr>
-                            <th>Data Aquisição:</th>
-                            <td>{{ operacao.data_aquisicao|date:"d/m/Y" }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Aquisição</th>
+                            <td style="border-color:var(--border-color);">{{ operacao.data_aquisicao|date:"d/m/Y" }}</td>
                         </tr>
                         <tr>
-                            <th>Status:</th>
-                            <td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Status</th>
+                            <td style="border-color:var(--border-color);">
                                 {% if operacao.status == 'CONFIRMADA' %}
-                                    <span class="badge bg-success">Confirmada</span>
+                                    <span class="badge-ds badge-ds--green">Confirmada</span>
                                 {% elif operacao.status == 'RASCUNHO' %}
-                                    <span class="badge bg-warning text-dark">Rascunho</span>
+                                    <span class="badge-ds badge-ds--amber">Rascunho</span>
                                 {% else %}
-                                    <span class="badge bg-danger">Cancelada</span>
+                                    <span class="badge-ds badge-ds--red">Cancelada</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -64,24 +109,25 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Cedente</h5>
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; height:100%;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-building" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Cedente</span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm">
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
                         <tr>
-                            <th width="40%">CNPJ:</th>
-                            <td>{{ operacao.cedente_cnpj }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">CNPJ</th>
+                            <td style="font-family:monospace; border-color:var(--border-color);">{{ operacao.cedente_cnpj }}</td>
                         </tr>
                         <tr>
-                            <th>Nome:</th>
-                            <td>{{ operacao.cedente_nome }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Razão Social</th>
+                            <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.cedente_nome }}</td>
                         </tr>
                         {% if operacao.cedente_endereco %}
                         <tr>
-                            <th>Endereço:</th>
-                            <td>{{ operacao.cedente_endereco }}</td>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Endereço</th>
+                            <td style="border-color:var(--border-color);">{{ operacao.cedente_endereco }}</td>
                         </tr>
                         {% endif %}
                     </table>
@@ -90,96 +136,80 @@
         </div>
     </div>
 
-    <!-- Resumo Financeiro -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Quantidade de Títulos</h6>
-                    <h3 class="text-primary">{{ titulos.count }}</h3>
-                </div>
-            </div>
+    <!-- Tabela de Títulos -->
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-list-check me-1"></i>Títulos da Cessão
+            </span>
+            <span class="badge-ds badge-ds--blue">{{ titulos|length }} títulos</span>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Valor Total Nominal</h6>
-                    <h3 class="text-success">R$ {{ operacao.valor_total_nominal|floatformat:2 }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Valor Total Aquisição</h6>
-                    <h3 class="text-info">R$ {{ operacao.valor_total_aquisicao|floatformat:2 }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Títulos -->
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Títulos ({{ titulos.count }})</h5>
-        </div>
-        <div class="card-body">
-            {% if titulos %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+        {% if titulos %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Sacado</th>
+                            <th>CPF/CNPJ</th>
+                            <th>Vencimento</th>
+                            <th>Valor Nominal</th>
+                            <th>Saldo Devedor</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for titulo in titulos %}
                             <tr>
-                                <th>Número</th>
-                                <th>Sacado</th>
-                                <th>CPF/CNPJ</th>
-                                <th>Vencimento</th>
-                                <th>Valor Nominal</th>
-                                <th>Saldo Devedor</th>
-                                <th>Status</th>
-                                <th>Ações</th>
+                                <td style="font-weight:600;">{{ titulo.numero_titulo }}</td>
+                                <td style="color:var(--text-secondary);">{{ titulo.sacado_nome }}</td>
+                                <td style="color:var(--text-secondary); font-family:monospace; font-size:0.82rem;">{{ titulo.sacado_cpf_cnpj }}</td>
+                                <td style="color:var(--text-secondary);">{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                                <td>R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
+                                <td style="font-weight:600;">R$ {{ titulo.saldo_devedor|floatformat:2 }}</td>
+                                <td>
+                                    {% if titulo.ativo %}
+                                        <span class="badge-ds badge-ds--green">Ativo</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--gray">Baixado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}"
+                                       class="btn-icon-ds btn-icon-ds--blue" title="Ver título">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for titulo in titulos %}
-                                <tr>
-                                    <td><strong>{{ titulo.numero_titulo }}</strong></td>
-                                    <td>{{ titulo.sacado_nome }}</td>
-                                    <td>{{ titulo.sacado_cpf_cnpj }}</td>
-                                    <td>{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
-                                    <td>R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
-                                    <td>R$ {{ titulo.saldo_devedor|floatformat:2 }}</td>
-                                    <td>
-                                        {% if titulo.ativo %}
-                                            <span class="badge bg-success">Ativo</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Baixado</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-inbox"></i>
                 </div>
-            {% else %}
-                <div class="alert alert-warning">Nenhum título cadastrado.</div>
-            {% endif %}
-        </div>
+                <h5 class="empty-state-modern__title">Nenhum título cadastrado</h5>
+                <p class="empty-state-modern__text">Esta operação ainda não possui títulos registrados.</p>
+            </div>
+        {% endif %}
     </div>
 
+    <!-- Observações -->
     {% if operacao.observacoes %}
-    <div class="card mt-4">
-        <div class="card-header">
-            <h6 class="mb-0">Observações</h6>
+    <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+        <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+            <i class="bi bi-chat-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+            <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Observações</span>
         </div>
-        <div class="card-body">
-            <p class="mb-0">{{ operacao.observacoes }}</p>
+        <div style="padding:1.25rem; color:var(--text-secondary); line-height:1.6;">
+            {{ operacao.observacoes }}
         </div>
     </div>
     {% endif %}
+
 </div>
 {% endblock %}

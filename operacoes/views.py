@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Count, Q
 from django.http import HttpResponse
 from django.conf import settings
 from decimal import Decimal
@@ -167,18 +167,24 @@ def workflow_cessao(request):
 def listar_cessoes(request):
     """Lista todas as operações de cessão"""
     operacoes = OperacaoCessao.objects.select_related('fundo').order_by('-data_aquisicao')
-    
-    # Filtros opcionais
+
     fundo_id = request.GET.get('fundo')
     status = request.GET.get('status')
-    
+
     if fundo_id:
         operacoes = operacoes.filter(fundo_id=fundo_id)
     if status:
         operacoes = operacoes.filter(status=status)
-    
+
+    totais = operacoes.aggregate(
+        count=Count('id'),
+        total_nominal=Sum('valor_total_nominal'),
+        total_aquisicao=Sum('valor_total_aquisicao'),
+    )
+
     return render(request, "operacoes/listar_cessoes.html", {
         "operacoes": operacoes,
+        "totais": totais,
     })
 
 
@@ -187,10 +193,17 @@ def detalhe_cessao(request, pk):
     """Detalha uma operação de cessão com seus títulos"""
     operacao = get_object_or_404(OperacaoCessao.objects.select_related('fundo'), pk=pk)
     titulos = operacao.titulos.all().order_by('data_vencimento')
-    
+
+    desagio_pct = Decimal('0')
+    if operacao.valor_total_nominal and operacao.valor_total_nominal > 0:
+        desagio_pct = round(
+            (1 - operacao.valor_total_aquisicao / operacao.valor_total_nominal) * 100, 2
+        )
+
     return render(request, "operacoes/detalhe_cessao.html", {
         "operacao": operacao,
         "titulos": titulos,
+        "desagio_pct": desagio_pct,
     })
 
 
@@ -244,20 +257,26 @@ def gerar_termo_cessao(request, pk):
 def listar_titulos(request):
     """Lista todos os títulos com filtros"""
     titulos = Titulo.objects.select_related('fundo', 'operacao_cessao').order_by('-data_vencimento')
-    
-    # Filtros
+
     fundo_id = request.GET.get('fundo')
     ativo = request.GET.get('ativo')
-    
+
     if fundo_id:
         titulos = titulos.filter(fundo_id=fundo_id)
     if ativo == 'true':
         titulos = titulos.filter(ativo=True)
     elif ativo == 'false':
         titulos = titulos.filter(ativo=False)
-    
+
+    totais = titulos.aggregate(
+        count=Count('id'),
+        ativos=Count('id', filter=Q(ativo=True)),
+        baixados=Count('id', filter=Q(ativo=False)),
+    )
+
     return render(request, "operacoes/listar_titulos.html", {
         "titulos": titulos,
+        "totais": totais,
     })
 
 
@@ -305,18 +324,23 @@ def nova_aplicacao(request):
 def listar_aplicacoes(request):
     """Lista todas as aplicações"""
     aplicacoes = Aplicacao.objects.select_related('fundo', 'criado_por').order_by('-data_aplicacao')
-    
-    # Filtros
+
     fundo_id = request.GET.get('fundo')
     tipo = request.GET.get('tipo')
-    
+
     if fundo_id:
         aplicacoes = aplicacoes.filter(fundo_id=fundo_id)
     if tipo:
         aplicacoes = aplicacoes.filter(tipo_aplicacao=tipo)
-    
+
+    totais_por_tipo = {
+        item['tipo_aplicacao']: item['total']
+        for item in aplicacoes.values('tipo_aplicacao').annotate(total=Sum('valor'))
+    }
+
     return render(request, "operacoes/listar_aplicacoes.html", {
         "aplicacoes": aplicacoes,
+        "totais_por_tipo": totais_por_tipo,
     })
 
 

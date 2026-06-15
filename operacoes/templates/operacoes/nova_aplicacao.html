@@ -4,29 +4,50 @@
 {% block title %}Nova Aplicação{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-graph-up-arrow me-2"></i>Nova Aplicação em Ativo</h2>
-            <p class="text-muted">Registre uma aplicação do fundo em ativo diverso</p>
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'operacoes:listar_aplicacoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Aplicações</a>
+                &rsaquo; Nova Aplicação
+            </p>
+            <h1 class="page-hero__title">Nova Aplicação em Ativo</h1>
+            <p class="page-hero__subtitle">Registre uma aplicação do fundo em ativo diversificado.</p>
+        </div>
+        <div>
+            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+            </a>
         </div>
     </div>
+</div>
 
-    <div class="row">
+<div class="container-fluid px-4 pb-5">
+    <div class="row g-4">
+
+        <!-- Formulário -->
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Dados da Aplicação</h5>
+            <div class="form-section">
+                <div class="form-section__header">
+                    <div class="form-section__icon form-section__icon--green">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div>
+                        <div class="form-section__title">Dados da Aplicação</div>
+                        <div class="form-section__subtitle">Preencha os campos abaixo para registrar a aplicação</div>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="form-section__body">
                     <form method="post">
                         {% csrf_token %}
-                        
+
                         <div class="mb-3">
                             {{ form.fundo.label_tag }}
                             {{ form.fundo }}
                             {% if form.fundo.errors %}
-                                <div class="text-danger">{{ form.fundo.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.fundo.errors }}</div>
                             {% endif %}
                         </div>
 
@@ -34,52 +55,42 @@
                             {{ form.tipo_aplicacao.label_tag }}
                             {{ form.tipo_aplicacao }}
                             {% if form.tipo_aplicacao.errors %}
-                                <div class="text-danger">{{ form.tipo_aplicacao.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.tipo_aplicacao.errors }}</div>
                             {% endif %}
-                            <small class="text-muted d-block mt-1">
-                                Selecione o tipo de ativo onde o fundo está aplicando
-                            </small>
+                            <div class="form-text">Selecione o tipo de ativo onde o fundo está aplicando.</div>
                         </div>
 
                         <div class="mb-3">
                             {{ form.descricao.label_tag }}
                             {{ form.descricao }}
                             {% if form.descricao.errors %}
-                                <div class="text-danger">{{ form.descricao.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.descricao.errors }}</div>
                             {% endif %}
-                            <small class="text-muted d-block mt-1">
-                                Ex: "Tesouro IPCA+ 2035" ou "CDB Banco XYZ"
-                            </small>
+                            <div class="form-text">Ex: "Tesouro IPCA+ 2035" ou "CDB Banco XYZ"</div>
                         </div>
 
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form.valor.label_tag }}
-                                    {{ form.valor }}
-                                    {% if form.valor.errors %}
-                                        <div class="text-danger">{{ form.valor.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {{ form.valor.label_tag }}
+                                {{ form.valor }}
+                                {% if form.valor.errors %}
+                                    <div class="text-danger small mt-1">{{ form.valor.errors }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form.data_aplicacao.label_tag }}
-                                    {{ form.data_aplicacao }}
-                                    {% if form.data_aplicacao.errors %}
-                                        <div class="text-danger">{{ form.data_aplicacao.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {{ form.data_aplicacao.label_tag }}
+                                {{ form.data_aplicacao }}
+                                {% if form.data_aplicacao.errors %}
+                                    <div class="text-danger small mt-1">{{ form.data_aplicacao.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <hr>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
+                            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
                             </a>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-2"></i>Salvar Aplicação
                             </button>
                         </div>
@@ -88,25 +99,45 @@
             </div>
         </div>
 
+        <!-- Sidebar informativa -->
         <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Sobre Aplicações</h6>
-                    <p class="small mb-2">
-                        <strong>Aplicações em Ativos</strong> são investimentos que o fundo realiza,
-                        diferentes das aplicações de cotistas no fundo.
-                    </p>
-                    <hr>
-                    <p class="small mb-1"><strong>Tipos disponíveis:</strong></p>
-                    <ul class="small">
-                        <li><strong>Tesouro Direto:</strong> Títulos públicos</li>
-                        <li><strong>Cota de Fundo:</strong> Investimento em outros fundos</li>
-                        <li><strong>Compromissada:</strong> Operações compromissadas</li>
-                        <li><strong>Outros:</strong> Demais ativos</li>
-                    </ul>
+            <div style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-info-circle" style="color:#93c5fd;"></i>
+                    </div>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Sobre Aplicações</span>
+                </div>
+
+                <p style="font-size:0.83rem; color:var(--text-secondary); line-height:1.65; margin-bottom:1rem;">
+                    <strong style="color:var(--text-primary);">Aplicações em Ativos</strong> são investimentos realizados pelo fundo,
+                    distintos das aplicações de cotistas no próprio fundo.
+                </p>
+
+                <div style="border-top:1px solid var(--border-color); padding-top:1rem;">
+                    <p style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.75rem;">Tipos disponíveis</p>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+                            <span class="badge-ds badge-ds--green" style="margin-top:1px; flex-shrink:0;">Tesouro</span>
+                            <span style="font-size:0.82rem; color:var(--text-secondary);">Títulos públicos federais</span>
+                        </div>
+                        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+                            <span class="badge-ds badge-ds--blue" style="margin-top:1px; flex-shrink:0;">Cota</span>
+                            <span style="font-size:0.82rem; color:var(--text-secondary);">Investimento em outros fundos</span>
+                        </div>
+                        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+                            <span class="badge-ds badge-ds--amber" style="margin-top:1px; flex-shrink:0;">Compromissada</span>
+                            <span style="font-size:0.82rem; color:var(--text-secondary);">Operações compromissadas bancárias</span>
+                        </div>
+                        <div style="display:flex; align-items:flex-start; gap:0.5rem;">
+                            <span class="badge-ds badge-ds--gray" style="margin-top:1px; flex-shrink:0;">Outros</span>
+                            <span style="font-size:0.82rem; color:var(--text-secondary);">Demais ativos e instrumentos</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

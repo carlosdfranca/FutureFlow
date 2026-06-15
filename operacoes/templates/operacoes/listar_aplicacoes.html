@@ -1,110 +1,165 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Aplicações{% endblock %}
+{% block title %}Aplicações em Ativos{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-graph-up-arrow me-2"></i>Aplicações em Ativos</h2>
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">Operações</p>
+            <h1 class="page-hero__title">Aplicações em Ativos</h1>
+            <p class="page-hero__subtitle">Registros de aplicações do fundo em ativos diversificados.</p>
         </div>
-        <div class="col-auto">
+        <div>
             <a href="{% url 'operacoes:nova_aplicacao' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
             </a>
         </div>
     </div>
+</div>
+
+<div class="container-fluid px-4">
+
+    <!-- KPIs por tipo -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-card--green">
+            <div class="kpi-card__value" style="font-size:1.05rem;">
+                {% if totais_por_tipo.TESOURO %}
+                    R$ {{ totais_por_tipo.TESOURO|floatformat:2 }}
+                {% else %}
+                    R$ 0,00
+                {% endif %}
+            </div>
+            <div class="kpi-card__label">Tesouro Direto</div>
+            <i class="bi bi-bank kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card__value" style="font-size:1.05rem;">
+                {% if totais_por_tipo.COTA_FUNDO %}
+                    R$ {{ totais_por_tipo.COTA_FUNDO|floatformat:2 }}
+                {% else %}
+                    R$ 0,00
+                {% endif %}
+            </div>
+            <div class="kpi-card__label">Cotas de Fundos</div>
+            <i class="bi bi-pie-chart kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+            <div class="kpi-card__value" style="font-size:1.05rem;">
+                {% if totais_por_tipo.COMPROMISSADA %}
+                    R$ {{ totais_por_tipo.COMPROMISSADA|floatformat:2 }}
+                {% else %}
+                    R$ 0,00
+                {% endif %}
+            </div>
+            <div class="kpi-card__label">Compromissadas</div>
+            <i class="bi bi-arrow-repeat kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--gray">
+            <div class="kpi-card__value" style="font-size:1.05rem;">
+                {% if totais_por_tipo.OUTROS %}
+                    R$ {{ totais_por_tipo.OUTROS|floatformat:2 }}
+                {% else %}
+                    R$ 0,00
+                {% endif %}
+            </div>
+            <div class="kpi-card__label">Outros Ativos</div>
+            <i class="bi bi-briefcase kpi-card__ghost-icon"></i>
+        </div>
+    </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Tipo</label>
-                    <select name="tipo" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="TESOURO">Tesouro Direto</option>
-                        <option value="COTA_FUNDO">Cota de Fundo</option>
-                        <option value="COMPROMISSADA">Compromissada</option>
-                        <option value="OUTROS">Outros</option>
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="bi bi-search me-2"></i>Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <form method="get" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.06em;">Filtrar por</span>
+            <select name="tipo" class="form-select form-select-sm" style="width:auto; min-width:175px;">
+                <option value="">Todos os tipos</option>
+                <option value="TESOURO" {% if request.GET.tipo == 'TESOURO' %}selected{% endif %}>Tesouro Direto</option>
+                <option value="COTA_FUNDO" {% if request.GET.tipo == 'COTA_FUNDO' %}selected{% endif %}>Cota de Fundo</option>
+                <option value="COMPROMISSADA" {% if request.GET.tipo == 'COMPROMISSADA' %}selected{% endif %}>Compromissada</option>
+                <option value="OUTROS" {% if request.GET.tipo == 'OUTROS' %}selected{% endif %}>Outros</option>
+            </select>
+            <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+            {% if request.GET.tipo %}
+                <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                    <i class="bi bi-x me-1"></i>Limpar
+                </a>
+            {% endif %}
+        </form>
     </div>
-
-    <!-- Resumo por Tipo -->
-    {% if aplicacoes %}
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-light text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Aplicado</h6>
-                    <h4 class="text-success">
-                        R$ {% widthratio aplicacoes|length 1 1 as total %}
-                        {{ aplicacoes|length }}
-                    </h4>
-                    <small class="text-muted">{{ aplicacoes|length }} aplicações</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Tabela -->
-    <div class="card">
-        <div class="card-body">
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-graph-up-arrow me-1"></i>Aplicações
+            </span>
             {% if aplicacoes %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Descrição</th>
-                                <th>Fundo</th>
-                                <th>Valor</th>
-                                <th>Criado Por</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for app in aplicacoes %}
-                                <tr>
-                                    <td>{{ app.data_aplicacao|date:"d/m/Y" }}</td>
-                                    <td>
-                                        {% if app.tipo_aplicacao == 'TESOURO' %}
-                                            <span class="badge bg-success">{{ app.get_tipo_aplicacao_display }}</span>
-                                        {% elif app.tipo_aplicacao == 'COTA_FUNDO' %}
-                                            <span class="badge bg-primary">{{ app.get_tipo_aplicacao_display }}</span>
-                                        {% elif app.tipo_aplicacao == 'COMPROMISSADA' %}
-                                            <span class="badge bg-info">{{ app.get_tipo_aplicacao_display }}</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ app.get_tipo_aplicacao_display }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ app.descricao }}</strong></td>
-                                    <td>{{ app.fundo.nome }}</td>
-                                    <td><strong>R$ {{ app.valor|floatformat:2 }}</strong></td>
-                                    <td>{{ app.criado_por.get_full_name|default:app.criado_por.username }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Nenhuma aplicação encontrada. 
-                    <a href="{% url 'operacoes:nova_aplicacao' %}">Registrar primeira aplicação</a>
-                </div>
+                <span class="badge-ds badge-ds--blue">{{ aplicacoes|length }} registros</span>
             {% endif %}
         </div>
+
+        {% if aplicacoes %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Fundo</th>
+                            <th>Valor</th>
+                            <th>Criado Por</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in aplicacoes %}
+                            <tr>
+                                <td style="color:var(--text-secondary);">{{ app.data_aplicacao|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if app.tipo_aplicacao == 'TESOURO' %}
+                                        <span class="badge-ds badge-ds--green">{{ app.get_tipo_aplicacao_display }}</span>
+                                    {% elif app.tipo_aplicacao == 'COTA_FUNDO' %}
+                                        <span class="badge-ds badge-ds--blue">{{ app.get_tipo_aplicacao_display }}</span>
+                                    {% elif app.tipo_aplicacao == 'COMPROMISSADA' %}
+                                        <span class="badge-ds badge-ds--amber">{{ app.get_tipo_aplicacao_display }}</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--gray">{{ app.get_tipo_aplicacao_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight:600;">{{ app.descricao }}</td>
+                                <td style="color:var(--text-secondary);">{{ app.fundo.nome }}</td>
+                                <td style="font-weight:600;">R$ {{ app.valor|floatformat:2 }}</td>
+                                <td style="color:var(--text-secondary);">{{ app.criado_por.get_full_name|default:app.criado_por.username }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h5 class="empty-state-modern__title">Nenhuma aplicação encontrada</h5>
+                <p class="empty-state-modern__text">
+                    {% if request.GET.tipo %}
+                        Nenhuma aplicação corresponde ao filtro selecionado.
+                    {% else %}
+                        Ainda não há aplicações registradas.
+                    {% endif %}
+                </p>
+                <a href="{% url 'operacoes:nova_aplicacao' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
+                </a>
+            </div>
+        {% endif %}
     </div>
+
 </div>
 {% endblock %}
