@@ -61,8 +61,22 @@
             <div class="collapse site-nav__links" id="navbarNav">
                 <ul class="site-nav__menu">
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
-                    
+                    <!-- Fundos dropdown -->
+                    <li class="site-nav__dropdown-wrap">
+                        <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bank"></i>Fundos
+                            <i class="bi bi-chevron-down site-nav__chevron"></i>
+                        </a>
+                        <ul class="site-nav__dropdown dropdown-menu">
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-list-ul"></i>Ver Fundos</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}"><i class="bi bi-plus-lg"></i>Novo Fundo</a></li>
+                            <li class="site-nav__dropdown-divider"></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_resgate' %}"><i class="bi bi-dash-circle"></i>Novo Resgate</a></li>
+                            <li class="site-nav__dropdown-divider"></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-graph-up-arrow"></i>Informes Mensais</a></li>
+                        </ul>
+                    </li>
                     <!-- Operações dropdown -->
                     <li class="site-nav__dropdown-wrap">
                         <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'operacoes' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
@@ -80,28 +94,10 @@
                             <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
                         </ul>
                     </li>
-                    
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'risco' %}is-active{% endif %}" href="{% url 'risco' %}">Risco</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>                    
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'conformidade' %}is-active{% endif %}" href="{% url 'conformidade' %}">Conformidade</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'integracoes' %}is-active{% endif %}" href="{% url 'integracoes' %}">Integrações</a></li>
 
-                    <!-- Fundos dropdown -->
-                    <li class="site-nav__dropdown-wrap">
-                        <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-bank"></i>Fundos
-                            <i class="bi bi-chevron-down site-nav__chevron"></i>
-                        </a>
-                        <ul class="site-nav__dropdown dropdown-menu">
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-list-ul"></i>Ver Fundos</a></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}"><i class="bi bi-plus-lg"></i>Novo Fundo</a></li>
-                            <li class="site-nav__dropdown-divider"></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_resgate' %}"><i class="bi bi-dash-circle"></i>Novo Resgate</a></li>
-                            <li class="site-nav__dropdown-divider"></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-graph-up-arrow"></i>Informes Mensais</a></li>
-                        </ul>
-                    </li>
+                    
                 </ul>
 
                 <!-- User menu -->
