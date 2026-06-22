@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nova Cessão{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">Operações</p>
+            <h1 class="page-hero__title">Nova Operação de Cessão</h1>
+            <p class="page-hero__subtitle">Importe NF-e em XML ou cadastre os títulos manualmente.</p>
+        </div>
+        <div>
+            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds">
+                <i class="bi bi-arrow-left me-2"></i>Cancelar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 pb-5">
+
+    <form method="post" enctype="multipart/form-data" id="cessaoForm">
+        {% csrf_token %}
+
+        <!-- Etapa 1: Upload XML -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                </div>
+                <div>
+                    <div class="form-section__title">Etapa 1 — Importar XML</div>
+                    <div class="form-section__subtitle">Opcional — preenche os títulos automaticamente</div>
+                </div>
+            </div>
+            <div class="form-section__body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.82rem;">
+                            Arquivo NF-e (.xml)
+                        </label>
+                        <input type="file" name="xml_file" accept=".xml" class="form-control">
+                        <div class="form-text">Selecione o XML da NF-e para importar os títulos automaticamente.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" name="acao" value="parse_xml" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-down-circle me-2"></i>Importar XML
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Etapa 2: Dados da Operação -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon form-section__icon--amber">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div>
+                    <div class="form-section__title">Etapa 2 — Dados da Operação</div>
+                    <div class="form-section__subtitle">Fundo, contrato e datas</div>
+                </div>
+            </div>
+            <div class="form-section__body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        {{ cessao_form.fundo.label_tag }}
+                        {{ cessao_form.fundo }}
+                        {% if cessao_form.fundo.errors %}
+                            <div class="text-danger small mt-1">{{ cessao_form.fundo.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.numero_contrato.label_tag }}
+                        {{ cessao_form.numero_contrato }}
+                        {% if cessao_form.numero_contrato.errors %}
+                            <div class="text-danger small mt-1">{{ cessao_form.numero_contrato.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.data_contrato.label_tag }}
+                        {{ cessao_form.data_contrato }}
+                        {% if cessao_form.data_contrato.errors %}
+                            <div class="text-danger small mt-1">{{ cessao_form.data_contrato.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {{ cessao_form.data_aquisicao.label_tag }}
+                        {{ cessao_form.data_aquisicao }}
+                        {% if cessao_form.data_aquisicao.errors %}
+                            <div class="text-danger small mt-1">{{ cessao_form.data_aquisicao.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid var(--border-color); margin:1.5rem 0; padding-top:1.25rem;">
+                    <p style="font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:1rem;">
+                        Dados do Cedente
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            {{ cessao_form.cedente_cnpj.label_tag }}
+                            {{ cessao_form.cedente_cnpj }}
+                            {% if cessao_form.cedente_cnpj.errors %}
+                                <div class="text-danger small mt-1">{{ cessao_form.cedente_cnpj.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            {{ cessao_form.cedente_nome.label_tag }}
+                            {{ cessao_form.cedente_nome }}
+                            {% if cessao_form.cedente_nome.errors %}
+                                <div class="text-danger small mt-1">{{ cessao_form.cedente_nome.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            {{ cessao_form.cedente_endereco.label_tag }}
+                            {{ cessao_form.cedente_endereco }}
+                        </div>
+                        <div class="col-12">
+                            {{ cessao_form.observacoes.label_tag }}
+                            {{ cessao_form.observacoes }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Etapa 3: Títulos -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon form-section__icon--green">
+                    <i class="bi bi-list-check"></i>
+                </div>
+                <div>
+                    <div class="form-section__title">Etapa 3 — Títulos</div>
+                    <div class="form-section__subtitle">Recebíveis incluídos nesta cessão</div>
+                </div>
+            </div>
+            <div class="form-section__body">
+                {{ titulos_formset.management_form }}
+
+                <div id="titulos-container">
+                    {% for form in titulos_formset %}
+                        <div class="titulo-form" style="background:var(--surface-3); border:1px solid var(--border-color); border-radius:10px; overflow:hidden; margin-bottom:0.75rem;">
+                            <!-- Header do card -->
+                            <div style="display:flex; align-items:center; justify-content:space-between; padding:0.55rem 0.875rem; border-bottom:1px solid var(--border-color); background:var(--surface-2);">
+                                <span class="titulo-num" style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary);">
+                                    Título #{{ forloop.counter }}
+                                </span>
+                                <button type="button" class="btn-icon-ds btn-icon-ds--red remove-titulo-btn" title="Remover este título" style="width:26px; height:26px; font-size:0.8rem;">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                            <!-- DELETE oculto -->
+                            <div style="display:none;">{{ form.DELETE }}</div>
+                            <!-- Campos -->
+                            <div style="padding:0.875rem;">
+                                <!-- Linha 1: Identificação -->
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="{{ form.numero_titulo.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Nº do Título</label>
+                                        {{ form.numero_titulo }}
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label" for="{{ form.sacado_nome.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Nome do Sacado</label>
+                                        {{ form.sacado_nome }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="{{ form.sacado_cpf_cnpj.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">CPF / CNPJ</label>
+                                        {{ form.sacado_cpf_cnpj }}
+                                    </div>
+                                </div>
+                                <!-- Linha 2: Valores e data -->
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="{{ form.valor_nominal.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Valor Nominal</label>
+                                        {{ form.valor_nominal }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="{{ form.valor_aquisicao.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Valor Aquisição</label>
+                                        {{ form.valor_aquisicao }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="{{ form.data_vencimento.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Vencimento</label>
+                                        {{ form.data_vencimento }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn-ghost-ds" id="addTituloBtn">
+                    <i class="bi bi-plus-circle me-2"></i>Adicionar Título
+                </button>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding:1.25rem; background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px;">
+            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds">
+                <i class="bi bi-x-circle me-2"></i>Cancelar
+            </a>
+            <button type="submit" name="acao" value="confirmar" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-circle me-2"></i>Confirmar e Salvar
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+// === Remover Título ===
+document.getElementById('titulos-container').addEventListener('click', function(e) {
+    const btn = e.target.closest('.remove-titulo-btn');
+    if (!btn) return;
+    const card = btn.closest('.titulo-form');
+    // Marcar DELETE no checkbox oculto
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    if (checkbox) checkbox.checked = true;
+    // Animar saída
+    card.style.transition = 'opacity 0.18s ease, margin-bottom 0.18s ease';
+    card.style.opacity = '0';
+    setTimeout(function() {
+        card.style.display = 'none';
+        card.style.marginBottom = '0';
+    }, 180);
+});
+
+// === Adicionar Título ===
+document.getElementById('addTituloBtn').addEventListener('click', function() {
+    const container = document.getElementById('titulos-container');
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const formNum = parseInt(totalForms.value);
+
+    // Clonar o primeiro card como template (mesmo que esteja oculto)
+    const template = container.querySelector('.titulo-form');
+    if (!template) return;
+    const newForm = template.cloneNode(true);
+
+    // Descobrir o índice atual do template para substituir corretamente
+    const inputWithName = newForm.querySelector('input[name]');
+    const idxMatch = inputWithName ? inputWithName.name.match(/form-(\d+)-/) : null;
+    const currentIdx = idxMatch ? idxMatch[1] : '0';
+
+    newForm.innerHTML = newForm.innerHTML.replace(
+        new RegExp('form-' + currentIdx + '-', 'g'),
+        'form-' + formNum + '-'
+    );
+
+    // Limpar valores
+    newForm.querySelectorAll('input').forEach(function(input) {
+        if (input.type !== 'checkbox') input.value = '';
+        if (input.type === 'checkbox') input.checked = false;
+    });
+
+    // Atualizar número do card
+    const numSpan = newForm.querySelector('.titulo-num');
+    if (numSpan) numSpan.textContent = 'Título #' + (formNum + 1);
+
+    // Garantir visível
+    newForm.style.display = '';
+    newForm.style.opacity = '1';
+    newForm.style.marginBottom = '0.75rem';
+
+    container.appendChild(newForm);
+    totalForms.value = formNum + 1;
+});
+</script>
+{% endblock %}

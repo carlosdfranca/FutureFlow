@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gerar CNAB — {{ operacao.numero_contrato }}{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'operacoes:listar_cessoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                &rsaquo;
+                <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" style="color:inherit; text-decoration:none; opacity:0.75;">{{ operacao.numero_contrato }}</a>
+                &rsaquo; Gerar CNAB
+            </p>
+            <h1 class="page-hero__title">Gerar Arquivo CNAB</h1>
+            <p class="page-hero__subtitle">Preencha os parâmetros de remessa para gerar o arquivo CNAB desta cessão.</p>
+        </div>
+        <div>
+            <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn-ghost-ds">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 pb-5">
+    <div class="row g-4">
+
+        <!-- Formulário -->
+        <div class="col-md-8">
+            <div class="form-section">
+                <div class="form-section__header">
+                    <div class="form-section__icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div>
+                        <div class="form-section__title">Parâmetros de Remessa</div>
+                        <div class="form-section__subtitle">Defina data de liquidação, código do originador e tipo de ocorrência</div>
+                    </div>
+                </div>
+                <div class="form-section__body">
+                    <form method="post" action="{% url 'operacoes:download_cnab_cessao' operacao.pk %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.dtl.id_for_label }}" class="form-label">{{ form.dtl.label }}</label>
+                            {{ form.dtl }}
+                            {% if form.dtl.errors %}
+                                <div class="text-danger small mt-1">{{ form.dtl.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.cdo.id_for_label }}" class="form-label">{{ form.cdo.label }}</label>
+                            {{ form.cdo }}
+                            {% if form.cdo.errors %}
+                                <div class="text-danger small mt-1">{{ form.cdo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.ocorrencia.id_for_label }}" class="form-label">{{ form.ocorrencia.label }}</label>
+                            {{ form.ocorrencia }}
+                            {% if form.ocorrencia.errors %}
+                                <div class="text-danger small mt-1">{{ form.ocorrencia.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text" style="margin-top:0.5rem;">
+                                Códigos:
+                                <span class="badge-ds badge-ds--blue ms-1">01</span>
+                                <span style="font-size:0.78rem; color:var(--text-secondary);">Remessa/Aquisição</span>
+                                <span class="badge-ds badge-ds--green ms-2">06</span>
+                                <span style="font-size:0.78rem; color:var(--text-secondary);">Liquidação Total</span>
+                                <span class="badge-ds badge-ds--amber ms-2">14</span>
+                                <span style="font-size:0.78rem; color:var(--text-secondary);">Liquidação Parcial</span>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:0.75rem; align-items:center;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-download me-2"></i>Baixar CNAB
+                            </button>
+                            <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn-ghost-ds">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: resumo da cessão -->
+        <div class="col-md-4">
+            <div style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-file-earmark-text" style="color:#93c5fd;"></i>
+                    </div>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Cessão Selecionada</span>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <div>
+                        <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">Nº Contrato</div>
+                        <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">{{ operacao.numero_contrato }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">Cedente</div>
+                        <div style="font-size:0.85rem; color:var(--text-primary);">{{ operacao.cedente_nome }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">Data Aquisição</div>
+                        <div style="font-size:0.85rem; color:var(--text-primary);">{{ operacao.data_aquisicao|date:"d/m/Y" }}</div>
+                    </div>
+                    <div style="padding-top:0.75rem; border-top:1px solid var(--border-color);">
+                        <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">Status</div>
+                        {% if operacao.status == 'CONFIRMADA' %}
+                            <span class="badge-ds badge-ds--green">Confirmada</span>
+                        {% elif operacao.status == 'RASCUNHO' %}
+                            <span class="badge-ds badge-ds--amber">Rascunho</span>
+                        {% else %}
+                            <span class="badge-ds badge-ds--red">Cancelada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

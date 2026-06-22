@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Títulos (Recebíveis){% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">Operações</p>
+            <h1 class="page-hero__title">Títulos (Recebíveis)</h1>
+            <p class="page-hero__subtitle">Gerencie os recebíveis cedidos e monitore seus saldos e status.</p>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card__value">{{ totais.count|default:0 }}</div>
+            <div class="kpi-card__label">Total de Títulos</div>
+            <i class="bi bi-files kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--green">
+            <div class="kpi-card__value">{{ totais.ativos|default:0 }}</div>
+            <div class="kpi-card__label">Ativos</div>
+            <i class="bi bi-check-circle kpi-card__ghost-icon"></i>
+        </div>
+        <div class="kpi-card kpi-card--gray">
+            <div class="kpi-card__value">{{ totais.baixados|default:0 }}</div>
+            <div class="kpi-card__label">Baixados</div>
+            <i class="bi bi-archive kpi-card__ghost-icon"></i>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <form method="get" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.06em;">Filtrar por</span>
+            <select name="ativo" class="form-select form-select-sm" style="width:auto; min-width:150px;">
+                <option value="">Todos os status</option>
+                <option value="true" {% if request.GET.ativo == 'true' %}selected{% endif %}>Ativos</option>
+                <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Baixados</option>
+            </select>
+            <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+            {% if request.GET.ativo %}
+                <a href="{% url 'operacoes:listar_titulos' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                    <i class="bi bi-x me-1"></i>Limpar
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-list-check me-1"></i>Recebíveis
+            </span>
+            {% if titulos %}
+                <span class="badge-ds badge-ds--blue">{{ titulos|length }} registros</span>
+            {% endif %}
+        </div>
+
+        {% if titulos %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Sacado</th>
+                            <th>Fundo</th>
+                            <th>Vencimento</th>
+                            <th>Valor Nominal</th>
+                            <th>Saldo Devedor</th>
+                            <th>Risco</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for titulo in titulos %}
+                            <tr>
+                                <td style="font-weight:600;">
+                                    <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}"
+                                       style="color:var(--text-primary); text-decoration:none;">
+                                        {{ titulo.numero_titulo }}
+                                    </a>
+                                </td>
+                                <td style="color:var(--text-secondary);">{{ titulo.sacado_nome }}</td>
+                                <td style="color:var(--text-secondary);">{{ titulo.fundo.nome }}</td>
+                                <td style="color:var(--text-secondary);">{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                                <td>R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
+                                <td style="font-weight:600;">R$ {{ titulo.saldo_devedor|floatformat:2 }}</td>
+                                <td>
+                                    {% if titulo.classificacao_risco == 'AA' or titulo.classificacao_risco == 'A' %}
+                                        <span class="badge-ds badge-ds--green">{{ titulo.classificacao_risco }}</span>
+                                    {% elif titulo.classificacao_risco == 'B' or titulo.classificacao_risco == 'C' %}
+                                        <span class="badge-ds badge-ds--blue">{{ titulo.classificacao_risco }}</span>
+                                    {% elif titulo.classificacao_risco == 'D' %}
+                                        <span class="badge-ds badge-ds--amber">{{ titulo.classificacao_risco }}</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--red">{{ titulo.classificacao_risco }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if titulo.ativo %}
+                                        <span class="badge-ds badge-ds--green">Ativo</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--gray">Baixado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}"
+                                       class="btn-icon-ds btn-icon-ds--blue" title="Ver título">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h5 class="empty-state-modern__title">Nenhum título encontrado</h5>
+                <p class="empty-state-modern__text">
+                    {% if request.GET.ativo %}
+                        Nenhum título corresponde ao filtro selecionado.
+                    {% else %}
+                        Ainda não há recebíveis registrados. Os títulos aparecem após a criação de cessões.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

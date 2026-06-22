@@ -33,20 +33,8 @@ def operacoes(request):
     return render(request, "operacoes.html")
 
 @login_required
-def risco(request):
-    return render(request, "risco.html")
-
-@login_required
 def relatorios(request):
     return render(request, "relatorios.html")
-
-@login_required
-def conformidade(request):
-    return render(request, "conformidade.html")
-
-@login_required
-def integracoes(request):
-    return render(request, "integracoes.html")
 
 @login_required
 def workflow_cessao(request):

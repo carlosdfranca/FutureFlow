@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo.numero_titulo }} — Título{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'operacoes:listar_titulos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Títulos</a>
+                &rsaquo; {{ titulo.numero_titulo }}
+            </p>
+            <h1 class="page-hero__title">{{ titulo.numero_titulo }}</h1>
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem; flex-wrap:wrap;">
+                {% if titulo.ativo %}
+                    <span class="badge-ds badge-ds--green">Ativo</span>
+                {% else %}
+                    <span class="badge-ds badge-ds--gray">Baixado</span>
+                {% endif %}
+                <span class="badge-ds badge-ds--blue">{{ titulo.classificacao_risco }}</span>
+                <a href="{% url 'operacoes:detalhe_cessao' titulo.operacao_cessao.pk %}"
+                   style="font-size:0.82rem; color:var(--text-secondary); text-decoration:none;">
+                    <i class="bi bi-arrow-up-right-square me-1"></i>{{ titulo.operacao_cessao.numero_contrato }}
+                </a>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'operacoes:listar_titulos' %}" class="btn-ghost-ds">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 pb-5">
+
+    <!-- Dados principais -->
+    <div class="row g-4 mb-4">
+        <!-- Informações do Título + Sacado -->
+        <div class="col-md-6">
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; margin-bottom:1.25rem;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-file-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Informações do Título</span>
+                </div>
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Número</th>
+                            <td style="font-weight:700; border-color:var(--border-color);">{{ titulo.numero_titulo }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Fundo</th>
+                            <td style="border-color:var(--border-color);">{{ titulo.fundo.nome }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Operação</th>
+                            <td style="border-color:var(--border-color);">
+                                <a href="{% url 'operacoes:detalhe_cessao' titulo.operacao_cessao.pk %}"
+                                   style="color:var(--text-primary); font-weight:500;">
+                                    {{ titulo.operacao_cessao.numero_contrato }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Emissão</th>
+                            <td style="border-color:var(--border-color);">{{ titulo.data_emissao|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Vencimento</th>
+                            <td style="border-color:var(--border-color);">{{ titulo.data_vencimento|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Status</th>
+                            <td style="border-color:var(--border-color);">
+                                {% if titulo.ativo %}
+                                    <span class="badge-ds badge-ds--green">Ativo</span>
+                                {% else %}
+                                    <span class="badge-ds badge-ds--gray">Baixado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-person" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Sacado</span>
+                </div>
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Nome</th>
+                            <td style="font-weight:600; border-color:var(--border-color);">{{ titulo.sacado_nome }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">CPF/CNPJ</th>
+                            <td style="font-family:monospace; border-color:var(--border-color);">{{ titulo.sacado_cpf_cnpj }}</td>
+                        </tr>
+                        {% if titulo.sacado_endereco %}
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Endereço</th>
+                            <td style="border-color:var(--border-color);">{{ titulo.sacado_endereco }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Valores + Risco -->
+        <div class="col-md-6">
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; margin-bottom:1.25rem;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-currency-dollar" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Valores</span>
+                </div>
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Valor Nominal</th>
+                            <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Valor Aquisição</th>
+                            <td style="border-color:var(--border-color);">R$ {{ titulo.valor_aquisicao|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Saldo Devedor</th>
+                            <td style="font-weight:700; color:#34d399; border-color:var(--border-color);">R$ {{ titulo.saldo_devedor|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="bi bi-shield-check" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Risco e PDD</span>
+                </div>
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Classificação</th>
+                            <td style="border-color:var(--border-color);">
+                                {% if titulo.classificacao_risco == 'AA' or titulo.classificacao_risco == 'A' %}
+                                    <span class="badge-ds badge-ds--green">{{ titulo.classificacao_risco }}</span>
+                                {% elif titulo.classificacao_risco == 'B' or titulo.classificacao_risco == 'C' %}
+                                    <span class="badge-ds badge-ds--blue">{{ titulo.classificacao_risco }}</span>
+                                {% elif titulo.classificacao_risco == 'D' %}
+                                    <span class="badge-ds badge-ds--amber">{{ titulo.classificacao_risco }}</span>
+                                {% else %}
+                                    <span class="badge-ds badge-ds--red">{{ titulo.classificacao_risco }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">PDD (%)</th>
+                            <td style="border-color:var(--border-color);">{{ titulo.percentual_pdd }}%</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">PDD (R$)</th>
+                            <td style="border-color:var(--border-color);">R$ {{ titulo.valor_pdd|floatformat:2 }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Eventos -->
+    <div class="card" style="padding:0; overflow:hidden;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-clock-history me-1"></i>Histórico de Eventos
+            </span>
+            {% if eventos %}
+                <span class="badge-ds badge-ds--blue">{{ eventos|length }} eventos</span>
+            {% endif %}
+        </div>
+
+        {% if eventos %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Descrição</th>
+                            <th>Responsável</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in eventos %}
+                            <tr>
+                                <td style="color:var(--text-secondary);">{{ evento.data_evento|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if evento.tipo_evento == 1 %}
+                                        <span class="badge-ds badge-ds--blue">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 2 %}
+                                        <span class="badge-ds badge-ds--gray">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 6 %}
+                                        <span class="badge-ds badge-ds--gray">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 14 %}
+                                        <span class="badge-ds badge-ds--green">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 10 %}
+                                        <span class="badge-ds badge-ds--amber">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 31 %}
+                                        <span class="badge-ds badge-ds--purple">{{ evento.get_tipo_evento_display }}</span>
+                                    {% elif evento.tipo_evento == 99 %}
+                                        <span class="badge-ds badge-ds--green">{{ evento.get_tipo_evento_display }}</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--gray">{{ evento.get_tipo_evento_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight:500;">
+                                    {% if evento.valor_evento %}
+                                        R$ {{ evento.valor_evento|floatformat:2 }}
+                                    {% else %}
+                                        <span style="color:var(--text-secondary);">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="color:var(--text-secondary);">{{ evento.descricao|default:"—" }}</td>
+                                <td style="color:var(--text-secondary);">{{ evento.usuario_responsavel|default:"—" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h5 class="empty-state-modern__title">Nenhum evento registrado</h5>
+                <p class="empty-state-modern__text">O histórico de eventos deste título está vazio.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

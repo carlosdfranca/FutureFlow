@@ -1,0 +1,11 @@
+from django.apps import AppConfig
+
+
+class OperacoesConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'operacoes'
+    verbose_name = 'Operações'
+    
+    def ready(self):
+        # Import signals here if needed in the future
+        pass
