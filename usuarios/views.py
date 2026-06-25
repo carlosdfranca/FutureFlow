@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, update_session_auth_hash, get_user_model
 from django.core.cache import cache
+from django.views.decorators.clickjacking import xframe_options_exempt
 from .forms import ProfileForm
 
 import random
@@ -28,19 +29,20 @@ def profile_view(request):
     return render(request, "usuarios/profile.html", {"form": form})
 
 
+@xframe_options_exempt
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
             return redirect("home")
         else:
             messages.error(request, "Usuário ou senha inválidos.")
-    
-    return render(request, "registration/login.html")
+    response = render(request, "registration/login.html")
+    response["Content-Security-Policy"] = "frame-ancestors https://fsbuilder.com.br"
+    return response
 
 def otp_view(request):
     if request.method == "POST":
