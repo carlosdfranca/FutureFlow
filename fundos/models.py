@@ -13,6 +13,18 @@ class TipoFundo(models.TextChoices):
     FIDC = 'FIDC', 'Fundo de Investimento em Direitos Creditórios'
     FIP = 'FIP', 'Fundo de Investimento em Participações'
 
+class ClassificacaoInvestidor(models.TextChoices):
+    PROFISSIONAL = 'PROFISSIONAL', 'Profissional'
+    QUALIFICADO  = 'QUALIFICADO',  'Qualificado'
+
+class TipoCondominio(models.TextChoices):
+    PADRONIZADO     = 'PADRONIZADO',     'Padronizado'
+    NAO_PADRONIZADO = 'NAO_PADRONIZADO', 'Não Padronizado'
+
+class EstruturaFundo(models.TextChoices):
+    ABERTO  = 'ABERTO',  'Aberto'
+    FECHADO = 'FECHADO', 'Fechado'
+
 class StatusMovimentacao(models.TextChoices):
     SOLICITADO = 'SOLICITADO', 'Solicitado'
     AGUARDANDO_PAGAMENTO = 'AGUARDANDO_PAGAMENTO', 'Aguardando Pagamento'
@@ -40,18 +52,26 @@ class Fundo(models.Model):
     prazo_liquidacao = models.IntegerField(default=0, help_text='Dias úteis')
     horario_corte = models.TimeField(default='14:00')
     
-    # Taxas (% ao ano) — max_digits=5, decimal_places=2 → até 999,99%
-    taxa_administracao = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    taxa_gestao = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # Taxas (texto livre — ex: "1,50%", "Isento")
+    taxa_administracao = models.CharField(max_length=100, blank=True, default='')
+    taxa_gestao = models.CharField(max_length=100, blank=True, default='')
+    taxa_performance = models.CharField(max_length=100, blank=True, default='')
+    taxa_administracao_minima = models.CharField(max_length=100, blank=True, default='')
+    taxa_gestao_minima = models.CharField(max_length=100, blank=True, default='')
+    taxa_performance_minima = models.CharField(max_length=100, blank=True, default='')
 
     # Regulamento
     administrador = models.CharField(max_length=200, blank=True)
     gestor = models.CharField(max_length=200, blank=True)
     condicoes_resgate = models.CharField(max_length=300, blank=True)
-    auditoria = models.CharField(max_length=200, blank=True)
     aporte_minimo = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
     data_encerramento_exercicio = models.CharField(max_length=10, blank=True, help_text='Ex: 31/12')
-    taxa_performance = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    limite_concentracao = models.CharField(max_length=300, blank=True)
+
+    # Classificação e estrutura
+    classificacao_investidor = models.CharField(max_length=20, choices=ClassificacaoInvestidor.choices, blank=True)
+    tipo_condominio = models.CharField(max_length=20, choices=TipoCondominio.choices, blank=True)
+    estrutura_fundo = models.CharField(max_length=10, choices=EstruturaFundo.choices, blank=True)
     
     # Status
     ativo = models.BooleanField(default=True)

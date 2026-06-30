@@ -96,6 +96,29 @@
                     </div>
                 </div>
 
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Classificação do Investidor</label>
+                        {{ form.classificacao_investidor }}
+                        {% if form.classificacao_investidor.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.classificacao_investidor.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Estrutura</label>
+                        {{ form.estrutura_fundo }}
+                        {% if form.estrutura_fundo.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.estrutura_fundo.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div id="section-tipo-condominio" style="display:none;">
+                    <div class="form-row-2">
+                        <div class="form-field">
+                            <label class="form-field__label">Tipo de Condomínio <span class="form-field__hint">(FIDC)</span></label>
+                            {{ form.tipo_condominio }}
+                            {% if form.tipo_condominio.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.tipo_condominio.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -123,6 +146,13 @@
                     <div class="form-field">
                         <label class="form-field__label">Horário de Corte</label>
                         {{ form.horario_corte }}
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Limite de Concentração</label>
+                        {{ form.limite_concentracao }}
+                        {% if form.limite_concentracao.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.limite_concentracao.errors.0 }}</p>{% endif %}
                     </div>
                 </div>
             </div>
@@ -156,7 +186,7 @@
                 <!-- Condições -->
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label class="form-field__label">Condições de Resgate</label>
+                        <label class="form-field__label">Prazo de Resgate</label>
                         {{ form.condicoes_resgate }}
                     </div>
                     <div class="form-field">
@@ -171,34 +201,37 @@
                         <label class="form-field__label">Encerramento do Exercício Social <span class="form-field__hint">(dd/mm)</span></label>
                         {{ form.data_encerramento_exercicio }}
                     </div>
-                    <div class="form-field">
-                        <label class="form-field__label">Auditoria</label>
-                        {{ form.auditoria }}
-                    </div>
                 </div>
 
                 <!-- Taxas -->
                 <div class="form-row-3">
                     <div class="form-field">
-                        <label class="form-field__label">Taxa de Administração <span class="form-field__hint">a.a.</span></label>
-                        <div class="input-suffix-wrap">
-                            {{ form.taxa_administracao }}
-                            <span class="input-suffix">%</span>
-                        </div>
+                        <label class="form-field__label">Taxa de Administração</label>
+                        {{ form.taxa_administracao }}
                     </div>
                     <div class="form-field">
-                        <label class="form-field__label">Taxa de Gestão <span class="form-field__hint">a.a.</span></label>
-                        <div class="input-suffix-wrap">
-                            {{ form.taxa_gestao }}
-                            <span class="input-suffix">%</span>
-                        </div>
+                        <label class="form-field__label">Taxa de Gestão</label>
+                        {{ form.taxa_gestao }}
                     </div>
                     <div class="form-field">
-                        <label class="form-field__label">Taxa de Performance <span class="form-field__hint">a.a.</span></label>
-                        <div class="input-suffix-wrap">
-                            {{ form.taxa_performance }}
-                            <span class="input-suffix">%</span>
-                        </div>
+                        <label class="form-field__label">Taxa de Performance</label>
+                        {{ form.taxa_performance }}
+                    </div>
+                </div>
+
+                <!-- Taxas Mínimas -->
+                <div class="form-row-3">
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa Mínima de Administração</label>
+                        {{ form.taxa_administracao_minima }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa Mínima de Gestão</label>
+                        {{ form.taxa_gestao_minima }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa Mínima de Performance</label>
+                        {{ form.taxa_performance_minima }}
                     </div>
                 </div>
 
@@ -231,15 +264,16 @@
         return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8,12) + '-' + d.slice(12);
     }
     var el = document.getElementById('id_cnpj');
-    if (!el) return;
-    el.maxLength = 18;
-    if (el.value) el.value = maskCNPJ(el.value);
-    el.addEventListener('input', function () {
-        var pos = this.selectionStart, prev = this.value.length;
-        this.value = maskCNPJ(this.value);
-        var diff = this.value.length - prev;
-        this.setSelectionRange(pos + diff, pos + diff);
-    });
+    if (el) {
+        el.maxLength = 18;
+        if (el.value) el.value = maskCNPJ(el.value);
+        el.addEventListener('input', function () {
+            var pos = this.selectionStart, prev = this.value.length;
+            this.value = maskCNPJ(this.value);
+            var diff = this.value.length - prev;
+            this.setSelectionRange(pos + diff, pos + diff);
+        });
+    }
 })();
 </script>
 
@@ -247,67 +281,28 @@
 (function () {
     'use strict';
 
-    // Converte string BR ("1,5000" ou "50.000,25" ou "1.5") para float
     function parseBR(v) {
         if (!v) return NaN;
         v = v.trim();
         if (v.indexOf(',') !== -1 && v.indexOf('.') !== -1) {
-            // "50.000,25" — ponto é milhar, vírgula é decimal
             v = v.replace(/\./g, '').replace(',', '.');
         } else if (v.indexOf(',') !== -1) {
-            // "1,5000" — só vírgula decimal
             v = v.replace(',', '.');
         }
         return parseFloat(v);
     }
 
-    // ── Máscara de percentual (4 casas decimais, vírgula como separador) ──
-    function setupPercent(el) {
-        if (!el) return;
-
-        // Formata valor inicial vindo do Django ("1.5000" → "1,5000")
-        var init = parseBR(el.value);
-        if (!isNaN(init)) el.value = init.toFixed(2).replace('.', ',');
-
-        el.addEventListener('focus', function () {
-            this.select();
-        });
-
-        el.addEventListener('input', function () {
-            // Permite apenas dígitos, vírgula e ponto
-            this.value = this.value.replace(/[^0-9.,]/g, '');
-        });
-
-        el.addEventListener('blur', function () {
-            var n = parseBR(this.value);
-            if (!isNaN(n)) {
-                this.value = n.toFixed(2).replace('.', ',');
-            } else if (this.value.trim()) {
-                this.value = ''; // limpa se inválido
-            }
-        });
-    }
-
-    // ── Máscara de valor monetário (2 casas, separador de milhar) ──
     function setupCurrency(el) {
         if (!el) return;
-
         function fmt(n) {
             return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-
-        // Formata valor inicial vindo do Django ("50000.00" → "50.000,00")
         var init = parseBR(el.value);
         if (!isNaN(init)) el.value = fmt(init);
-
-        el.addEventListener('focus', function () {
-            this.select();
-        });
-
+        el.addEventListener('focus', function () { this.select(); });
         el.addEventListener('input', function () {
             this.value = this.value.replace(/[^0-9.,]/g, '');
         });
-
         el.addEventListener('blur', function () {
             var n = parseBR(this.value);
             if (!isNaN(n)) {
@@ -318,11 +313,18 @@
         });
     }
 
-    setupPercent(document.getElementById('id_taxa_administracao'));
-    setupPercent(document.getElementById('id_taxa_gestao'));
-    setupPercent(document.getElementById('id_taxa_performance'));
     setupCurrency(document.getElementById('id_aporte_minimo'));
 
+    // Mostrar/ocultar tipo_condominio conforme tipo_fundo
+    var tipoFundo = document.getElementById('id_tipo_fundo');
+    var secaoCondominio = document.getElementById('section-tipo-condominio');
+    if (tipoFundo && secaoCondominio) {
+        function toggleCondominio() {
+            secaoCondominio.style.display = tipoFundo.value === 'FIDC' ? '' : 'none';
+        }
+        tipoFundo.addEventListener('change', toggleCondominio);
+        toggleCondominio();
+    }
 }());
 </script>
 {% endblock %}

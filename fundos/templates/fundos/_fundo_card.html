@@ -7,12 +7,18 @@
      data-reg-cotizacao="{{ fundo.tipo_cotizacao }}"
      data-reg-liquidacao="{{ fundo.prazo_liquidacao }}"
      data-reg-resgate="{{ fundo.condicoes_resgate }}"
-     data-reg-auditoria="{{ fundo.auditoria }}"
      data-reg-aporte="{{ fundo.aporte_minimo|unlocalize|default:'' }}"
      data-reg-encerramento="{{ fundo.data_encerramento_exercicio }}"
-     data-reg-taxa-adm="{{ fundo.taxa_administracao|unlocalize|default:'' }}"
-     data-reg-taxa-gestao="{{ fundo.taxa_gestao|unlocalize|default:'' }}"
-     data-reg-taxa-perf="{{ fundo.taxa_performance|unlocalize|default:'' }}">
+     data-reg-limite-concentracao="{{ fundo.limite_concentracao }}"
+     data-reg-classificacao="{{ fundo.get_classificacao_investidor_display }}"
+     data-reg-estrutura="{{ fundo.get_estrutura_fundo_display }}"
+     data-reg-tipo-condominio="{{ fundo.get_tipo_condominio_display }}"
+     data-reg-taxa-adm="{{ fundo.taxa_administracao|default:'' }}"
+     data-reg-taxa-gestao="{{ fundo.taxa_gestao|default:'' }}"
+     data-reg-taxa-perf="{{ fundo.taxa_performance|default:'' }}"
+     data-reg-taxa-adm-min="{{ fundo.taxa_administracao_minima|default:'' }}"
+     data-reg-taxa-gestao-min="{{ fundo.taxa_gestao_minima|default:'' }}"
+     data-reg-taxa-perf-min="{{ fundo.taxa_performance_minima|default:'' }}">
     <div class="fundo-card__topbar"></div>
     <div class="fundo-card__header">
         <div class="d-flex gap-2 flex-wrap">
@@ -44,10 +50,10 @@
             {% endif %}
             <li><i class="bi bi-calendar3"></i><strong>Constituição</strong>&nbsp;{{ fundo.data_constituicao|date:"d/m/Y" }}</li>
             {% if fundo.taxa_administracao %}
-            <li><i class="bi bi-percent"></i><strong>Taxa Adm.</strong>&nbsp;{{ fundo.taxa_administracao }}% a.a.</li>
+            <li><i class="bi bi-percent"></i><strong>Taxa Adm.</strong>&nbsp;{{ fundo.taxa_administracao }}</li>
             {% endif %}
             {% if fundo.taxa_gestao %}
-            <li><i class="bi bi-graph-up"></i><strong>Taxa Gestão</strong>&nbsp;{{ fundo.taxa_gestao }}% a.a.</li>
+            <li><i class="bi bi-graph-up"></i><strong>Taxa Gestão</strong>&nbsp;{{ fundo.taxa_gestao }}</li>
             {% endif %}
         </ul>
     </div>

@@ -247,8 +247,19 @@
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Cotização</span><span class="reg-item__value" id="reg-cotizacao"></span></div>
                         <div class="reg-item"><span class="reg-item__label">Prazo de Liquidação</span><span class="reg-item__value" id="reg-liquidacao"></span></div>
-                        <div class="reg-item"><span class="reg-item__label">Condições de Resgate</span><span class="reg-item__value" id="reg-resgate"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Prazo de Resgate</span><span class="reg-item__value" id="reg-resgate"></span></div>
                         <div class="reg-item"><span class="reg-item__label">Aporte Mínimo</span><span class="reg-item__value" id="reg-aporte"></span></div>
+                    </div>
+                </div>
+
+                <!-- Classificação e Estrutura -->
+                <div class="reg-section">
+                    <p class="reg-section__heading"><i class="bi bi-person-badge-fill"></i>Classificação</p>
+                    <div class="reg-grid">
+                        <div class="reg-item"><span class="reg-item__label">Classificação do Investidor</span><span class="reg-item__value" id="reg-classificacao"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Estrutura</span><span class="reg-item__value" id="reg-estrutura"></span></div>
+                        <div class="reg-item" id="reg-item-condominio" style="display:none;"><span class="reg-item__label">Tipo de Condomínio</span><span class="reg-item__value" id="reg-tipo-condominio"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Limite de Concentração</span><span class="reg-item__value" id="reg-limite-concentracao"></span></div>
                     </div>
                 </div>
 
@@ -257,14 +268,13 @@
                     <p class="reg-section__heading reg-section__heading--green"><i class="bi bi-calendar-check-fill"></i>Fiscal</p>
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Encerramento do Exercício</span><span class="reg-item__value" id="reg-encerramento"></span></div>
-                        <div class="reg-item"><span class="reg-item__label">Auditoria</span><span class="reg-item__value" id="reg-auditoria"></span></div>
                     </div>
                 </div>
 
                 <!-- Taxas — mini-cards estilo kpi -->
                 <div class="reg-section">
-                    <p class="reg-section__heading reg-section__heading--amber"><i class="bi bi-percent"></i>Taxas anuais</p>
-                    <div class="reg-taxa-grid">
+                    <p class="reg-section__heading reg-section__heading--amber"><i class="bi bi-percent"></i>Taxas</p>
+                    <div class="reg-taxa-grid" style="grid-template-columns: repeat(3, 1fr);">
                         <div class="reg-taxa-card reg-taxa-card--red">
                             <span class="reg-taxa-card__label">Administração</span>
                             <span class="reg-taxa-card__value" id="reg-taxa-adm"></span>
@@ -276,6 +286,18 @@
                         <div class="reg-taxa-card reg-taxa-card--amber">
                             <span class="reg-taxa-card__label">Performance</span>
                             <span class="reg-taxa-card__value" id="reg-taxa-perf"></span>
+                        </div>
+                        <div class="reg-taxa-card reg-taxa-card--red">
+                            <span class="reg-taxa-card__label">Mín. Administração</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-adm-min"></span>
+                        </div>
+                        <div class="reg-taxa-card reg-taxa-card--blue">
+                            <span class="reg-taxa-card__label">Mín. Gestão</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-gestao-min"></span>
+                        </div>
+                        <div class="reg-taxa-card reg-taxa-card--amber">
+                            <span class="reg-taxa-card__label">Mín. Performance</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-perf-min"></span>
                         </div>
                     </div>
                 </div>
@@ -492,9 +514,8 @@ html[data-theme="light"] .reg-taxa-card--amber .reg-taxa-card__value { color: #b
         return 'R$ ' + parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     }
 
-    function fmtPct(val) {
-        if (!val && val !== 0) return '—';
-        return parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + '% a.a.';
+    function fmtVal(val) {
+        return val ? val : '—';
     }
 
     document.querySelectorAll('.btn-regulamento').forEach(function (btn) {
@@ -510,10 +531,25 @@ html[data-theme="light"] .reg-taxa-card--amber .reg-taxa-card__value { color: #b
             modal.querySelector('#reg-resgate').textContent      = fmt(d.regResgate);
             modal.querySelector('#reg-aporte').textContent       = fmtBrl(d.regAporte);
             modal.querySelector('#reg-encerramento').textContent = fmt(d.regEncerramento);
-            modal.querySelector('#reg-auditoria').textContent    = fmt(d.regAuditoria);
-            modal.querySelector('#reg-taxa-adm').textContent     = fmtPct(d.regTaxaAdm);
-            modal.querySelector('#reg-taxa-gestao').textContent  = fmtPct(d.regTaxaGestao);
-            modal.querySelector('#reg-taxa-perf').textContent    = fmtPct(d.regTaxaPerf);
+            modal.querySelector('#reg-classificacao').textContent = fmtVal(d.regClassificacao);
+            modal.querySelector('#reg-estrutura').textContent    = fmtVal(d.regEstrutura);
+            modal.querySelector('#reg-limite-concentracao').textContent = fmtVal(d.regLimiteConcentracao);
+
+            var tipoCondominio = d.regTipoCondominio;
+            var itemCondominio = modal.querySelector('#reg-item-condominio');
+            if (tipoCondominio && tipoCondominio !== 'None') {
+                modal.querySelector('#reg-tipo-condominio').textContent = tipoCondominio;
+                itemCondominio.style.display = '';
+            } else {
+                itemCondominio.style.display = 'none';
+            }
+
+            modal.querySelector('#reg-taxa-adm').textContent       = fmtVal(d.regTaxaAdm);
+            modal.querySelector('#reg-taxa-gestao').textContent     = fmtVal(d.regTaxaGestao);
+            modal.querySelector('#reg-taxa-perf').textContent       = fmtVal(d.regTaxaPerf);
+            modal.querySelector('#reg-taxa-adm-min').textContent    = fmtVal(d.regTaxaAdmMin);
+            modal.querySelector('#reg-taxa-gestao-min').textContent = fmtVal(d.regTaxaGestaoMin);
+            modal.querySelector('#reg-taxa-perf-min').textContent   = fmtVal(d.regTaxaPerfMin);
         });
     });
 }());
