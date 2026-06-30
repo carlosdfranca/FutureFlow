@@ -40,9 +40,18 @@ class Fundo(models.Model):
     prazo_liquidacao = models.IntegerField(default=0, help_text='Dias úteis')
     horario_corte = models.TimeField(default='14:00')
     
-    # Taxas (% ao ano)
-    taxa_administracao = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
-    taxa_gestao = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
+    # Taxas (% ao ano) — max_digits=5, decimal_places=2 → até 999,99%
+    taxa_administracao = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    taxa_gestao = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    # Regulamento
+    administrador = models.CharField(max_length=200, blank=True)
+    gestor = models.CharField(max_length=200, blank=True)
+    condicoes_resgate = models.CharField(max_length=300, blank=True)
+    auditoria = models.CharField(max_length=200, blank=True)
+    aporte_minimo = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
+    data_encerramento_exercicio = models.CharField(max_length=10, blank=True, help_text='Ex: 31/12')
+    taxa_performance = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
     # Status
     ativo = models.BooleanField(default=True)

@@ -1,5 +1,18 @@
-{% load fundos_filters %}
-<div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}" data-search="{{ fundo.razao_social|lower }} {{ fundo.nome_comercial|lower }}">
+{% load fundos_filters l10n %}
+<div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}"
+     data-search="{{ fundo.razao_social|lower }} {{ fundo.nome_comercial|lower }}"
+     data-reg-nome="{{ fundo.razao_social }}"
+     data-reg-administrador="{{ fundo.administrador }}"
+     data-reg-gestor="{{ fundo.gestor }}"
+     data-reg-cotizacao="{{ fundo.tipo_cotizacao }}"
+     data-reg-liquidacao="{{ fundo.prazo_liquidacao }}"
+     data-reg-resgate="{{ fundo.condicoes_resgate }}"
+     data-reg-auditoria="{{ fundo.auditoria }}"
+     data-reg-aporte="{{ fundo.aporte_minimo|unlocalize|default:'' }}"
+     data-reg-encerramento="{{ fundo.data_encerramento_exercicio }}"
+     data-reg-taxa-adm="{{ fundo.taxa_administracao|unlocalize|default:'' }}"
+     data-reg-taxa-gestao="{{ fundo.taxa_gestao|unlocalize|default:'' }}"
+     data-reg-taxa-perf="{{ fundo.taxa_performance|unlocalize|default:'' }}">
     <div class="fundo-card__topbar"></div>
     <div class="fundo-card__header">
         <div class="d-flex gap-2 flex-wrap">
@@ -43,6 +56,9 @@
         <a href="{% url 'fundos:editar_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
             <i class="bi bi-pencil me-1"></i>Editar
         </a>
+        <button type="button" class="btn btn-ghost-ds btn-regulamento" data-bs-toggle="modal" data-bs-target="#modal-regulamento">
+            <i class="bi bi-journal-text me-1"></i>Regulamento
+        </button>
         <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds">
             <i class="bi bi-graph-up-arrow me-1"></i>Informes
         </a>

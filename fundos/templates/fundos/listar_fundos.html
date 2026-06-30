@@ -214,6 +214,213 @@
     {% endif %}
 
 </div>
+
+<!-- Modal Regulamento (único, populado via JS) -->
+<div class="modal fade" id="modal-regulamento" tabindex="-1" aria-labelledby="modal-reg-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content reg-modal">
+
+            <!-- Barra de acento + cabeçalho -->
+            <div class="reg-modal__accent-bar"></div>
+            <div class="reg-modal__header">
+                <div>
+                    <p class="reg-modal__eyebrow"><i class="bi bi-journal-text me-1"></i>Regulamento do Fundo</p>
+                    <h5 class="reg-modal__title" id="modal-reg-label"></h5>
+                </div>
+                <button type="button" class="btn-close reg-modal__close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="reg-modal__body">
+
+                <!-- Gestão -->
+                <div class="reg-section">
+                    <p class="reg-section__heading"><i class="bi bi-people-fill"></i>Gestão</p>
+                    <div class="reg-grid">
+                        <div class="reg-item"><span class="reg-item__label">Administrador</span><span class="reg-item__value" id="reg-administrador"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Gestor</span><span class="reg-item__value" id="reg-gestor"></span></div>
+                    </div>
+                </div>
+
+                <!-- Condições Operacionais -->
+                <div class="reg-section">
+                    <p class="reg-section__heading reg-section__heading--blue"><i class="bi bi-gear-fill"></i>Condições Operacionais</p>
+                    <div class="reg-grid">
+                        <div class="reg-item"><span class="reg-item__label">Cotização</span><span class="reg-item__value" id="reg-cotizacao"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Prazo de Liquidação</span><span class="reg-item__value" id="reg-liquidacao"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Condições de Resgate</span><span class="reg-item__value" id="reg-resgate"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Aporte Mínimo</span><span class="reg-item__value" id="reg-aporte"></span></div>
+                    </div>
+                </div>
+
+                <!-- Fiscal -->
+                <div class="reg-section">
+                    <p class="reg-section__heading reg-section__heading--green"><i class="bi bi-calendar-check-fill"></i>Fiscal</p>
+                    <div class="reg-grid">
+                        <div class="reg-item"><span class="reg-item__label">Encerramento do Exercício</span><span class="reg-item__value" id="reg-encerramento"></span></div>
+                        <div class="reg-item"><span class="reg-item__label">Auditoria</span><span class="reg-item__value" id="reg-auditoria"></span></div>
+                    </div>
+                </div>
+
+                <!-- Taxas — mini-cards estilo kpi -->
+                <div class="reg-section">
+                    <p class="reg-section__heading reg-section__heading--amber"><i class="bi bi-percent"></i>Taxas anuais</p>
+                    <div class="reg-taxa-grid">
+                        <div class="reg-taxa-card reg-taxa-card--red">
+                            <span class="reg-taxa-card__label">Administração</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-adm"></span>
+                        </div>
+                        <div class="reg-taxa-card reg-taxa-card--blue">
+                            <span class="reg-taxa-card__label">Gestão</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-gestao"></span>
+                        </div>
+                        <div class="reg-taxa-card reg-taxa-card--amber">
+                            <span class="reg-taxa-card__label">Performance</span>
+                            <span class="reg-taxa-card__value" id="reg-taxa-perf"></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="reg-modal__footer">
+                <button type="button" class="btn btn-ghost-ds" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ── Modal container ── */
+.reg-modal {
+    --bs-modal-bg: var(--surface-2);
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 14px !important;
+    overflow: hidden;
+}
+.reg-modal__accent-bar {
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), #C47080 60%, transparent);
+}
+.reg-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.1rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.reg-modal__eyebrow {
+    font-size: 0.67rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 3px;
+}
+.reg-modal__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+.reg-modal__close { margin-top: 2px; }
+html[data-theme="dark"] .reg-modal__close { filter: invert(1) brightness(0.55); }
+
+.reg-modal__body {
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.reg-modal__footer {
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Sections ── */
+.reg-section {
+    background-color: var(--surface-3);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+}
+.reg-section__heading {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0 0.75rem;
+}
+.reg-section__heading i { font-size: 0.72rem; }
+.reg-section__heading--blue  { color: #93c5fd; }
+.reg-section__heading--green { color: #6ee7b7; }
+.reg-section__heading--amber { color: #fbbf24; }
+html[data-theme="light"] .reg-section__heading--blue  { color: #1d4ed8; }
+html[data-theme="light"] .reg-section__heading--green { color: #059669; }
+html[data-theme="light"] .reg-section__heading--amber { color: #b45309; }
+
+/* ── Grid de itens ── */
+.reg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem;
+}
+.reg-item { display: flex; flex-direction: column; gap: 2px; }
+.reg-item__label {
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.reg-item__value {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ── Taxa mini-cards ── */
+.reg-taxa-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+}
+.reg-taxa-card {
+    background-color: var(--surface-raised);
+    border-radius: 8px;
+    padding: 0.7rem 0.85rem;
+    border-left: 3px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.reg-taxa-card--red   { border-left-color: #C47080; }
+.reg-taxa-card--blue  { border-left-color: #93c5fd; }
+.reg-taxa-card--amber { border-left-color: #fbbf24; }
+.reg-taxa-card__label {
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.reg-taxa-card__value { font-size: 1.05rem; font-weight: 700; }
+.reg-taxa-card--red   .reg-taxa-card__value { color: #C47080; }
+.reg-taxa-card--blue  .reg-taxa-card__value { color: #93c5fd; }
+.reg-taxa-card--amber .reg-taxa-card__value { color: #fbbf24; }
+html[data-theme="light"] .reg-taxa-card--red   .reg-taxa-card__value { color: #9f1239; }
+html[data-theme="light"] .reg-taxa-card--blue  .reg-taxa-card__value { color: #1d4ed8; }
+html[data-theme="light"] .reg-taxa-card--amber .reg-taxa-card__value { color: #b45309; }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -263,6 +470,50 @@
             if (!input) return;
             input.value = '';
             filterFunds(input);
+        });
+    });
+}());
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    var modal = document.getElementById('modal-regulamento');
+    if (!modal) return;
+
+    function fmt(val, suffix) {
+        if (!val && val !== 0) return '—';
+        return suffix ? val + suffix : val;
+    }
+
+    function fmtBrl(val) {
+        if (!val && val !== 0) return '—';
+        return 'R$ ' + parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    function fmtPct(val) {
+        if (!val && val !== 0) return '—';
+        return parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + '% a.a.';
+    }
+
+    document.querySelectorAll('.btn-regulamento').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var card = this.closest('.fundo-card');
+            var d = card.dataset;
+
+            modal.querySelector('#modal-reg-label').textContent = d.regNome || '';
+            modal.querySelector('#reg-administrador').textContent = fmt(d.regAdministrador);
+            modal.querySelector('#reg-gestor').textContent       = fmt(d.regGestor);
+            modal.querySelector('#reg-cotizacao').textContent    = fmt(d.regCotizacao);
+            modal.querySelector('#reg-liquidacao').textContent   = d.regLiquidacao ? d.regLiquidacao + ' dias úteis' : '—';
+            modal.querySelector('#reg-resgate').textContent      = fmt(d.regResgate);
+            modal.querySelector('#reg-aporte').textContent       = fmtBrl(d.regAporte);
+            modal.querySelector('#reg-encerramento').textContent = fmt(d.regEncerramento);
+            modal.querySelector('#reg-auditoria').textContent    = fmt(d.regAuditoria);
+            modal.querySelector('#reg-taxa-adm').textContent     = fmtPct(d.regTaxaAdm);
+            modal.querySelector('#reg-taxa-gestao').textContent  = fmtPct(d.regTaxaGestao);
+            modal.querySelector('#reg-taxa-perf').textContent    = fmtPct(d.regTaxaPerf);
         });
     });
 }());

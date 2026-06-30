@@ -25,8 +25,16 @@
     <form method="post" novalidate>
         {% csrf_token %}
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger rounded-3 mb-4">{{ form.non_field_errors }}</div>
+        {% if form.errors %}
+            <div class="alert alert-danger rounded-3 mb-4">
+                <strong><i class="bi bi-exclamation-triangle me-1"></i>Corrija os erros abaixo para salvar:</strong>
+                <ul class="mb-0 mt-2 ps-3">
+                    {% for field in form %}{% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}{% endfor %}
+                    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            </div>
         {% endif %}
 
         <!-- Identificação -->
@@ -113,19 +121,57 @@
             </div>
         </div>
 
-        <!-- Taxas -->
+        <!-- Regulamento do Fundo -->
         <div class="form-section">
             <div class="form-section__header">
-                <div class="form-section__icon form-section__icon--green">
-                    <i class="bi bi-percent"></i>
+                <div class="form-section__icon">
+                    <i class="bi bi-journal-text"></i>
                 </div>
                 <div>
-                    <h2 class="form-section__title">Taxas</h2>
-                    <p class="form-section__subtitle">Remuneração anual sobre o patrimônio</p>
+                    <h2 class="form-section__title">Regulamento do Fundo</h2>
+                    <p class="form-section__subtitle">Gestão, condições operacionais e taxas</p>
                 </div>
             </div>
             <div class="form-section__body">
+
+                <!-- Gestão -->
                 <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Administrador</label>
+                        {{ form.administrador }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Gestor</label>
+                        {{ form.gestor }}
+                    </div>
+                </div>
+
+                <!-- Condições -->
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Condições de Resgate</label>
+                        {{ form.condicoes_resgate }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Aporte Mínimo <span class="form-field__hint">(R$)</span></label>
+                        {{ form.aporte_minimo }}
+                    </div>
+                </div>
+
+                <!-- Fiscal -->
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Encerramento do Exercício Social <span class="form-field__hint">(dd/mm)</span></label>
+                        {{ form.data_encerramento_exercicio }}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Auditoria</label>
+                        {{ form.auditoria }}
+                    </div>
+                </div>
+
+                <!-- Taxas -->
+                <div class="form-row-3">
                     <div class="form-field">
                         <label class="form-field__label">Taxa de Administração <span class="form-field__hint">a.a.</span></label>
                         <div class="input-suffix-wrap">
@@ -140,7 +186,15 @@
                             <span class="input-suffix">%</span>
                         </div>
                     </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Taxa de Performance <span class="form-field__hint">a.a.</span></label>
+                        <div class="input-suffix-wrap">
+                            {{ form.taxa_performance }}
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
 
@@ -171,7 +225,7 @@
     }
     var el = document.getElementById('id_cnpj');
     if (!el) return;
-    el.maxLength = 18;  // garante independente do que Django renderizou
+    el.maxLength = 18;
     el.addEventListener('input', function () {
         var pos = this.selectionStart, prev = this.value.length;
         this.value = maskCNPJ(this.value);
@@ -179,5 +233,63 @@
         this.setSelectionRange(pos + diff, pos + diff);
     });
 })();
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    function parseBR(v) {
+        if (!v) return NaN;
+        v = v.trim();
+        if (v.indexOf(',') !== -1 && v.indexOf('.') !== -1) {
+            v = v.replace(/\./g, '').replace(',', '.');
+        } else if (v.indexOf(',') !== -1) {
+            v = v.replace(',', '.');
+        }
+        return parseFloat(v);
+    }
+
+    function setupPercent(el) {
+        if (!el) return;
+        el.addEventListener('focus', function () { this.select(); });
+        el.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9.,]/g, '');
+        });
+        el.addEventListener('blur', function () {
+            var n = parseBR(this.value);
+            if (!isNaN(n)) {
+                this.value = n.toFixed(2).replace('.', ',');
+            } else if (this.value.trim()) {
+                this.value = '';
+            }
+        });
+    }
+
+    function setupCurrency(el) {
+        if (!el) return;
+        function fmt(n) {
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        el.addEventListener('focus', function () { this.select(); });
+        el.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9.,]/g, '');
+        });
+        el.addEventListener('blur', function () {
+            var n = parseBR(this.value);
+            if (!isNaN(n)) {
+                this.value = fmt(n);
+            } else if (this.value.trim()) {
+                this.value = '';
+            }
+        });
+    }
+
+    setupPercent(document.getElementById('id_taxa_administracao'));
+    setupPercent(document.getElementById('id_taxa_gestao'));
+    setupPercent(document.getElementById('id_taxa_performance'));
+    setupCurrency(document.getElementById('id_aporte_minimo'));
+
+}());
 </script>
 {% endblock %}
