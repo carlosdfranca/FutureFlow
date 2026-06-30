@@ -134,6 +134,19 @@
         </div>
     </nav>
 
+    {% if messages %}
+        <div style="position:fixed; top:1rem; right:1rem; z-index:9999; min-width:300px; max-width:420px;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm"
+                     role="alert"
+                     style="font-size:0.875rem; border-radius:10px; border: 1px solid var(--border-color);">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
 
     <footer class="text-center py-3 mt-5 border-top" style="border-color: var(--border-color) !important;">
