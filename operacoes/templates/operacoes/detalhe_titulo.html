@@ -27,7 +27,16 @@
                 </a>
             </div>
         </div>
-        <div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            {% if titulo.ativo %}
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-evento-titulo">
+                    <i class="bi bi-cash-coin me-2"></i>Liquidar / Baixar
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modal-evento-titulo">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reativar
+                </button>
+            {% endif %}
             <a href="{% url 'operacoes:listar_titulos' %}" class="btn-ghost-ds">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
@@ -245,4 +254,53 @@
     </div>
 
 </div>
+
+{# ── Modal de registro de evento (liquidação/baixa/reativação) ── #}
+<div class="modal fade" id="modal-evento-titulo" tabindex="-1" aria-labelledby="modal-evento-titulo-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" action="{% url 'operacoes:registrar_evento_titulo' titulo.pk %}">
+            {% csrf_token %}
+            <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="modal-evento-titulo-label">
+                        <i class="bi bi-cash-coin me-2"></i>Registrar evento do título
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="{{ evento_form.tipo_evento.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Tipo de evento</label>
+                        {{ evento_form.tipo_evento }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ evento_form.data_evento.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Data</label>
+                        {{ evento_form.data_evento }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ evento_form.valor_evento.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Valor (obrigatório para liquidação parcial)</label>
+                        {{ evento_form.valor_evento }}
+                        <div class="form-text">Saldo devedor atual: R$ {{ titulo.saldo_devedor|floatformat:2 }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ evento_form.descricao.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Descrição</label>
+                        {{ evento_form.descricao }}
+                    </div>
+                    <div class="mb-0">
+                        <label for="{{ evento_form.documento_referencia.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Documento de referência</label>
+                        {{ evento_form.documento_referencia }}
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check2 me-1"></i>Confirmar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

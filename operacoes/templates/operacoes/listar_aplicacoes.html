@@ -82,10 +82,15 @@
                 <option value="COMPROMISSADA" {% if request.GET.tipo == 'COMPROMISSADA' %}selected{% endif %}>Compromissada</option>
                 <option value="OUTROS" {% if request.GET.tipo == 'OUTROS' %}selected{% endif %}>Outros</option>
             </select>
+            <select name="status" class="form-select form-select-sm" style="width:auto; min-width:150px;">
+                <option value="">Todas as situações</option>
+                <option value="ATIVA" {% if request.GET.status == 'ATIVA' %}selected{% endif %}>Ativa</option>
+                <option value="LIQUIDADA" {% if request.GET.status == 'LIQUIDADA' %}selected{% endif %}>Liquidada</option>
+            </select>
             <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
-            {% if request.GET.tipo %}
+            {% if request.GET.tipo or request.GET.status %}
                 <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                     <i class="bi bi-x me-1"></i>Limpar
                 </a>
@@ -115,6 +120,8 @@
                             <th>Fundo</th>
                             <th>Valor</th>
                             <th>Criado Por</th>
+                            <th>Situação</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,6 +143,31 @@
                                 <td style="color:var(--text-secondary);">{{ app.fundo.nome }}</td>
                                 <td style="font-weight:600;">R$ {{ app.valor|floatformat:2 }}</td>
                                 <td style="color:var(--text-secondary);">{{ app.criado_por.get_full_name|default:app.criado_por.username }}</td>
+                                <td>
+                                    {% if app.status == 'ATIVA' %}
+                                        <span class="badge-ds badge-ds--green">Ativa</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--gray">Liquidada</span>
+                                        <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.2rem;">
+                                            {{ app.data_liquidacao|date:"d/m/Y" }} — R$ {{ app.valor_resgate|floatformat:2 }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if app.status == 'ATIVA' %}
+                                        <button type="button"
+                                                class="btn-icon-ds btn-icon-ds--red"
+                                                title="Liquidar aplicação"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modal-liquidar-aplicacao"
+                                                data-descricao="{{ app.descricao }}"
+                                                data-action="{% url 'operacoes:liquidar_aplicacao' app.pk %}">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </button>
+                                    {% else %}
+                                        <span style="color:var(--text-secondary);">—</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -162,4 +194,57 @@
     </div>
 
 </div>
+
+{# ── Modal de liquidação de aplicação ── #}
+<div class="modal fade" id="modal-liquidar-aplicacao" tabindex="-1" aria-labelledby="modal-liquidar-aplicacao-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="form-liquidar-aplicacao" method="post" action="">
+            {% csrf_token %}
+            <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="modal-liquidar-aplicacao-label">
+                        <i class="bi bi-cash-coin me-2"></i>Liquidar aplicação
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:var(--text-secondary);">
+                        Liquidar <strong id="modal-liquidar-descricao" style="color:var(--text-primary);"></strong>?
+                    </p>
+                    <div class="mb-3">
+                        <label for="{{ liquidar_form.data_liquidacao.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Data de Liquidação</label>
+                        {{ liquidar_form.data_liquidacao }}
+                    </div>
+                    <div class="mb-0">
+                        <label for="{{ liquidar_form.valor_resgate.id_for_label }}" class="form-label" style="color:var(--text-secondary); font-size:0.85rem;">Valor de Resgate</label>
+                        {{ liquidar_form.valor_resgate }}
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check2 me-1"></i>Confirmar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+(function () {
+    var modal = document.getElementById('modal-liquidar-aplicacao');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('modal-liquidar-descricao').textContent = btn.dataset.descricao;
+        document.getElementById('form-liquidar-aplicacao').action = btn.dataset.action;
+    });
+}());
+</script>
+{% endblock %}
+
 {% endblock %}

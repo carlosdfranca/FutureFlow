@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Count
 from decimal import Decimal
 from datetime import date
 import uuid
@@ -8,6 +9,7 @@ import uuid
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
 from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
+from operacoes.models import Titulo, Aplicacao
 
 
 @login_required
@@ -158,6 +160,47 @@ def editar_fundo(request, fundo_id):
         form = FundoForm(instance=fundo)
 
     return render(request, 'fundos/editar_fundo.html', {'form': form, 'fundo': fundo, 'empresa': empresa})
+
+
+@login_required
+def carteira_fundo(request, fundo_id):
+    """Resumo consolidado da carteira do fundo: Direito Creditório (Cessões) + Liquidez (Aplicações)"""
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    titulos_ativos = Titulo.objects.filter(fundo=fundo, ativo=True)
+    titulos_agg = titulos_ativos.aggregate(
+        saldo_total=Sum('saldo_devedor'),
+        nominal_total=Sum('valor_nominal'),
+        count=Count('id'),
+    )
+
+    aplicacoes_ativas = Aplicacao.objects.filter(fundo=fundo, status='ATIVA')
+    aplicacoes_agg = aplicacoes_ativas.aggregate(
+        valor_total=Sum('valor'),
+        count=Count('id'),
+    )
+    # .order_by() limpa a ordenação herdada do queryset -- sem isso o GROUP BY
+    # gerado por values()+annotate() vaza o campo de ordenação e quebra o
+    # agrupamento por tipo_aplicacao (mesmo cuidado de operacoes/views.py:listar_aplicacoes).
+    aplicacoes_por_tipo = {
+        item['tipo_aplicacao']: item['total']
+        for item in aplicacoes_ativas.order_by().values('tipo_aplicacao').annotate(total=Sum('valor'))
+    }
+
+    saldo_dc = titulos_agg['saldo_total'] or Decimal('0')
+    valor_liquidez = aplicacoes_agg['valor_total'] or Decimal('0')
+
+    context = {
+        'fundo': fundo,
+        'titulos_agg': titulos_agg,
+        'aplicacoes_agg': aplicacoes_agg,
+        'aplicacoes_por_tipo': aplicacoes_por_tipo,
+        'saldo_dc': saldo_dc,
+        'valor_liquidez': valor_liquidez,
+        'total_carteira': saldo_dc + valor_liquidez,
+    }
+    return render(request, 'fundos/carteira_fundo.html', context)
 
 
 # ============================================================

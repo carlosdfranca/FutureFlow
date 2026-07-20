@@ -68,5 +68,8 @@
         <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds">
             <i class="bi bi-graph-up-arrow me-1"></i>Informes
         </a>
+        <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
+            <i class="bi bi-pie-chart me-1"></i>Carteira
+        </a>
     </div>
 </div>
