@@ -9,6 +9,7 @@ import uuid
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
 from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
+from .services.enquadramento import avaliar_enquadramento, anexar_enquadramento
 from operacoes.models import Titulo, Aplicacao
 
 
@@ -99,25 +100,28 @@ def listar_fundos(request):
     """Lista todos os fundos da empresa ativa"""
     empresa = request.empresa_ativa
     if empresa:
-        fundos = Fundo.objects.filter(empresa=empresa).order_by('razao_social')
+        fundos = list(Fundo.objects.filter(empresa=empresa).order_by('razao_social'))
     else:
-        fundos = Fundo.objects.none()
+        fundos = []
 
-    fundos_fidc = fundos.filter(tipo_fundo='FIDC')
-    fundos_fii  = fundos.filter(tipo_fundo='FII')
-    fundos_fip  = fundos.filter(tipo_fundo='FIP')
+    anexar_enquadramento(fundos)
+
+    fundos_fidc = [f for f in fundos if f.tipo_fundo == 'FIDC']
+    fundos_fii  = [f for f in fundos if f.tipo_fundo == 'FII']
+    fundos_fip  = [f for f in fundos if f.tipo_fundo == 'FIP']
 
     context = {
         'fundos': fundos,
         'fundos_fidc': fundos_fidc,
         'fundos_fii': fundos_fii,
         'fundos_fip': fundos_fip,
-        'total_fundos': fundos.count(),
-        'total_ativos': fundos.filter(ativo=True).count(),
-        'total_inativos': fundos.filter(ativo=False).count(),
-        'total_fidc': fundos_fidc.count(),
-        'total_fii': fundos_fii.count(),
-        'total_fip': fundos_fip.count(),
+        'total_fundos': len(fundos),
+        'total_ativos': sum(1 for f in fundos if f.ativo),
+        'total_inativos': sum(1 for f in fundos if not f.ativo),
+        'total_fidc': len(fundos_fidc),
+        'total_fii': len(fundos_fii),
+        'total_fip': len(fundos_fip),
+        'total_desenquadrados': sum(1 for f in fundos if f.enquadramento.desenquadrado),
     }
     return render(request, 'fundos/listar_fundos.html', context)
 
@@ -199,6 +203,7 @@ def carteira_fundo(request, fundo_id):
         'saldo_dc': saldo_dc,
         'valor_liquidez': valor_liquidez,
         'total_carteira': saldo_dc + valor_liquidez,
+        'enquadramento': avaliar_enquadramento(fundo, saldo_dc, valor_liquidez),
     }
     return render(request, 'fundos/carteira_fundo.html', context)
 

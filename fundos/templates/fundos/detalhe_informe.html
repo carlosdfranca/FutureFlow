@@ -380,7 +380,9 @@
         },
         plotOptions: { pie: { donut: { size: '60%' } } },
     };
-    new ApexCharts(document.querySelector('#chart-carteira'), options).render();
+    const chart = new ApexCharts(document.querySelector('#chart-carteira'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
 })();
 </script>
 {% endif %}

@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (themeToggle) {
             themeToggle.title = theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro';
         }
+        document.dispatchEvent(new CustomEvent('cinnamon:theme-changed', { detail: { theme: theme } }));
     }
 
     // Inicializa ícone conforme tema atual (já aplicado pelo script inline no <head>)
@@ -38,8 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
             type: 'bar',
             height: 250,
             width: "100%",
-            toolbar: { show: false },
-            foreColor: '#dcdde1'
+            toolbar: { show: false }
         },
         series: [{
             name: 'Patrimônio',
@@ -88,13 +88,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         },
         grid: {
-            borderColor: '#444',
             strokeDashArray: 4
         },
         colors: ['#0984e3']
     };
-    if (document.querySelector("#grafico-patrimonio"))
-        new ApexCharts(document.querySelector("#grafico-patrimonio"), optionsPatrimonio).render();
+    if (document.querySelector("#grafico-patrimonio")) {
+        var chartPatrimonio = new ApexCharts(document.querySelector("#grafico-patrimonio"), applyCinnamonChartTheme(optionsPatrimonio));
+        chartPatrimonio.render();
+        registerCinnamonChart(chartPatrimonio);
+    }
 
     // ===============================
     // Gráfico de Linha - Captação Líquida
@@ -104,8 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             type: 'line',
             height: 250,
             width: "100%",
-            toolbar: { show: false },
-            foreColor: '#dcdde1'
+            toolbar: { show: false }
         },
         series: [{
             name: 'Captação Líquida',
@@ -142,7 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         },
         grid: {
-            borderColor: '#444',
             strokeDashArray: 4
         },
         dataLabels: {
@@ -150,8 +150,11 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         colors: ['#00cec9']
     };
-    if (document.querySelector("#grafico-captacao"))
-        new ApexCharts(document.querySelector("#grafico-captacao"), optionsCaptacao).render();
+    if (document.querySelector("#grafico-captacao")) {
+        var chartCaptacao = new ApexCharts(document.querySelector("#grafico-captacao"), applyCinnamonChartTheme(optionsCaptacao));
+        chartCaptacao.render();
+        registerCinnamonChart(chartCaptacao);
+    }
 
     // ===============================
     // Donut - Patrimônio por Classe de Ativos
@@ -160,8 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chart: {
             type: 'donut',
             height: 250,
-            width: "100%",
-            foreColor: '#dcdde1'
+            width: "100%"
         },
         series: [55, 25, 15, 5],
         labels: ['Recebíveis', 'Caixa', 'Títulos Públicos', 'Outros'],
@@ -184,8 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     };
-    if (document.querySelector("#grafico-classe-ativos"))
-        new ApexCharts(document.querySelector("#grafico-classe-ativos"), optionsClasseAtivos).render();
+    if (document.querySelector("#grafico-classe-ativos")) {
+        var chartClasseAtivos = new ApexCharts(document.querySelector("#grafico-classe-ativos"), applyCinnamonChartTheme(optionsClasseAtivos));
+        chartClasseAtivos.render();
+        registerCinnamonChart(chartClasseAtivos);
+    }
 
     // ===============================
     // Donut - Patrimônio por Tipo de Produto
@@ -194,8 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chart: {
             type: 'donut',
             height: 250,
-            width: "100%",
-            foreColor: '#dcdde1'
+            width: "100%"
         },
         series: [70, 20, 10],
         labels: ['FIDC', 'FII', 'Outros'],
@@ -218,6 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     };
-    if (document.querySelector("#grafico-tipo-produto"))
-        new ApexCharts(document.querySelector("#grafico-tipo-produto"), optionsTipoProduto).render();
+    if (document.querySelector("#grafico-tipo-produto")) {
+        var chartTipoProduto = new ApexCharts(document.querySelector("#grafico-tipo-produto"), applyCinnamonChartTheme(optionsTipoProduto));
+        chartTipoProduto.render();
+        registerCinnamonChart(chartTipoProduto);
+    }
 });

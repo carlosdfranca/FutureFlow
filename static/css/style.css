@@ -700,8 +700,9 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 .badge-tipo-fip  { background-color: rgba(59,130,246,0.18);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
 .badge-ativo     { background-color: rgba(16,185,129,0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .badge-inativo   { background-color: rgba(107,117,133,0.12); color: #8892a0; border: 1px solid rgba(107,117,133,0.25); }
+.badge-desenquadrado { background-color: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
 .badge-tipo-fidc, .badge-tipo-fii, .badge-tipo-fip,
-.badge-ativo, .badge-inativo {
+.badge-ativo, .badge-inativo, .badge-desenquadrado {
     font-size: 0.7rem;
     font-weight: 600;
     padding: 3px 8px;
@@ -1232,6 +1233,7 @@ input[type=number] {
 .kpi-card--green::before { background: linear-gradient(90deg, #10b981, #34d399); }
 .kpi-card--gray::before  { background: linear-gradient(90deg, #6b7585, #8892a0); }
 .kpi-card--amber::before { background: linear-gradient(90deg, #b45309, #fbbf24); }
+.kpi-card--danger::before { background: linear-gradient(90deg, #dc2626, #f87171); }
 .kpi-card__value {
     font-size: clamp(0.95rem, 2vw, 1.4rem);
     font-weight: 800;
@@ -1245,6 +1247,7 @@ input[type=number] {
 .kpi-card--green .kpi-card__value { color: #34d399; }
 .kpi-card--gray  .kpi-card__value { color: #8892a0; }
 .kpi-card--amber .kpi-card__value { color: #fbbf24; }
+.kpi-card--danger .kpi-card__value { color: #f87171; }
 .kpi-card__label {
     font-size: 0.68rem;
     font-weight: 700;
@@ -1269,6 +1272,58 @@ input[type=number] {
     pointer-events: none;
     line-height: 1;
     color: currentColor;
+}
+
+/* Enquadramento — banner de alerta na carteira do fundo */
+.enq-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius);
+    border: 1px solid transparent;
+}
+.enq-alert__icon { font-size: 1.3rem; line-height: 1.3; }
+.enq-alert__title { font-weight: 700; margin: 0 0 0.25rem; }
+.enq-alert__list { margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--text-primary); }
+.enq-alert__list li { margin-bottom: 2px; }
+
+.enq-alert--danger {
+    background-color: rgba(239,68,68,0.10);
+    border-color: rgba(239,68,68,0.30);
+}
+.enq-alert--danger .enq-alert__icon,
+.enq-alert--danger .enq-alert__title { color: #f87171; }
+
+.enq-alert--ok {
+    background-color: rgba(16,185,129,0.10);
+    border-color: rgba(16,185,129,0.25);
+}
+.enq-alert--ok .enq-alert__icon,
+.enq-alert--ok .enq-alert__title { color: #34d399; }
+
+.enq-alert__body { flex: 1; }
+.enq-alert__fundos {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.enq-alert__fundo-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(0,0,0,0.15);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+html[data-theme="light"] .enq-alert__fundo-row {
+    background: rgba(0,0,0,0.04);
 }
 
 /* ================================
@@ -1372,6 +1427,26 @@ input[type=number] {
     border-left-color: var(--accent-primary);
 }
 
+/* Tabelas Bootstrap puras (sem table-dark/table-ds) — tema do projeto */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border-color);
+    --bs-table-striped-bg: var(--surface-3);
+    --bs-table-striped-color: var(--text-primary);
+    --bs-table-hover-bg: rgba(255,255,255,0.03);
+    --bs-table-hover-color: var(--text-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+.table > thead {
+    background-color: var(--surface-3);
+    color: var(--text-secondary);
+}
+html[data-theme="light"] .table {
+    --bs-table-hover-bg: rgba(0,0,0,0.04);
+}
+
 /* Period pill for table date column */
 .period-pill {
     display: inline-block;
@@ -1448,6 +1523,11 @@ input[type=number] {
 .fundo-card--fii:hover  { box-shadow: 0 14px 44px rgba(16,185,129,0.30), 0 4px 16px rgba(0,0,0,0.45); }
 .fundo-card--fip:hover  { box-shadow: 0 14px 44px rgba(59,130,246,0.30), 0 4px 16px rgba(0,0,0,0.45); }
 
+/* Desenquadrado — sobrepõe a cor do tipo com um alerta vermelho */
+.fundo-card--desenquadrado { border-color: rgba(239,68,68,0.5); }
+.fundo-card--desenquadrado .fundo-card__topbar { background: linear-gradient(90deg, #dc2626, #f87171); }
+.fundo-card--desenquadrado:hover { box-shadow: 0 14px 44px rgba(239,68,68,0.30), 0 4px 16px rgba(0,0,0,0.45); }
+
 /* Colored top bar per type */
 .fundo-card__topbar {
     height: 3px;
@@ -1500,11 +1580,27 @@ input[type=number] {
 .fundo-card__footer {
     padding: 0.875rem 1.25rem;
     border-top: 1px solid var(--border-color);
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
     background: rgba(0,0,0,0.25);
 }
-.fundo-card__footer .btn { flex: 1; font-size: 0.8rem; padding: 0.45rem 0.75rem; font-weight: 500; }
+.fundo-card__footer .btn { font-size: 0.8rem; padding: 0.45rem 0.75rem; font-weight: 500; }
+
+/* Faixa de alerta de desenquadramento — dentro do card, entre header e body */
+.fundo-card__enq {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin: 0.25rem 1.25rem 0.75rem;
+    padding: 0.5rem 0.7rem;
+    background: rgba(239,68,68,0.10);
+    border: 1px solid rgba(239,68,68,0.30);
+    border-radius: 8px;
+}
+.fundo-card__enq > i { color: #f87171; font-size: 0.95rem; line-height: 1.35; }
+.fundo-card__enq-title { display: block; color: #f87171; font-weight: 700; font-size: 0.78rem; }
+.fundo-card__enq-reason { display: block; color: var(--text-secondary); font-size: 0.75rem; }
 
 /* Staggered card animations */
 .fundo-card:nth-child(1) { animation-delay: 0.07s; }
@@ -1830,6 +1926,10 @@ html[data-theme="light"] .fundo-card__footer {
     background: rgba(0, 0, 0, 0.02);
     border-top-color: rgba(0, 0, 0, 0.07);
 }
+html[data-theme="light"] .fundo-card__enq > i,
+html[data-theme="light"] .fundo-card__enq-title {
+    color: #b91c1c;
+}
 
 /* Form sections */
 html[data-theme="light"] .form-section__header {
@@ -2070,6 +2170,21 @@ html[data-theme="light"] .kpi-card--amber .kpi-card__value {
     color: #b45309;
 }
 
+/* kpi-card--danger — light mode: deeper red for contrast on ivory bg */
+html[data-theme="light"] .kpi-card--danger .kpi-card__value {
+    color: #b91c1c;
+}
+
+/* Enquadramento — light mode */
+html[data-theme="light"] .enq-alert--danger .enq-alert__icon,
+html[data-theme="light"] .enq-alert--danger .enq-alert__title {
+    color: #b91c1c;
+}
+html[data-theme="light"] .enq-alert--ok .enq-alert__icon,
+html[data-theme="light"] .enq-alert--ok .enq-alert__title {
+    color: #059669;
+}
+
 
 /* ================================
    Login � Two-Panel Layout
@@ -2239,3 +2354,138 @@ html[data-theme="light"] .login-form-logo.site-nav__logo--light { display: block
 .badge-ds--blue   { background: rgba(59,130,246,0.15);  color: #93c5fd; border-color: rgba(59,130,246,0.30); }
 .badge-ds--gray   { background: rgba(107,117,133,0.12); color: #8892a0; border-color: rgba(107,117,133,0.25); }
 .badge-ds--purple { background: rgba(139,92,246,0.15);  color: #c4b5fd; border-color: rgba(139,92,246,0.30); }
+
+/* ================================
+   Modal padrão "reg-modal" — usado em Regulamento (listar_fundos)
+   e no popup de Fundos Desenquadrados (home). Movido para o CSS
+   global para que qualquer página possa reaproveitar o padrão.
+================================ */
+/* ── Modal container ── */
+.reg-modal {
+    --bs-modal-bg: var(--surface-2);
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-color);
+    border-radius: 14px !important;
+    overflow: hidden;
+}
+.reg-modal__accent-bar {
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), #C47080 60%, transparent);
+}
+.reg-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.1rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.reg-modal__eyebrow {
+    font-size: 0.67rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 3px;
+}
+.reg-modal__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+.reg-modal__close { margin-top: 2px; }
+html[data-theme="dark"] .reg-modal__close { filter: invert(1) brightness(0.55); }
+
+.reg-modal__body {
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.reg-modal__footer {
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Sections ── */
+.reg-section {
+    background-color: var(--surface-3);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+}
+.reg-section__heading {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0 0.75rem;
+}
+.reg-section__heading i { font-size: 0.72rem; }
+.reg-section__heading--blue  { color: #93c5fd; }
+.reg-section__heading--green { color: #6ee7b7; }
+.reg-section__heading--amber { color: #fbbf24; }
+html[data-theme="light"] .reg-section__heading--blue  { color: #1d4ed8; }
+html[data-theme="light"] .reg-section__heading--green { color: #059669; }
+html[data-theme="light"] .reg-section__heading--amber { color: #b45309; }
+
+/* ── Grid de itens ── */
+.reg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1.5rem;
+}
+.reg-item { display: flex; flex-direction: column; gap: 2px; }
+.reg-item__label {
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.reg-item__value {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ── Taxa mini-cards ── */
+.reg-taxa-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+}
+.reg-taxa-card {
+    background-color: var(--surface-raised);
+    border-radius: 8px;
+    padding: 0.7rem 0.85rem;
+    border-left: 3px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.reg-taxa-card--red   { border-left-color: #C47080; }
+.reg-taxa-card--blue  { border-left-color: #93c5fd; }
+.reg-taxa-card--amber { border-left-color: #fbbf24; }
+.reg-taxa-card__label {
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.reg-taxa-card__value { font-size: 1.05rem; font-weight: 700; }
+.reg-taxa-card--red   .reg-taxa-card__value { color: #C47080; }
+.reg-taxa-card--blue  .reg-taxa-card__value { color: #93c5fd; }
+.reg-taxa-card--amber .reg-taxa-card__value { color: #fbbf24; }
+html[data-theme="light"] .reg-taxa-card--red   .reg-taxa-card__value { color: #9f1239; }
+html[data-theme="light"] .reg-taxa-card--blue  .reg-taxa-card__value { color: #1d4ed8; }
+html[data-theme="light"] .reg-taxa-card--amber .reg-taxa-card__value { color: #b45309; }

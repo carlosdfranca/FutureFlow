@@ -27,6 +27,39 @@
             } catch(e) {}
         })();
     </script>
+    <!-- Helper de tema para gráficos ApexCharts — síncrono, disponível antes de qualquer script de página -->
+    <script>
+        (function () {
+            function cssVar(name, fallback) {
+                var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+                return v || fallback;
+            }
+            function isLightTheme() {
+                return document.documentElement.getAttribute('data-theme') === 'light';
+            }
+            window.applyCinnamonChartTheme = function (options) {
+                var textColor = cssVar('--text-secondary', isLightTheme() ? '#6C6C70' : '#ADADB1');
+                var borderColor = cssVar('--border-color', isLightTheme() ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)');
+                options.chart = options.chart || {};
+                options.chart.foreColor = textColor;
+                options.grid = options.grid || {};
+                options.grid.borderColor = borderColor;
+                options.tooltip = options.tooltip || {};
+                options.tooltip.theme = isLightTheme() ? 'light' : 'dark';
+                options.legend = options.legend || {};
+                options.legend.labels = options.legend.labels || {};
+                options.legend.labels.colors = textColor;
+                return options;
+            };
+            window.__cinnamonCharts = [];
+            window.registerCinnamonChart = function (chart) { window.__cinnamonCharts.push(chart); };
+            document.addEventListener('cinnamon:theme-changed', function () {
+                window.__cinnamonCharts.forEach(function (chart) {
+                    try { chart.updateOptions(window.applyCinnamonChartTheme({})); } catch (e) {}
+                });
+            });
+        })();
+    </script>
 </head>
 <body>
     <!-- Navbar principal -->

@@ -23,22 +23,54 @@
 
 <div class="container my-4">
 
+    {% if enquadramento.avaliavel %}
+        {% if enquadramento.desenquadrado %}
+        <div class="enq-alert enq-alert--danger mb-4">
+            <i class="bi bi-exclamation-triangle-fill enq-alert__icon"></i>
+            <div>
+                <p class="enq-alert__title">Fundo Desenquadrado</p>
+                <ul class="enq-alert__list">
+                    {% if enquadramento.dc_excede %}
+                    <li>Direitos Creditórios: {{ enquadramento.pct_dc }}% da carteira (limite {{ enquadramento.limite_dc }}%)</li>
+                    {% endif %}
+                    {% if enquadramento.liquidez_excede %}
+                    <li>Liquidez: {{ enquadramento.pct_liquidez }}% da carteira (limite {{ enquadramento.limite_liquidez }}%)</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="enq-alert enq-alert--ok mb-4">
+            <i class="bi bi-check-circle-fill enq-alert__icon"></i>
+            <div>
+                <p class="enq-alert__title mb-0">Fundo enquadrado</p>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
     <!-- ── KPIs Principais ─────────────────────────────────── -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="kpi-card kpi-card--blue">
+            <div class="kpi-card kpi-card--blue{% if enquadramento.dc_excede %} kpi-card--danger{% endif %}">
                 <i class="bi bi-file-earmark-text kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Direito Creditório</div>
                 <div class="kpi-card__value">R$ {{ saldo_dc|brl }}</div>
-                <div class="kpi-card__sub">{{ titulos_agg.count }} título{{ titulos_agg.count|pluralize }} ativo{{ titulos_agg.count|pluralize }}</div>
+                <div class="kpi-card__sub">
+                    {{ titulos_agg.count }} título{{ titulos_agg.count|pluralize }} ativo{{ titulos_agg.count|pluralize }}
+                    {% if enquadramento.avaliavel %} &middot; {{ enquadramento.pct_dc }}%{% if enquadramento.limite_dc is not None %} (limite {{ enquadramento.limite_dc }}%){% endif %}{% endif %}
+                </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="kpi-card kpi-card--green">
+            <div class="kpi-card kpi-card--green{% if enquadramento.liquidez_excede %} kpi-card--danger{% endif %}">
                 <i class="bi bi-droplet-half kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Liquidez</div>
                 <div class="kpi-card__value">R$ {{ valor_liquidez|brl }}</div>
-                <div class="kpi-card__sub">{{ aplicacoes_agg.count }} aplicaç{{ aplicacoes_agg.count|pluralize:"ão,ões" }} ativa{{ aplicacoes_agg.count|pluralize }}</div>
+                <div class="kpi-card__sub">
+                    {{ aplicacoes_agg.count }} aplicaç{{ aplicacoes_agg.count|pluralize:"ão,ões" }} ativa{{ aplicacoes_agg.count|pluralize }}
+                    {% if enquadramento.avaliavel %} &middot; {{ enquadramento.pct_liquidez }}%{% if enquadramento.limite_liquidez is not None %} (limite {{ enquadramento.limite_liquidez }}%){% endif %}{% endif %}
+                </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
@@ -180,7 +212,9 @@
         },
         plotOptions: { pie: { donut: { size: '60%' } } },
     };
-    new ApexCharts(document.querySelector('#chart-composicao'), options).render();
+    const chart = new ApexCharts(document.querySelector('#chart-composicao'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
 })();
 </script>
 {% endif %}

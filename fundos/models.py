@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from usuarios.models import Empresa
 from django.conf import settings
@@ -67,6 +68,18 @@ class Fundo(models.Model):
     aporte_minimo = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)
     data_encerramento_exercicio = models.CharField(max_length=10, blank=True, help_text='Ex: 31/12')
     limite_concentracao = models.CharField(max_length=300, blank=True)
+
+    # Enquadramento (limites de composição da carteira, em % da carteira)
+    limite_direitos_creditorios = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text='Limite máximo em Direitos Creditórios (Cessões), em % da carteira',
+    )
+    limite_liquidez = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text='Limite máximo em Liquidez (Aplicações), em % da carteira',
+    )
 
     # Classificação e estrutura
     classificacao_investidor = models.CharField(max_length=20, choices=ClassificacaoInvestidor.choices, blank=True)
