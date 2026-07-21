@@ -167,8 +167,20 @@ TituloFormSet = formset_factory(TituloForm, extra=1, can_delete=True)
 
 
 class EventoTituloForm(forms.ModelForm):
-    """Form para criar eventos em títulos"""
-    
+    """
+    Form para registrar eventos de saída/retorno de um título (liquidação
+    total, liquidação parcial, baixa e reativação). Os demais tipos de
+    evento (aquisição, prorrogação, etc.) são criados pelo próprio fluxo
+    de negócio, não por este formulário.
+    """
+
+    TIPOS_LIQUIDACAO = [
+        TipoEventoTitulo.LIQUIDACAO_TOTAL,
+        TipoEventoTitulo.LIQUIDACAO_PARCIAL,
+        TipoEventoTitulo.BAIXA,
+        TipoEventoTitulo.REATIVACAO,
+    ]
+
     class Meta:
         model = EventoTitulo
         fields = ['tipo_evento', 'data_evento', 'valor_evento', 'descricao', 'documento_referencia']
@@ -179,6 +191,30 @@ class EventoTituloForm(forms.ModelForm):
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'documento_referencia': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, titulo=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.titulo = titulo
+        self.fields['tipo_evento'].choices = [
+            (tipo.value, tipo.label) for tipo in self.TIPOS_LIQUIDACAO
+        ]
+        self.fields['valor_evento'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_evento = cleaned_data.get('tipo_evento')
+        valor_evento = cleaned_data.get('valor_evento')
+
+        if tipo_evento == TipoEventoTitulo.LIQUIDACAO_PARCIAL:
+            if not valor_evento:
+                self.add_error('valor_evento', 'Informe o valor liquidado para liquidação parcial.')
+            elif self.titulo is not None and valor_evento > self.titulo.saldo_devedor:
+                self.add_error(
+                    'valor_evento',
+                    f'Valor não pode exceder o saldo devedor (R$ {self.titulo.saldo_devedor}).'
+                )
+
+        return cleaned_data
 
 
 # ============================================
@@ -202,6 +238,21 @@ class AplicacaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['fundo'].queryset = Fundo.objects.filter(ativo=True)
+
+
+class LiquidarAplicacaoForm(forms.Form):
+    """Form para registrar a liquidação/resgate de uma aplicação"""
+
+    data_liquidacao = forms.DateField(
+        label='Data de Liquidação',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    valor_resgate = forms.DecimalField(
+        label='Valor de Resgate',
+        max_digits=16,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
+    )
 
 
 # ============================================

@@ -15,8 +15,10 @@ urlpatterns = [
     # Títulos
     path('titulos/', views.listar_titulos, name='listar_titulos'),
     path('titulos/<uuid:pk>/', views.detalhe_titulo, name='detalhe_titulo'),
-    
+    path('titulos/<uuid:pk>/evento/', views.registrar_evento_titulo, name='registrar_evento_titulo'),
+
     # Aplicações
     path('aplicacoes/', views.listar_aplicacoes, name='listar_aplicacoes'),
     path('aplicacoes/nova/', views.nova_aplicacao, name='nova_aplicacao'),
+    path('aplicacoes/<uuid:pk>/liquidar/', views.liquidar_aplicacao, name='liquidar_aplicacao'),
 ]

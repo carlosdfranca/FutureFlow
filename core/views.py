@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
 from usuarios.models import *
+from fundos.models import Fundo
+from fundos.services.enquadramento import anexar_enquadramento
 
 import markdown
 import os
@@ -20,8 +22,20 @@ def home(request):
             text = f.read()
             release_html = markdown.markdown(text)
 
+    fundos_desenquadrados = []
+    empresa = request.empresa_ativa
+    if empresa:
+        fundos_ativos = list(Fundo.objects.filter(empresa=empresa, ativo=True))
+        anexar_enquadramento(fundos_ativos)
+        fundos_desenquadrados = [f for f in fundos_ativos if f.enquadramento.desenquadrado]
+
+    popup_pendente = request.session.pop('mostrar_popup_desenquadramento', False)
+    mostrar_popup = bool(fundos_desenquadrados) and popup_pendente
+
     return render(request, "home.html", {
-        "release_notes": release_html
+        "release_notes": release_html,
+        "fundos_desenquadrados": fundos_desenquadrados,
+        "mostrar_popup_desenquadramento": mostrar_popup,
     })
 
 @login_required
@@ -86,6 +100,7 @@ def trocar_empresa(request):
     ## SuperUser pode trocar para qualquer empresa
     if request.user.is_superuser:
         request.session["empresa_ativa"] = empresa_id
+        request.session["mostrar_popup_desenquadramento"] = True
         messages.success(request, "Empresa alterada (superusuário).")
         return redirect(request.META.get("HTTP_REFERER", "home"))
 
@@ -97,6 +112,7 @@ def trocar_empresa(request):
 
     if pertence:
         request.session["empresa_ativa"] = empresa_id
+        request.session["mostrar_popup_desenquadramento"] = True
         messages.success(request, "Empresa alterada com sucesso!")
     else:
         messages.error(request, "Você não tem acesso a esta empresa.")

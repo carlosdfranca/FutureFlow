@@ -331,7 +331,34 @@ class Aplicacao(models.Model):
     descricao = models.CharField(max_length=200)
     valor = models.DecimalField(max_digits=16, decimal_places=2)
     data_aplicacao = models.DateField(db_index=True)
-    
+
+    # Estado / Liquidação
+    STATUS_CHOICES = [
+        ('ATIVA', 'Ativa'),
+        ('LIQUIDADA', 'Liquidada'),
+    ]
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='ATIVA',
+        db_index=True
+    )
+    data_liquidacao = models.DateField(null=True, blank=True)
+    valor_resgate = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Valor recebido na liquidação/resgate da aplicação'
+    )
+    liquidado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='aplicacoes_liquidadas'
+    )
+
     # Auditoria
     criado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -341,7 +368,7 @@ class Aplicacao(models.Model):
     )
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'operacoes_aplicacao'
         verbose_name = 'Aplicação em Ativo'
@@ -351,7 +378,8 @@ class Aplicacao(models.Model):
             models.Index(fields=['fundo', 'tipo_aplicacao']),
             models.Index(fields=['tipo_aplicacao']),
             models.Index(fields=['data_aplicacao']),
+            models.Index(fields=['status']),
         ]
-    
+
     def __str__(self):
         return f"{self.get_tipo_aplicacao_display()} - {self.descricao} - R$ {self.valor}"

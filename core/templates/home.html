@@ -15,6 +15,28 @@
         </div>
     </nav>
 
+    <!-- Alerta de Desenquadramento -->
+    {% if fundos_desenquadrados %}
+    <div class="enq-alert enq-alert--danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill enq-alert__icon"></i>
+        <div class="enq-alert__body">
+            <p class="enq-alert__title">
+                {{ fundos_desenquadrados|length }} fundo{{ fundos_desenquadrados|pluralize }} desenquadrado{{ fundos_desenquadrados|pluralize }}
+            </p>
+            <ul class="enq-alert__fundos">
+                {% for f in fundos_desenquadrados %}
+                <li class="enq-alert__fundo-row">
+                    <span>Fundo <strong>{{ f.razao_social }}</strong> está desenquadrado.</span>
+                    <a href="{% url 'fundos:carteira_fundo' fundo_id=f.id %}" class="btn btn-sm btn-ghost-ds">
+                        <i class="bi bi-pie-chart me-1"></i>Ver Carteira
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- KPIs principais -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
@@ -163,4 +185,53 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Popup — Fundos Desenquadrados -->
+{% if fundos_desenquadrados %}
+<div class="modal fade" id="modal-desenquadramento" tabindex="-1" aria-labelledby="modal-desenq-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content reg-modal">
+            <div class="reg-modal__accent-bar" style="background: linear-gradient(90deg, #dc2626, #f87171);"></div>
+            <div class="reg-modal__header">
+                <div>
+                    <p class="reg-modal__eyebrow"><i class="bi bi-exclamation-triangle-fill me-1"></i>Alerta de Enquadramento</p>
+                    <h5 class="reg-modal__title" id="modal-desenq-label">Fundos Desenquadrados</h5>
+                </div>
+                <button type="button" class="btn-close reg-modal__close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="reg-modal__body">
+                {% for f in fundos_desenquadrados %}
+                <div class="reg-section">
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <div>
+                            <p class="reg-section__heading" style="margin-bottom:0.25rem;">{{ f.get_tipo_fundo_display }}</p>
+                            <p class="mb-0" style="color:var(--text-primary); font-weight:600;">{{ f.razao_social }}</p>
+                        </div>
+                        <a href="{% url 'fundos:carteira_fundo' fundo_id=f.id %}" class="btn btn-sm btn-ghost-ds text-nowrap">
+                            <i class="bi bi-pie-chart me-1"></i>Ver Carteira
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="reg-modal__footer">
+                <button type="button" class="btn btn-ghost-ds" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if mostrar_popup_desenquadramento %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var modalEl = document.getElementById('modal-desenquadramento');
+    if (modalEl) {
+        new bootstrap.Modal(modalEl).show();
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

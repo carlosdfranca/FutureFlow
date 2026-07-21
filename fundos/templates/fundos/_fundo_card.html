@@ -1,5 +1,5 @@
 {% load fundos_filters l10n %}
-<div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}"
+<div class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}{% if fundo.enquadramento.desenquadrado %} fundo-card--desenquadrado{% endif %}"
      data-search="{{ fundo.razao_social|lower }} {{ fundo.nome_comercial|lower }}"
      data-reg-nome="{{ fundo.razao_social }}"
      data-reg-administrador="{{ fundo.administrador }}"
@@ -37,6 +37,20 @@
         {% endif %}
     </div>
 
+    {% if fundo.enquadramento.desenquadrado %}
+    <div class="fundo-card__enq">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <span class="fundo-card__enq-title">Desenquadrado</span>
+            <span class="fundo-card__enq-reason">
+                {% if fundo.enquadramento.dc_excede %}Direitos Creditórios {{ fundo.enquadramento.pct_dc|floatformat:"-2" }}% &middot; limite {{ fundo.enquadramento.limite_dc }}%{% endif %}
+                {% if fundo.enquadramento.dc_excede and fundo.enquadramento.liquidez_excede %}<br>{% endif %}
+                {% if fundo.enquadramento.liquidez_excede %}Liquidez {{ fundo.enquadramento.pct_liquidez|floatformat:"-2" }}% &middot; limite {{ fundo.enquadramento.limite_liquidez }}%{% endif %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="fundo-card__body">
         <p class="fundo-card__name">{{ fundo.razao_social }}</p>
         {% if fundo.nome_comercial %}
@@ -67,6 +81,9 @@
         </button>
         <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds">
             <i class="bi bi-graph-up-arrow me-1"></i>Informes
+        </a>
+        <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
+            <i class="bi bi-pie-chart me-1"></i>Carteira
         </a>
     </div>
 </div>

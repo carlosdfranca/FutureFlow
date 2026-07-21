@@ -26,6 +26,36 @@ class FundoForm(forms.ModelForm):
         label='Aporte Mínimo (R$)',
     )
 
+    limite_direitos_creditorios = forms.IntegerField(
+        required=True,
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '0',
+            'max': '100',
+            'step': '1',
+            'inputmode': 'numeric',
+            'placeholder': '0 a 100',
+        }),
+        label='Limite em Direitos Creditórios (%)',
+    )
+
+    limite_liquidez = forms.IntegerField(
+        required=True,
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '0',
+            'max': '100',
+            'step': '1',
+            'inputmode': 'numeric',
+            'placeholder': '0 a 100',
+        }),
+        label='Limite de Liquidez (%)',
+    )
+
     class Meta:
         model = Fundo
         fields = [
@@ -47,6 +77,8 @@ class FundoForm(forms.ModelForm):
             'aporte_minimo',
             'data_encerramento_exercicio',
             'limite_concentracao',
+            'limite_direitos_creditorios',
+            'limite_liquidez',
             'taxa_administracao',
             'taxa_gestao',
             'taxa_performance',

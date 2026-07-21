@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load fundos_filters %}
+
+{% block title %}Carteira — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'fundos:listar_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Fundos</a>
+                &rsaquo; Carteira
+            </p>
+            <h1 class="page-hero__title">{{ fundo.razao_social }}</h1>
+            <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}</p>
+        </div>
+        <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-ghost-ds">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="container my-4">
+
+    {% if enquadramento.avaliavel %}
+        {% if enquadramento.desenquadrado %}
+        <div class="enq-alert enq-alert--danger mb-4">
+            <i class="bi bi-exclamation-triangle-fill enq-alert__icon"></i>
+            <div>
+                <p class="enq-alert__title">Fundo Desenquadrado</p>
+                <ul class="enq-alert__list">
+                    {% if enquadramento.dc_excede %}
+                    <li>Direitos Creditórios: {{ enquadramento.pct_dc }}% da carteira (limite {{ enquadramento.limite_dc }}%)</li>
+                    {% endif %}
+                    {% if enquadramento.liquidez_excede %}
+                    <li>Liquidez: {{ enquadramento.pct_liquidez }}% da carteira (limite {{ enquadramento.limite_liquidez }}%)</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="enq-alert enq-alert--ok mb-4">
+            <i class="bi bi-check-circle-fill enq-alert__icon"></i>
+            <div>
+                <p class="enq-alert__title mb-0">Fundo enquadrado</p>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- ── KPIs Principais ─────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-card--blue{% if enquadramento.dc_excede %} kpi-card--danger{% endif %}">
+                <i class="bi bi-file-earmark-text kpi-card__ghost-icon"></i>
+                <div class="kpi-card__label">Direito Creditório</div>
+                <div class="kpi-card__value">R$ {{ saldo_dc|brl }}</div>
+                <div class="kpi-card__sub">
+                    {{ titulos_agg.count }} título{{ titulos_agg.count|pluralize }} ativo{{ titulos_agg.count|pluralize }}
+                    {% if enquadramento.avaliavel %} &middot; {{ enquadramento.pct_dc }}%{% if enquadramento.limite_dc is not None %} (limite {{ enquadramento.limite_dc }}%){% endif %}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-card--green{% if enquadramento.liquidez_excede %} kpi-card--danger{% endif %}">
+                <i class="bi bi-droplet-half kpi-card__ghost-icon"></i>
+                <div class="kpi-card__label">Liquidez</div>
+                <div class="kpi-card__value">R$ {{ valor_liquidez|brl }}</div>
+                <div class="kpi-card__sub">
+                    {{ aplicacoes_agg.count }} aplicaç{{ aplicacoes_agg.count|pluralize:"ão,ões" }} ativa{{ aplicacoes_agg.count|pluralize }}
+                    {% if enquadramento.avaliavel %} &middot; {{ enquadramento.pct_liquidez }}%{% if enquadramento.limite_liquidez is not None %} (limite {{ enquadramento.limite_liquidez }}%){% endif %}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-card--gray">
+                <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
+                <div class="kpi-card__label">Total da Carteira</div>
+                <div class="kpi-card__value">R$ {{ total_carteira|brl }}</div>
+                <div class="kpi-card__sub">Direito Creditório + Liquidez</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-card--amber">
+                <i class="bi bi-collection kpi-card__ghost-icon"></i>
+                <div class="kpi-card__label">Ativos na Carteira</div>
+                <div class="kpi-card__value">{{ titulos_agg.count|add:aplicacoes_agg.count }}</div>
+                <div class="kpi-card__sub">títulos + aplicações</div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_carteira %}
+    <!-- ── Composição da Carteira ─────────────────────────────────── -->
+    <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-pie-chart text-primary"></i>Composição da Carteira
+            </span>
+        </div>
+        <div id="chart-composicao" style="min-height:220px;" class="px-3 pb-3 pt-2"></div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+        <!-- Direito Creditório -->
+        <div class="col-md-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-file-earmark-text me-1"></i>Direito Creditório (Cessões)
+                    </span>
+                </div>
+                <div style="padding:1.25rem;">
+                    {% if titulos_agg.count %}
+                    <table class="table table-sm mb-3" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Saldo Devedor Total</th>
+                            <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ saldo_dc|brl }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Valor Nominal Total</th>
+                            <td style="border-color:var(--border-color);">R$ {{ titulos_agg.nominal_total|brl }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Títulos Ativos</th>
+                            <td style="border-color:var(--border-color);">{{ titulos_agg.count }}</td>
+                        </tr>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4" style="color:var(--text-secondary);">
+                        <i class="bi bi-file-earmark-text" style="font-size:1.8rem; opacity:0.4;"></i>
+                        <p class="mb-0 mt-2" style="font-size:0.85rem;">Nenhum título ativo neste fundo.</p>
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'operacoes:listar_titulos' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds w-100">
+                        <i class="bi bi-list-ul me-1"></i>Ver todos os títulos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liquidez -->
+        <div class="col-md-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-droplet-half me-1"></i>Liquidez (Aplicações)
+                    </span>
+                </div>
+                <div style="padding:1.25rem;">
+                    {% if aplicacoes_agg.count %}
+                    <table class="table table-sm mb-3" style="color:var(--text-primary);">
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Valor Total Ativo</th>
+                            <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ valor_liquidez|brl }}</td>
+                        </tr>
+                        <tr>
+                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Aplicações Ativas</th>
+                            <td style="border-color:var(--border-color);">{{ aplicacoes_agg.count }}</td>
+                        </tr>
+                    </table>
+                    <ul class="list-unstyled mb-3" style="font-size:0.85rem;">
+                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--text-secondary);">Tesouro Direto</span>
+                            <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.TESOURO|default:0|brl }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--text-secondary);">Cota de Fundo</span>
+                            <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.COTA_FUNDO|default:0|brl }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--text-secondary);">Compromissada</span>
+                            <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.COMPROMISSADA|default:0|brl }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-1">
+                            <span style="color:var(--text-secondary);">Outros</span>
+                            <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.OUTROS|default:0|brl }}</span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4" style="color:var(--text-secondary);">
+                        <i class="bi bi-droplet-half" style="font-size:1.8rem; opacity:0.4;"></i>
+                        <p class="mb-0 mt-2" style="font-size:0.85rem;">Nenhuma aplicação ativa neste fundo.</p>
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds w-100">
+                        <i class="bi bi-list-ul me-1"></i>Ver todas as aplicações
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% if total_carteira %}
+<script>
+(function () {
+    const options = {
+        chart: { type: 'donut', height: 240 },
+        series: [{{ saldo_dc }}, {{ valor_liquidez }}],
+        labels: ['Direito Creditório', 'Liquidez'],
+        colors: ['#93c5fd', '#6ee7b7'],
+        legend: { position: 'bottom', fontSize: '12px' },
+        dataLabels: { enabled: true, formatter: (val) => val.toFixed(1) + '%' },
+        tooltip: {
+            y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }
+        },
+        plotOptions: { pie: { donut: { size: '60%' } } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-composicao'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+{% endif %}
+
+{% endblock %}

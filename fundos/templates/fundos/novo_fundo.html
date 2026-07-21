@@ -151,6 +151,33 @@
             </div>
         </div>
 
+        <!-- Enquadramento -->
+        <div class="form-section">
+            <div class="form-section__header">
+                <div class="form-section__icon form-section__icon--amber">
+                    <i class="bi bi-pie-chart"></i>
+                </div>
+                <div>
+                    <h2 class="form-section__title">Enquadramento</h2>
+                    <p class="form-section__subtitle">Limites de composição da carteira (% da carteira)</p>
+                </div>
+            </div>
+            <div class="form-section__body">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">Limite em Direitos Creditórios <span class="form-field__hint">(%)</span> <span class="form-field__required">*</span></label>
+                        {{ form.limite_direitos_creditorios }}
+                        {% if form.limite_direitos_creditorios.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.limite_direitos_creditorios.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">Limite de Liquidez <span class="form-field__hint">(%)</span> <span class="form-field__required">*</span></label>
+                        {{ form.limite_liquidez }}
+                        {% if form.limite_liquidez.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.limite_liquidez.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Regulamento do Fundo -->
         <div class="form-section">
             <div class="form-section__header">

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Count
 from decimal import Decimal
 from datetime import date
 import uuid
@@ -8,6 +9,8 @@ import uuid
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
 from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
+from .services.enquadramento import avaliar_enquadramento, anexar_enquadramento
+from operacoes.models import Titulo, Aplicacao
 
 
 @login_required
@@ -97,25 +100,28 @@ def listar_fundos(request):
     """Lista todos os fundos da empresa ativa"""
     empresa = request.empresa_ativa
     if empresa:
-        fundos = Fundo.objects.filter(empresa=empresa).order_by('razao_social')
+        fundos = list(Fundo.objects.filter(empresa=empresa).order_by('razao_social'))
     else:
-        fundos = Fundo.objects.none()
+        fundos = []
 
-    fundos_fidc = fundos.filter(tipo_fundo='FIDC')
-    fundos_fii  = fundos.filter(tipo_fundo='FII')
-    fundos_fip  = fundos.filter(tipo_fundo='FIP')
+    anexar_enquadramento(fundos)
+
+    fundos_fidc = [f for f in fundos if f.tipo_fundo == 'FIDC']
+    fundos_fii  = [f for f in fundos if f.tipo_fundo == 'FII']
+    fundos_fip  = [f for f in fundos if f.tipo_fundo == 'FIP']
 
     context = {
         'fundos': fundos,
         'fundos_fidc': fundos_fidc,
         'fundos_fii': fundos_fii,
         'fundos_fip': fundos_fip,
-        'total_fundos': fundos.count(),
-        'total_ativos': fundos.filter(ativo=True).count(),
-        'total_inativos': fundos.filter(ativo=False).count(),
-        'total_fidc': fundos_fidc.count(),
-        'total_fii': fundos_fii.count(),
-        'total_fip': fundos_fip.count(),
+        'total_fundos': len(fundos),
+        'total_ativos': sum(1 for f in fundos if f.ativo),
+        'total_inativos': sum(1 for f in fundos if not f.ativo),
+        'total_fidc': len(fundos_fidc),
+        'total_fii': len(fundos_fii),
+        'total_fip': len(fundos_fip),
+        'total_desenquadrados': sum(1 for f in fundos if f.enquadramento.desenquadrado),
     }
     return render(request, 'fundos/listar_fundos.html', context)
 
@@ -158,6 +164,48 @@ def editar_fundo(request, fundo_id):
         form = FundoForm(instance=fundo)
 
     return render(request, 'fundos/editar_fundo.html', {'form': form, 'fundo': fundo, 'empresa': empresa})
+
+
+@login_required
+def carteira_fundo(request, fundo_id):
+    """Resumo consolidado da carteira do fundo: Direito Creditório (Cessões) + Liquidez (Aplicações)"""
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    titulos_ativos = Titulo.objects.filter(fundo=fundo, ativo=True)
+    titulos_agg = titulos_ativos.aggregate(
+        saldo_total=Sum('saldo_devedor'),
+        nominal_total=Sum('valor_nominal'),
+        count=Count('id'),
+    )
+
+    aplicacoes_ativas = Aplicacao.objects.filter(fundo=fundo, status='ATIVA')
+    aplicacoes_agg = aplicacoes_ativas.aggregate(
+        valor_total=Sum('valor'),
+        count=Count('id'),
+    )
+    # .order_by() limpa a ordenação herdada do queryset -- sem isso o GROUP BY
+    # gerado por values()+annotate() vaza o campo de ordenação e quebra o
+    # agrupamento por tipo_aplicacao (mesmo cuidado de operacoes/views.py:listar_aplicacoes).
+    aplicacoes_por_tipo = {
+        item['tipo_aplicacao']: item['total']
+        for item in aplicacoes_ativas.order_by().values('tipo_aplicacao').annotate(total=Sum('valor'))
+    }
+
+    saldo_dc = titulos_agg['saldo_total'] or Decimal('0')
+    valor_liquidez = aplicacoes_agg['valor_total'] or Decimal('0')
+
+    context = {
+        'fundo': fundo,
+        'titulos_agg': titulos_agg,
+        'aplicacoes_agg': aplicacoes_agg,
+        'aplicacoes_por_tipo': aplicacoes_por_tipo,
+        'saldo_dc': saldo_dc,
+        'valor_liquidez': valor_liquidez,
+        'total_carteira': saldo_dc + valor_liquidez,
+        'enquadramento': avaliar_enquadramento(fundo, saldo_dc, valor_liquidez),
+    }
+    return render(request, 'fundos/carteira_fundo.html', context)
 
 
 # ============================================================

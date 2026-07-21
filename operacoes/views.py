@@ -8,8 +8,9 @@ from django.conf import settings
 from decimal import Decimal
 
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
-from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm
+from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
 from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
+from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
 from .utils.cnab_utils import rp
 
@@ -288,11 +289,43 @@ def detalhe_titulo(request, pk):
         pk=pk
     )
     eventos = titulo.eventos.all().order_by('-data_evento')
-    
+    evento_form = EventoTituloForm(titulo=titulo)
+
     return render(request, "operacoes/detalhe_titulo.html", {
         "titulo": titulo,
         "eventos": eventos,
+        "evento_form": evento_form,
     })
+
+
+@login_required
+def registrar_evento_titulo(request, pk):
+    """Registra um evento de liquidação/baixa/reativação sobre um título"""
+    titulo = get_object_or_404(Titulo, pk=pk)
+
+    if request.method == "POST":
+        form = EventoTituloForm(request.POST, titulo=titulo)
+
+        if form.is_valid():
+            try:
+                criar_evento_titulo(
+                    titulo=titulo,
+                    tipo_evento=form.cleaned_data['tipo_evento'],
+                    data_evento=form.cleaned_data['data_evento'],
+                    usuario=request.user,
+                    valor_evento=form.cleaned_data.get('valor_evento'),
+                    descricao=form.cleaned_data.get('descricao', ''),
+                    documento_referencia=form.cleaned_data.get('documento_referencia', ''),
+                )
+                messages.success(request, "Evento registrado com sucesso.")
+            except Exception as e:
+                messages.error(request, f"Erro ao registrar evento: {str(e)}")
+        else:
+            for erros in form.errors.values():
+                for erro in erros:
+                    messages.error(request, erro)
+
+    return redirect('operacoes:detalhe_titulo', pk=pk)
 
 
 # ============================================
@@ -327,21 +360,61 @@ def listar_aplicacoes(request):
 
     fundo_id = request.GET.get('fundo')
     tipo = request.GET.get('tipo')
+    status = request.GET.get('status')
 
     if fundo_id:
         aplicacoes = aplicacoes.filter(fundo_id=fundo_id)
     if tipo:
         aplicacoes = aplicacoes.filter(tipo_aplicacao=tipo)
+    if status:
+        aplicacoes = aplicacoes.filter(status=status)
 
+    # Totais consideram apenas aplicações ATIVAS: refletem o que ainda
+    # está de fato aplicado/na carteira do fundo.
+    # `.order_by()` limpa o order_by('-data_aplicacao') herdado de `aplicacoes`:
+    # sem isso, o GROUP BY gerado pelo values()+annotate() inclui data_aplicacao
+    # (o campo de ordenação), quebrando o agrupamento por tipo_aplicacao e
+    # fazendo cada data virar seu próprio grupo — resultando numa soma errada
+    # sempre que houver mais de uma aplicação do mesmo tipo em datas diferentes.
     totais_por_tipo = {
         item['tipo_aplicacao']: item['total']
-        for item in aplicacoes.values('tipo_aplicacao').annotate(total=Sum('valor'))
+        for item in aplicacoes.filter(status='ATIVA').order_by().values('tipo_aplicacao').annotate(total=Sum('valor'))
     }
 
     return render(request, "operacoes/listar_aplicacoes.html", {
         "aplicacoes": aplicacoes,
         "totais_por_tipo": totais_por_tipo,
+        "liquidar_form": LiquidarAplicacaoForm(),
     })
+
+
+@login_required
+def liquidar_aplicacao(request, pk):
+    """Registra a liquidação/resgate de uma aplicação"""
+    aplicacao = get_object_or_404(Aplicacao, pk=pk)
+
+    if request.method == "POST":
+        form = LiquidarAplicacaoForm(request.POST)
+
+        if form.is_valid():
+            try:
+                liquidar_aplicacao_service(
+                    aplicacao,
+                    data_liquidacao=form.cleaned_data['data_liquidacao'],
+                    valor_resgate=form.cleaned_data['valor_resgate'],
+                    usuario=request.user,
+                )
+                messages.success(request, "Aplicação liquidada com sucesso.")
+            except ValueError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(request, f"Erro ao liquidar aplicação: {str(e)}")
+        else:
+            for erros in form.errors.values():
+                for erro in erros:
+                    messages.error(request, erro)
+
+    return redirect('operacoes:listar_aplicacoes')
 
 
 # ============================================
