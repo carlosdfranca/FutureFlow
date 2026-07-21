@@ -34,6 +34,57 @@ def fd(string: str, char: str) -> int:
     return 1 if char in string else 0
 
 
+_MAPA_ACENTOS = {
+    "À": "A", "Á": "A", "Â": "A", "Ã": "A", "Ä": "A", "Å": "A",
+    "à": "a", "á": "a", "â": "a", "ã": "a", "ä": "a", "å": "a",
+    "È": "E", "É": "E", "Ê": "E", "Ë": "E",
+    "è": "e", "é": "e", "ê": "e", "ë": "e",
+    "Ì": "I", "Í": "I", "Î": "I", "Ï": "I",
+    "ì": "i", "í": "i", "î": "i", "ï": "i",
+    "Ò": "O", "Ó": "O", "Ô": "O", "Õ": "O", "Ö": "O",
+    "ò": "o", "ó": "o", "ô": "o", "õ": "o", "ö": "o",
+    "Ù": "U", "Ú": "U", "Û": "U", "Ü": "U",
+    "ù": "u", "ú": "u", "û": "u", "ü": "u",
+    "Ç": "C", "ç": "c",
+    "Ñ": "N", "ñ": "n",
+}
+
+
+def remover_pontos(texto: str) -> str:
+    """
+    Remove pontos de uma string.
+    Equivalente à função RemoverPontos do VBA (Módulo3.bas).
+    """
+    if not texto:
+        return ""
+    return texto.replace(".", "")
+
+
+def remover_caracteres_especiais(texto: str) -> str:
+    """
+    Translitera acentos comuns do português para ASCII e mantém apenas
+    dígitos, letras ASCII, espaço e vírgula.
+    Equivalente à função RemoverCaracteresEspeciais do VBA (Módulo3.bas).
+
+    Args:
+        texto: Texto original (ex.: nome do sacado)
+
+    Returns:
+        Texto sem pontos, acentos ou caracteres especiais
+    """
+    if not texto:
+        return ""
+
+    sem_pontos = texto.replace(".", "")
+    resultado = []
+    for caractere in sem_pontos:
+        caractere = _MAPA_ACENTOS.get(caractere, caractere)
+        if caractere.isascii() and (caractere.isalnum() or caractere in (" ", ",")):
+            resultado.append(caractere)
+
+    return "".join(resultado)
+
+
 def rp(string: str) -> str:
     """
     Remove caracteres especiais (/, ., -) de uma string.

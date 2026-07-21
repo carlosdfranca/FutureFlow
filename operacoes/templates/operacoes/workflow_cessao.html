@@ -158,6 +158,13 @@
                             </div>
                             <!-- DELETE oculto -->
                             <div style="display:none;">{{ form.DELETE }}</div>
+                            <!-- Campos ocultos vindos do XML (não editados manualmente na tela) -->
+                            <div style="display:none;">
+                                {{ form.chave_nfe }}
+                                {{ form.sacado_endereco }}
+                                {{ form.sacado_cep }}
+                                {{ form.data_emissao }}
+                            </div>
                             <!-- Campos -->
                             <div style="padding:0.875rem;">
                                 <!-- Linha 1: Identificação -->

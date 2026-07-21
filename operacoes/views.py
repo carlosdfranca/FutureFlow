@@ -12,7 +12,7 @@ from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, Aplicaca
 from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
-from .utils.cnab_utils import rp
+from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
 
 # Importar serviços existentes do core
 from core.services.cessao_xml import parse_nfe_uploaded_file
@@ -68,6 +68,7 @@ def workflow_cessao(request):
                         "valor_aquisicao": t.valor,  # Mesmo valor por padrão
                         "data_vencimento": t.vencimento_iso,
                         "chave_nfe": t.chave_nfe,
+                        "data_emissao": t.data_emissao_iso,
                     })
                 
                 # Criar formset com dados parseados
@@ -128,17 +129,7 @@ def workflow_cessao(request):
                         'nome': cessao_form.cleaned_data['cedente_nome'],
                         'endereco': cessao_form.cleaned_data.get('cedente_endereco', ''),
                     },
-                    titulos_dados=[
-                        {
-                            'numero_titulo': t['numero_titulo'],
-                            'sacado_nome': t['sacado_nome'],
-                            'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
-                            'valor_nominal': t['valor_nominal'],
-                            'valor_aquisicao': t['valor_aquisicao'],
-                            'data_vencimento': t['data_vencimento'],
-                        }
-                        for t in titulos_validos
-                    ],
+                    titulos_dados=[_titulo_dados_from_form(t) for t in titulos_validos],
                     operacao_dados={
                         'numero_contrato': cessao_form.cleaned_data['numero_contrato'],
                         'data_contrato': cessao_form.cleaned_data['data_contrato'],
@@ -459,16 +450,22 @@ def download_cnab_cessao(request, pk):
         cpf_cnpj_limpo = rp(titulo.sacado_cpf_cnpj)
         identificacao_sacado = "1" if len(cpf_cnpj_limpo) <= 11 else "2"
 
+        # VL_PAGO e VALOR_PAGO_TITULO representam a mesma coisa (valor já
+        # liquidado do título) e devem sair iguais no CNAB — confirmado com
+        # a origem das macros, que sempre preenche as duas colunas (BASE
+        # col 9 e col 18) com o mesmo valor.
+        valor_pago_str = str(valor_liquidado).replace('.', ',')
+
         base_data.append({
             "CNPJ_CEDENTE": operacao.cedente_cnpj,
-            "NOME_CEDENTE": operacao.cedente_nome,
+            "NOME_CEDENTE": remover_pontos(operacao.cedente_nome),
             "SEU_NUMERO": titulo.numero_titulo,
             "NU_DOCUMENTO": titulo.numero_titulo,
             "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
             "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
             "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
-            "NM_SACADO": titulo.sacado_nome,
-            "VL_PAGO": str(valor_liquidado).replace('.', ','),
+            "NM_SACADO": remover_caracteres_especiais(titulo.sacado_nome),
+            "VL_PAGO": valor_pago_str,
             "IDENTIFICACAO_CPF_CNPJ_SACADO": identificacao_sacado,
             "ENDERECO": titulo.sacado_endereco,
             "CEP": titulo.sacado_cep,
@@ -477,7 +474,7 @@ def download_cnab_cessao(request, pk):
             "COOBRIGACAO": titulo.coobrigacao,
             "IDENTIFICACAO_CPF_CNPJ_CEDENTE": "02",
             "NFE": titulo.chave_nfe,
-            "VALOR_PAGO_TITULO": str(titulo.valor_aquisicao).replace('.', ','),
+            "VALOR_PAGO_TITULO": valor_pago_str,
         })
 
     menu_data = {
@@ -500,3 +497,28 @@ def download_cnab_cessao(request, pk):
 def _limpar_cnpj(valor):
     """Remove formatação de CNPJ/CPF"""
     return ''.join(c for c in valor if c.isdigit())
+
+
+def _titulo_dados_from_form(t):
+    """
+    Monta o dict de título esperado por `processar_cessao` a partir do
+    cleaned_data de um TituloForm. `chave_nfe`, `sacado_endereco` e
+    `sacado_cep` vêm do XML (campos ocultos no formset) e precisam ser
+    repassados; `data_emissao` só é incluída quando informada, para que
+    `processar_cessao` continue caindo no fallback (data de aquisição) nos
+    títulos cadastrados manualmente sem XML.
+    """
+    dados = {
+        'numero_titulo': t['numero_titulo'],
+        'sacado_nome': t['sacado_nome'],
+        'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
+        'valor_nominal': t['valor_nominal'],
+        'valor_aquisicao': t['valor_aquisicao'],
+        'data_vencimento': t['data_vencimento'],
+        'chave_nfe': t.get('chave_nfe') or '',
+        'sacado_endereco': t.get('sacado_endereco') or '',
+        'sacado_cep': t.get('sacado_cep') or '',
+    }
+    if t.get('data_emissao'):
+        dados['data_emissao'] = t['data_emissao']
+    return dados

@@ -161,6 +161,12 @@ class TituloForm(forms.Form):
         })
     )
 
+    data_emissao = forms.DateField(
+        required=False,
+        label="Data de Emissão",
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
+    )
+
 
 # Formset para múltiplos títulos
 TituloFormSet = formset_factory(TituloForm, extra=1, can_delete=True)

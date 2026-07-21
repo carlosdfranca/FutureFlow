@@ -112,6 +112,18 @@ def _safe_find_text(elem: ET.Element, tag_name: str, ns: dict[str, str]) -> str:
     return ""
 
 
+def _somente_data(valor: str) -> str:
+    """
+    Extrai apenas a parte de data (YYYY-MM-DD) de um valor que pode vir com
+    componente de hora/timezone, ex.: "2026-05-11T00:00:00-03:00".
+    """
+    if not valor:
+        return ""
+    if re.match(r"^\d{4}-\d{2}-\d{2}", valor):
+        return valor[:10]
+    return valor
+
+
 def _infer_namespace(root: ET.Element) -> dict[str, str]:
     """
     NF-e normalmente usa namespace como:
@@ -143,6 +155,7 @@ class TituloCessao:
     sacado_endereco: str = ""  # Endereço do sacado (destinatário)
     sacado_cep: str = ""  # CEP do sacado
     chave_nfe: str = ""  # Chave de acesso da NF-e (44 dígitos)
+    data_emissao_iso: str = ""  # Data de emissão da NF-e (nível da nota), "YYYY-MM-DD"
 
 
 @dataclass(frozen=True)
@@ -260,7 +273,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
     # Extrair chave da NF-e (pode estar em infNFe/@Id ou infProt/chNFe)
     chave_nfe = ""
     # Primeiro tenta no infProt (mais confiável)
-    inf_prot = root.find(".//infProt", ns) or root.find(".//{{*}}infProt")
+    inf_prot = root.find(".//infProt", ns)
     if inf_prot is not None:
         chave_nfe = _safe_find_text(inf_prot, "chNFe", ns)
     # Se não encontrou, tenta extrair do atributo Id do infNFe
@@ -305,6 +318,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                     sacado_endereco=sacado_endereco,
                     sacado_cep=sacado_cep,
                     chave_nfe=chave_nfe,
+                    data_emissao_iso=_somente_data(data_emissao),
                 )
             )
 
@@ -322,6 +336,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                 sacado_endereco=first.sacado_endereco,
                 sacado_cep=first.sacado_cep,
                 chave_nfe=first.chave_nfe,
+                data_emissao_iso=first.data_emissao_iso,
             )
 
     else:
@@ -338,6 +353,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                 sacado_endereco=sacado_endereco,
                 sacado_cep=sacado_cep,
                 chave_nfe=chave_nfe,
+                data_emissao_iso=_somente_data(data_emissao),
             )
         )
 
