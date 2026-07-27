@@ -262,6 +262,20 @@
                     </div>
                 </div>
 
+                <!-- CNAB -->
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="form-field__label">{{ form.codigo_originador_cnab.label }}</label>
+                        {{ form.codigo_originador_cnab }}
+                        {% if form.codigo_originador_cnab.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.codigo_originador_cnab.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label">{{ form.ocorrencia_cnab_padrao.label }}</label>
+                        {{ form.ocorrencia_cnab_padrao }}
+                        {% if form.ocorrencia_cnab_padrao.errors %}<p class="form-field__error"><i class="bi bi-exclamation-circle me-1"></i>{{ form.ocorrencia_cnab_padrao.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
             </div>
         </div>
 

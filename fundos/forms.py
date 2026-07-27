@@ -101,6 +101,8 @@ class FundoForm(forms.ModelForm):
             'taxa_administracao_minima',
             'taxa_gestao_minima',
             'taxa_performance_minima',
+            'codigo_originador_cnab',
+            'ocorrencia_cnab_padrao',
         ]
         widgets = {
             'razao_social':      forms.TextInput(attrs={'class': 'form-control'}),
@@ -125,6 +127,8 @@ class FundoForm(forms.ModelForm):
             'taxa_administracao_minima': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 0,30%'}),
             'taxa_gestao_minima':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 0,10%'}),
             'taxa_performance_minima':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 10%'}),
+            'codigo_originador_cnab':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 15555601'}),
+            'ocorrencia_cnab_padrao':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': '01'}),
         }
         labels = {
             'razao_social':      'Razão Social',
@@ -150,6 +154,8 @@ class FundoForm(forms.ModelForm):
             'taxa_administracao_minima': 'Taxa Mínima de Administração',
             'taxa_gestao_minima':        'Taxa Mínima de Gestão',
             'taxa_performance_minima':   'Taxa Mínima de Performance',
+            'codigo_originador_cnab':    'Código Originador (CDO) — CNAB',
+            'ocorrencia_cnab_padrao':    'Ocorrência Padrão — CNAB',
         }
 
     def _parse_br_decimal(self, value):

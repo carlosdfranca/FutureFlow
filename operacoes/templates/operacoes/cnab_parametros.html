@@ -53,33 +53,27 @@
                             {% endif %}
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.cdo.id_for_label }}" class="form-label">{{ form.cdo.label }}</label>
-                            {{ form.cdo }}
-                            {% if form.cdo.errors %}
-                                <div class="text-danger small mt-1">{{ form.cdo.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.ocorrencia.id_for_label }}" class="form-label">{{ form.ocorrencia.label }}</label>
-                            {{ form.ocorrencia }}
-                            {% if form.ocorrencia.errors %}
-                                <div class="text-danger small mt-1">{{ form.ocorrencia.errors.0 }}</div>
-                            {% endif %}
-                            <div class="form-text" style="margin-top:0.5rem;">
-                                Códigos:
-                                <span class="badge-ds badge-ds--blue ms-1">01</span>
-                                <span style="font-size:0.78rem; color:var(--text-secondary);">Remessa/Aquisição</span>
-                                <span class="badge-ds badge-ds--green ms-2">06</span>
-                                <span style="font-size:0.78rem; color:var(--text-secondary);">Liquidação Total</span>
-                                <span class="badge-ds badge-ds--amber ms-2">14</span>
-                                <span style="font-size:0.78rem; color:var(--text-secondary);">Liquidação Parcial</span>
+                        <div class="mb-4" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:8px; padding:0.875rem 1rem;">
+                            <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.4rem;">
+                                Código Originador (CDO) e Ocorrência — vêm do cadastro do Fundo
                             </div>
+                            {% if operacao.fundo.codigo_originador_cnab %}
+                                <div style="font-size:0.85rem;">
+                                    <strong>CDO:</strong> {{ operacao.fundo.codigo_originador_cnab }}
+                                    &nbsp;•&nbsp;
+                                    <strong>Ocorrência:</strong> {{ operacao.fundo.ocorrencia_cnab_padrao|default:"01" }}
+                                </div>
+                            {% else %}
+                                <div class="text-danger small">
+                                    CDO não configurado para este fundo. Configure em
+                                    <a href="{% url 'fundos:editar_fundo' operacao.fundo.pk %}">editar fundo</a>
+                                    antes de gerar o CNAB.
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div style="display:flex; gap:0.75rem; align-items:center;">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" {% if not operacao.fundo.codigo_originador_cnab %}disabled{% endif %}>
                                 <i class="bi bi-download me-2"></i>Baixar CNAB
                             </button>
                             <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn-ghost-ds">

@@ -17,7 +17,7 @@ def gerar_linha_header(menu_data: dict) -> str:
         menu_data: Dicionário com dados do menu (DTL, CDO, OCORRENCIA)
 
     Returns:
-        String com a linha de cabeçalho formatada (400 caracteres)
+        String com a linha de cabeçalho formatada (444 caracteres)
     """
     dtl = menu_data["DTL"]
     cdo = menu_data["CDO"]
@@ -53,7 +53,7 @@ def gerar_linha_detalhe(base_record: dict, index: int, menu_data: dict) -> str:
         menu_data: Dicionário com dados do menu (DTL, OCORRENCIA)
 
     Returns:
-        String com a linha de detalhe formatada (400 caracteres + número sequencial)
+        String com a linha de detalhe formatada (444 caracteres)
     """
     dtl = menu_data["DTL"]
     oco = menu_data["OCORRENCIA"]
@@ -61,7 +61,8 @@ def gerar_linha_detalhe(base_record: dict, index: int, menu_data: dict) -> str:
     # Primeira parte da linha (X no VBA)
     x = (
         "1" +                                                    # Tipo de registro
-        rep(" ", 19) +                                           # Espaços (19 chars)
+        rep(" ", 9) +                                            # Espaços (posições 2-10: tipo de juros, não usado)
+        pad_left_zeros(format_valor(""), 10) +                  # Taxa de juros (posições 11-20, não usada -> zero-fill)
         # COOBRIGACAO (coluna 15) - 2 chars + 15 zeros
         pad_left_zeros(base_record["COOBRIGACAO"][-2:], 2) + rep("0", 15) +
         # SEU_NUMERO (coluna 3) - 25 chars, alinhado à direita
