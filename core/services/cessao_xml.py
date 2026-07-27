@@ -293,6 +293,16 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
         vprod = _safe_find_text(prod, "vProd", ns)
         soma_vprod += _to_decimal(vprod)
 
+    # Número do título: segue a macro (Módulo3.bas), que usa cobr/fat/nFat
+    # (número da fatura) para SEU_NUMERO/NU_DOCUMENTO — não nDup (número da
+    # parcela, ex: "001"), que se repetiria em toda nota com parcela única.
+    n_fat = ""
+    if cobr is not None:
+        fat = _safe_find(cobr, "fat", ns)
+        if fat is not None:
+            n_fat = _safe_find_text(fat, "nFat", ns)
+    numero_titulo_base = n_fat or numero_nota
+
     # Duplicatas (cobr/dup)
     dup_nodes: list[ET.Element] = []
     if cobr is not None:
@@ -307,6 +317,15 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
             v_dup = _to_decimal(_safe_find_text(dup, "vDup", ns))
             n_dup = _safe_find_text(dup, "nDup", ns)
 
+            # Nota com parcela única (caso comum): numero_titulo = nFat, igual à macro.
+            # Nota com múltiplas parcelas: acrescenta a parcela para não repetir o
+            # mesmo SEU_NUMERO em títulos diferentes (a macro nunca lida com esse
+            # caso, pois só lê a primeira duplicata via SelectSingleNode).
+            if len(dup_nodes) > 1 and n_dup:
+                numero_titulo = f"{numero_titulo_base}-{n_dup}"
+            else:
+                numero_titulo = numero_titulo_base
+
             titulos.append(
                 TituloCessao(
                     sacado_nome=sacado_nome,
@@ -314,7 +333,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                     valor=v_dup,
                     vencimento_iso=d_venc,  # geralmente já vem YYYY-MM-DD
                     tipo_credito="Duplicata",
-                    numero_titulo=n_dup or numero_nota,
+                    numero_titulo=numero_titulo,
                     sacado_endereco=sacado_endereco,
                     sacado_cep=sacado_cep,
                     chave_nfe=chave_nfe,
@@ -349,7 +368,7 @@ def parse_nfe_xml(xml_bytes: bytes) -> ParseResult:
                 valor=soma_vprod,
                 vencimento_iso="",
                 tipo_credito="Duplicata",
-                numero_titulo=numero_nota,
+                numero_titulo=numero_titulo_base,
                 sacado_endereco=sacado_endereco,
                 sacado_cep=sacado_cep,
                 chave_nfe=chave_nfe,

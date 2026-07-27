@@ -266,18 +266,13 @@ class LiquidarAplicacaoForm(forms.Form):
 # ============================================
 
 class CnabParametrosForm(forms.Form):
+    """
+    Parâmetros de remessa CNAB. CDO (código originador) e OCORRENCIA agora
+    vêm do cadastro do Fundo (`Fundo.codigo_originador_cnab` /
+    `Fundo.ocorrencia_cnab_padrao`), não são mais digitados aqui — só a
+    data de liquidação muda a cada remessa.
+    """
     dtl = forms.DateField(
         label='Data de Liquidação (DTL)',
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
-    cdo = forms.CharField(
-        label='Código Originador (CDO)',
-        max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 01'})
-    )
-    ocorrencia = forms.CharField(
-        label='Ocorrência',
-        max_length=2,
-        initial='01',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '01'})
     )

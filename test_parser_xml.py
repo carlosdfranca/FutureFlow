@@ -74,7 +74,7 @@ def test_parser():
         assert result.partes.sacado_doc == "57010662001212", "CNPJ do sacado incorreto"
         assert result.partes.numero_nota == "154586", "Número da NF incorreto"
         assert len(result.titulos) == 1, "Deveria ter 1 duplicata"
-        assert result.titulos[0].numero_titulo == "001", "Número da duplicata incorreto"
+        assert result.titulos[0].numero_titulo == "154586", "numero_titulo deveria vir de nFat (fatura), não de nDup"
         assert result.titulos[0].vencimento_iso == "2026-07-10", "Vencimento incorreto"
         assert result.titulos[0].valor == 80911.50, "Valor da duplicata incorreto"
         assert "AV DAS INDUSTRIAS" in result.partes.cedente_endereco, "Endereço do cedente não foi extraído"
