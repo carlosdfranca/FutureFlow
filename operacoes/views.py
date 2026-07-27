@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, OuterRef, Subquery
 from django.http import HttpResponse
 from django.conf import settings
 from decimal import Decimal
 
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
+from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
 from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
@@ -32,9 +34,10 @@ def workflow_cessao(request):
     3. Confirmar → salvar operação + títulos + eventos
     4. Gerar documentos (termo cessão, confirmação)
     """
-    cessao_form = CessaoOperacaoForm()
+    fundo_id = request.GET.get('fundo')
+    cessao_form = CessaoOperacaoForm(initial={'fundo': fundo_id} if fundo_id else None)
     titulos_formset = TituloFormSet()
-    
+
     if request.method == "POST":
         acao = request.POST.get("acao")
         
@@ -49,6 +52,7 @@ def workflow_cessao(request):
                 return render(request, "operacoes/workflow_cessao.html", {
                     "cessao_form": cessao_form,
                     "titulos_formset": titulos_formset,
+                    "fundo_id": fundo_id,
                 })
             
             try:
@@ -93,8 +97,9 @@ def workflow_cessao(request):
             return render(request, "operacoes/workflow_cessao.html", {
                 "cessao_form": cessao_form,
                 "titulos_formset": titulos_formset,
+                "fundo_id": fundo_id,
             })
-        
+
         # ============================================
         # AÇÃO: CONFIRMAR E SALVAR
         # ============================================
@@ -107,6 +112,7 @@ def workflow_cessao(request):
                 return render(request, "operacoes/workflow_cessao.html", {
                     "cessao_form": cessao_form,
                     "titulos_formset": titulos_formset,
+                    "fundo_id": fundo_id,
                 })
             
             # Validar que há pelo menos um título
@@ -117,6 +123,7 @@ def workflow_cessao(request):
                 return render(request, "operacoes/workflow_cessao.html", {
                     "cessao_form": cessao_form,
                     "titulos_formset": titulos_formset,
+                    "fundo_id": fundo_id,
                 })
             
             try:
@@ -156,24 +163,64 @@ def workflow_cessao(request):
                 return render(request, "operacoes/workflow_cessao.html", {
                     "cessao_form": cessao_form,
                     "titulos_formset": titulos_formset,
+                    "fundo_id": fundo_id,
                 })
-    
+
     return render(request, "operacoes/workflow_cessao.html", {
         "cessao_form": cessao_form,
         "titulos_formset": titulos_formset,
+        "fundo_id": fundo_id,
+    })
+
+
+@login_required
+def painel_fundos(request):
+    """Painel de entrada de Operações: um card por fundo com o resumo de
+    Direito Creditório (cessões) e Liquidez (aplicações), de onde o usuário
+    escolhe o fundo antes de ver Cessões ou Aplicações."""
+    empresa = request.empresa_ativa
+    fundos = list(Fundo.objects.filter(empresa=empresa).order_by('razao_social')) if empresa else []
+
+    dc_map = {
+        item['fundo_id']: item['dc']
+        for item in Titulo.objects.filter(fundo__empresa=empresa, ativo=True)
+            .order_by().values('fundo_id').annotate(dc=Sum('saldo_devedor'))
+    }
+    liq_map = {
+        item['fundo_id']: item['liq']
+        for item in Aplicacao.objects.filter(fundo__empresa=empresa, status='ATIVA')
+            .order_by().values('fundo_id').annotate(liq=Sum('valor'))
+    }
+
+    total_dc = Decimal('0')
+    total_liquidez = Decimal('0')
+    for fundo in fundos:
+        fundo.dc = dc_map.get(fundo.id) or Decimal('0')
+        fundo.liquidez = liq_map.get(fundo.id) or Decimal('0')
+        fundo.total_carteira = fundo.dc + fundo.liquidez
+        total_dc += fundo.dc
+        total_liquidez += fundo.liquidez
+
+    return render(request, "operacoes/painel_fundos.html", {
+        "fundos": fundos,
+        "total_fundos": len(fundos),
+        "total_dc": total_dc,
+        "total_liquidez": total_liquidez,
     })
 
 
 @login_required
 def listar_cessoes(request):
-    """Lista todas as operações de cessão"""
-    operacoes = OperacaoCessao.objects.select_related('fundo').order_by('-data_aquisicao')
-
+    """Lista as operações de cessão de um fundo"""
     fundo_id = request.GET.get('fundo')
-    status = request.GET.get('status')
+    if not fundo_id:
+        return redirect('operacoes:painel_fundos')
 
-    if fundo_id:
-        operacoes = operacoes.filter(fundo_id=fundo_id)
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=request.empresa_ativa)
+
+    operacoes = OperacaoCessao.objects.select_related('fundo').filter(fundo_id=fundo_id).order_by('-data_aquisicao')
+
+    status = request.GET.get('status')
     if status:
         operacoes = operacoes.filter(status=status)
 
@@ -183,7 +230,16 @@ def listar_cessoes(request):
         total_aquisicao=Sum('valor_total_aquisicao'),
     )
 
+    primeiro_titulo = Titulo.objects.filter(
+        operacao_cessao=OuterRef('pk')
+    ).order_by('numero_titulo')
+    operacoes = operacoes.annotate(
+        devedor_nome=Subquery(primeiro_titulo.values('sacado_nome')[:1]),
+        devedores_count=Count('titulos__sacado_nome', distinct=True),
+    )
+
     return render(request, "operacoes/listar_cessoes.html", {
+        "fundo": fundo,
         "operacoes": operacoes,
         "totais": totais,
     })
@@ -335,35 +391,41 @@ def registrar_evento_titulo(request, pk):
 @login_required
 def nova_aplicacao(request):
     """Cria nova aplicação em ativo"""
+    fundo_id = request.GET.get('fundo')
+
     if request.method == "POST":
         form = AplicacaoForm(request.POST)
-        
+
         if form.is_valid():
             aplicacao = form.save(commit=False)
             aplicacao.criado_por = request.user
             aplicacao.save()
-            
+
             messages.success(request, "Aplicação registrada com sucesso!")
-            return redirect('operacoes:listar_aplicacoes')
+            return redirect(f"{reverse('operacoes:listar_aplicacoes')}?fundo={aplicacao.fundo_id}")
     else:
-        form = AplicacaoForm()
-    
+        form = AplicacaoForm(initial={'fundo': fundo_id} if fundo_id else None)
+
     return render(request, "operacoes/nova_aplicacao.html", {
         "form": form,
+        "fundo_id": fundo_id,
     })
 
 
 @login_required
 def listar_aplicacoes(request):
-    """Lista todas as aplicações"""
-    aplicacoes = Aplicacao.objects.select_related('fundo', 'criado_por').order_by('-data_aplicacao')
-
+    """Lista as aplicações de um fundo"""
     fundo_id = request.GET.get('fundo')
+    if not fundo_id:
+        return redirect('operacoes:painel_fundos')
+
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=request.empresa_ativa)
+
+    aplicacoes = Aplicacao.objects.select_related('fundo', 'criado_por').filter(fundo_id=fundo_id).order_by('-data_aplicacao')
+
     tipo = request.GET.get('tipo')
     status = request.GET.get('status')
 
-    if fundo_id:
-        aplicacoes = aplicacoes.filter(fundo_id=fundo_id)
     if tipo:
         aplicacoes = aplicacoes.filter(tipo_aplicacao=tipo)
     if status:
@@ -382,6 +444,7 @@ def listar_aplicacoes(request):
     }
 
     return render(request, "operacoes/listar_aplicacoes.html", {
+        "fundo": fundo,
         "aplicacoes": aplicacoes,
         "totais_por_tipo": totais_por_tipo,
         "liquidar_form": LiquidarAplicacaoForm(),
@@ -414,7 +477,7 @@ def liquidar_aplicacao(request, pk):
                 for erro in erros:
                     messages.error(request, erro)
 
-    return redirect('operacoes:listar_aplicacoes')
+    return redirect(f"{reverse('operacoes:listar_aplicacoes')}?fundo={aplicacao.fundo_id}")
 
 
 # ============================================

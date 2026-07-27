@@ -56,6 +56,21 @@ class FundoForm(forms.ModelForm):
         label='Limite de Liquidez (%)',
     )
 
+    limite_concentracao_devedor = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '0',
+            'max': '100',
+            'step': '1',
+            'inputmode': 'numeric',
+            'placeholder': '0 a 100',
+        }),
+        label='Limite por Devedor/Cessão (%)',
+    )
+
     class Meta:
         model = Fundo
         fields = [
@@ -79,6 +94,7 @@ class FundoForm(forms.ModelForm):
             'limite_concentracao',
             'limite_direitos_creditorios',
             'limite_liquidez',
+            'limite_concentracao_devedor',
             'taxa_administracao',
             'taxa_gestao',
             'taxa_performance',

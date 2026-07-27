@@ -4,6 +4,9 @@ from . import views
 app_name = 'operacoes'
 
 urlpatterns = [
+    # Painel de Fundos (entrada da área de Operações)
+    path('', views.painel_fundos, name='painel_fundos'),
+
     # Cessões
     path('cessoes/', views.listar_cessoes, name='listar_cessoes'),
     path('cessoes/nova/', views.workflow_cessao, name='workflow_cessao'),

@@ -43,10 +43,6 @@ def limites(request):
     return render(request, "limites.html")
 
 @login_required
-def operacoes(request):
-    return render(request, "operacoes.html")
-
-@login_required
 def relatorios(request):
     return render(request, "relatorios.html")
 

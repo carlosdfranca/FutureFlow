@@ -17,6 +17,7 @@ class TipoFundo(models.TextChoices):
 class ClassificacaoInvestidor(models.TextChoices):
     PROFISSIONAL = 'PROFISSIONAL', 'Profissional'
     QUALIFICADO  = 'QUALIFICADO',  'Qualificado'
+    VAREJO       = 'VAREJO',       'Varejo'
 
 class TipoCondominio(models.TextChoices):
     PADRONIZADO     = 'PADRONIZADO',     'Padronizado'
@@ -79,6 +80,11 @@ class Fundo(models.Model):
         null=True, blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text='Limite máximo em Liquidez (Aplicações), em % da carteira',
+    )
+    limite_concentracao_devedor = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text='Limite máximo por devedor/cessão individual, em % da carteira',
     )
 
     # Classificação e estrutura

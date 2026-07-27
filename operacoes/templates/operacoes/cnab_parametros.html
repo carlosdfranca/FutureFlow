@@ -10,7 +10,7 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <a href="{% url 'operacoes:listar_cessoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
                 &rsaquo;
                 <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" style="color:inherit; text-decoration:none; opacity:0.75;">{{ operacao.numero_contrato }}</a>
                 &rsaquo; Gerar CNAB

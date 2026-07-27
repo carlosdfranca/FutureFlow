@@ -195,6 +195,11 @@ def carteira_fundo(request, fundo_id):
     saldo_dc = titulos_agg['saldo_total'] or Decimal('0')
     valor_liquidez = aplicacoes_agg['valor_total'] or Decimal('0')
 
+    saldos_por_devedor = [
+        {'doc': row['sacado_cpf_cnpj'], 'nome': row['sacado_nome'], 'saldo': row['s']}
+        for row in titulos_ativos.order_by().values('sacado_cpf_cnpj', 'sacado_nome').annotate(s=Sum('saldo_devedor'))
+    ]
+
     context = {
         'fundo': fundo,
         'titulos_agg': titulos_agg,
@@ -203,7 +208,7 @@ def carteira_fundo(request, fundo_id):
         'saldo_dc': saldo_dc,
         'valor_liquidez': valor_liquidez,
         'total_carteira': saldo_dc + valor_liquidez,
-        'enquadramento': avaliar_enquadramento(fundo, saldo_dc, valor_liquidez),
+        'enquadramento': avaliar_enquadramento(fundo, saldo_dc, valor_liquidez, saldos_por_devedor=saldos_por_devedor),
     }
     return render(request, 'fundos/carteira_fundo.html', context)
 
