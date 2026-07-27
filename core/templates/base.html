@@ -127,7 +127,8 @@
                             <li><a class="site-nav__dropdown-item" href="{% url 'operacoes:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
                         </ul>
                     </li>
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>                    
+                    <li><a class="site-nav__link {% if request.resolver_match.app_name == 'documentos' %}is-active{% endif %}" href="{% url 'documentos:index' %}"><i class="bi bi-folder2-open"></i>Documentos</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
 
                     

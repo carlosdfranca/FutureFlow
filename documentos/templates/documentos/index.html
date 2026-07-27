@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load fundos_filters %}
+
+{% block title %}Documentos{% endblock %}
+
+{% block content %}
+
+<style>
+/* O .fundo-card__footer padrão é um grid de 2 colunas (pensado para múltiplos botões,
+   como em fundos/_fundo_card.html). Aqui há apenas um botão, então centralizamos. */
+.fundo-card__footer--single {
+    grid-template-columns: 1fr;
+    justify-items: center;
+}
+</style>
+
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <i class="bi bi-folder2-open me-1"></i>Documentos
+            </p>
+            <h1 class="page-hero__title">Documentos dos Fundos</h1>
+            <p class="page-hero__subtitle">
+                {% if request.empresa_ativa %}{{ request.empresa_ativa.nome }}{% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+
+    {% if fundos %}
+
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 2rem;">
+            <div class="kpi-card kpi-card--blue">
+                <i class="bi bi-bank kpi-card__ghost-icon"></i>
+                <div class="kpi-card__value">{{ total_fundos }}</div>
+                <div class="kpi-card__label">Fundos</div>
+            </div>
+            <div class="kpi-card kpi-card--green">
+                <i class="bi bi-file-earmark-text kpi-card__ghost-icon"></i>
+                <div class="kpi-card__value">{{ total_documentos }}</div>
+                <div class="kpi-card__label">Documentos Armazenados</div>
+            </div>
+        </div>
+
+        <div class="funds-search-wrap">
+            <i class="bi bi-search funds-search-icon"></i>
+            <input type="text" class="funds-search-input" data-grid="grid-documentos-fundos"
+                   placeholder="Buscar por nome comercial ou razão social…" autocomplete="off">
+        </div>
+
+        <div class="fundo-grid" id="grid-documentos-fundos">
+            {% for fundo in fundos %}
+            <a href="{% url 'documentos:documentos_fundo' fundo_id=fundo.id %}"
+               class="fundo-card fundo-card--{{ fundo.tipo_fundo|lower }}"
+               style="text-decoration:none; color:inherit; cursor:pointer;"
+               data-search="{{ fundo.razao_social|lower }} {{ fundo.nome_comercial|lower }}">
+                <div class="fundo-card__topbar"></div>
+                <div class="fundo-card__header">
+                    {% if fundo.tipo_fundo == 'FIDC' %}
+                        <span class="badge-tipo-fidc">{{ fundo.get_tipo_fundo_display }}</span>
+                    {% elif fundo.tipo_fundo == 'FII' %}
+                        <span class="badge-tipo-fii">{{ fundo.get_tipo_fundo_display }}</span>
+                    {% else %}
+                        <span class="badge-tipo-fip">{{ fundo.get_tipo_fundo_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="fundo-card__body">
+                    <p class="fundo-card__name">{{ fundo.razao_social }}</p>
+                    {% if fundo.nome_comercial %}
+                        <p class="fundo-card__alias">{{ fundo.nome_comercial }}</p>
+                    {% endif %}
+                    <ul class="fundo-card__meta">
+                        <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
+                    </ul>
+                </div>
+                <div class="fundo-card__footer fundo-card__footer--single">
+                    <span class="btn btn-primary-ds" style="pointer-events:none;">
+                        <i class="bi bi-folder2 me-1"></i>{{ fundo.total_documentos }} documento{{ fundo.total_documentos|pluralize }}
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="funds-no-results" style="display:none;">
+            <i class="bi bi-search"></i>
+            <p>Nenhum fundo encontrado para &ldquo;<span class="funds-no-results__query"></span>&rdquo;</p>
+        </div>
+
+    {% else %}
+        <div class="empty-state-modern">
+            <div class="empty-state-modern__icon-wrap">
+                <i class="bi bi-folder2-open"></i>
+            </div>
+            <p class="empty-state-modern__title">Nenhum fundo cadastrado</p>
+            <p class="empty-state-modern__text">Cadastre um fundo para começar a organizar seus documentos.</p>
+            <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
+                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    function filterFunds(input) {
+        var query = input.value.trim().toLowerCase();
+        var grid = document.getElementById(input.dataset.grid);
+        if (!grid) return;
+
+        var cards = grid.querySelectorAll('.fundo-card');
+        var noResults = grid.nextElementSibling;
+        var visible = 0;
+
+        cards.forEach(function (card) {
+            var text = (card.dataset.search || '').toLowerCase();
+            var match = !query || text.indexOf(query) !== -1;
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        if (noResults && noResults.classList.contains('funds-no-results')) {
+            if (visible === 0 && query) {
+                var qs = noResults.querySelector('.funds-no-results__query');
+                if (qs) qs.textContent = input.value.trim();
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+    }
+
+    document.querySelectorAll('.funds-search-input').forEach(function (input) {
+        input.addEventListener('input', function () { filterFunds(input); });
+    });
+}());
+</script>
+{% endblock %}
+
+{% endblock %}
