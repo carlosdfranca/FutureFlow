@@ -68,7 +68,10 @@ def workflow_cessao(request):
     """
     from datetime import date
 
-    blocos = [_novo_bloco(0)]
+    fundo_id = request.GET.get('fundo')
+    blocos = [_novo_bloco(0, cessao_form=CessaoOperacaoForm(
+        initial={'fundo': fundo_id} if fundo_id else None, prefix='op0',
+    ))]
 
     if request.method == "POST":
         acao = request.POST.get("acao")
@@ -81,7 +84,7 @@ def workflow_cessao(request):
 
             if not xml_files:
                 messages.error(request, "Selecione ao menos um arquivo XML.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
 
             # Preserva fundo/datas já escolhidos na tela (bloco 0), se houver —
             # esses campos não vêm do XML (fundo nunca vem; datas só têm default
@@ -134,7 +137,7 @@ def workflow_cessao(request):
             if erros:
                 messages.warning(request, f"{erros} arquivo(s) não puderam ser processados (veja mensagens acima).")
 
-            return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
+            return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
 
         # ============================================
         # AÇÃO: CONFIRMAR E SALVAR (todos os blocos)
@@ -156,7 +159,7 @@ def workflow_cessao(request):
 
             if algum_invalido:
                 messages.error(request, "Corrija os erros indicados antes de confirmar.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
 
             # Cada bloco vira, no máximo, uma titulos_validos list; blocos sem
             # nenhum título (ex.: bloco extra deixado em branco) são ignorados.
@@ -171,7 +174,7 @@ def workflow_cessao(request):
 
             if not blocos_com_titulos:
                 messages.error(request, "Adicione pelo menos um título.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
 
             operacoes_criadas = []
             erros_criacao = []
@@ -222,13 +225,50 @@ def workflow_cessao(request):
 
             if not operacoes_criadas:
                 # Nenhuma operação foi criada: volta pra tela de revisão.
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
 
             if len(operacoes_criadas) == 1:
                 return redirect('operacoes:detalhe_cessao', pk=operacoes_criadas[0][0].pk)
-            return redirect('operacoes:listar_cessoes')
+            destino_fundo = fundo_id or str(operacoes_criadas[0][0].fundo_id)
+            return redirect(f"{reverse('operacoes:listar_cessoes')}?fundo={destino_fundo}")
 
-    return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
+    return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+
+
+@login_required
+def painel_fundos(request):
+    """Painel de entrada de Operações: um card por fundo com o resumo de
+    Direito Creditório (cessões) e Liquidez (aplicações), de onde o usuário
+    escolhe o fundo antes de ver Cessões ou Aplicações."""
+    empresa = request.empresa_ativa
+    fundos = list(Fundo.objects.filter(empresa=empresa).order_by('razao_social')) if empresa else []
+
+    dc_map = {
+        item['fundo_id']: item['dc']
+        for item in Titulo.objects.filter(fundo__empresa=empresa, ativo=True)
+            .order_by().values('fundo_id').annotate(dc=Sum('saldo_devedor'))
+    }
+    liq_map = {
+        item['fundo_id']: item['liq']
+        for item in Aplicacao.objects.filter(fundo__empresa=empresa, status='ATIVA')
+            .order_by().values('fundo_id').annotate(liq=Sum('valor'))
+    }
+
+    total_dc = Decimal('0')
+    total_liquidez = Decimal('0')
+    for fundo in fundos:
+        fundo.dc = dc_map.get(fundo.id) or Decimal('0')
+        fundo.liquidez = liq_map.get(fundo.id) or Decimal('0')
+        fundo.total_carteira = fundo.dc + fundo.liquidez
+        total_dc += fundo.dc
+        total_liquidez += fundo.liquidez
+
+    return render(request, "operacoes/painel_fundos.html", {
+        "fundos": fundos,
+        "total_fundos": len(fundos),
+        "total_dc": total_dc,
+        "total_liquidez": total_liquidez,
+    })
 
 
 @login_required
