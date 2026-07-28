@@ -1,18 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, OuterRef, Subquery
 from django.http import HttpResponse
 from django.conf import settings
 from decimal import Decimal
 
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
+from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
 from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
-from .utils.cnab_utils import rp
+from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
 
 # Importar serviços existentes do core
 from core.services.cessao_xml import parse_nfe_uploaded_file
@@ -23,157 +25,224 @@ from core.services.cessao_doc import render_termo_cessao_docx, render_termo_conf
 # VIEWS: CESSÃO
 # ============================================
 
+def _novo_bloco(index, cessao_form=None, titulos_formset=None, nome_arquivo=""):
+    """Um 'bloco' é um par (cessao_form, titulos_formset) com prefixo próprio,
+    representando uma futura OperacaoCessao independente. Cada XML importado
+    em lote vira um bloco; não há agrupamento entre blocos."""
+    return {
+        "index": index,
+        "nome_arquivo": nome_arquivo,
+        "cessao_form": cessao_form or CessaoOperacaoForm(prefix=f"op{index}"),
+        "titulos_formset": titulos_formset or TituloFormSet(prefix=f"tit{index}"),
+    }
+
+
+def _titulos_iniciais_from_parsed(parsed):
+    return [
+        {
+            "numero_titulo": t.numero_titulo,
+            "sacado_nome": t.sacado_nome,
+            "sacado_cpf_cnpj": t.sacado_doc,
+            "sacado_endereco": t.sacado_endereco,
+            "sacado_cep": t.sacado_cep,
+            "valor_nominal": t.valor,
+            "valor_aquisicao": t.valor,  # Mesmo valor por padrão
+            "data_vencimento": t.vencimento_iso,
+            "chave_nfe": t.chave_nfe,
+            "data_emissao": t.data_emissao_iso,
+        }
+        for t in parsed.titulos
+    ]
+
+
 @login_required
 def workflow_cessao(request):
     """
     Workflow completo de cessão:
-    1. Upload XML (opcional) → parse automático
-    2. Preencher/editar títulos manualmente
-    3. Confirmar → salvar operação + títulos + eventos
+    1. Upload de um ou mais XML (opcional) → parse automático, um bloco de
+       revisão por NF-e (cada bloco vira sua própria OperacaoCessao — sem
+       agrupar títulos de NF-e diferentes)
+    2. Preencher/editar títulos manualmente em cada bloco
+    3. Confirmar → salvar todas as operações + títulos + eventos
     4. Gerar documentos (termo cessão, confirmação)
     """
-    cessao_form = CessaoOperacaoForm()
-    titulos_formset = TituloFormSet()
-    
+    from datetime import date
+
+    blocos = [_novo_bloco(0)]
+
     if request.method == "POST":
         acao = request.POST.get("acao")
-        
+
         # ============================================
-        # AÇÃO: IMPORTAR XML
+        # AÇÃO: IMPORTAR XML (um ou mais arquivos)
         # ============================================
         if acao == "parse_xml":
-            xml_file = request.FILES.get("xml_file")
-            
-            if not xml_file:
-                messages.error(request, "Selecione um arquivo XML.")
-                return render(request, "operacoes/workflow_cessao.html", {
-                    "cessao_form": cessao_form,
-                    "titulos_formset": titulos_formset,
-                })
-            
-            try:
-                # Parse XML usando serviço existente
-                parsed = parse_nfe_uploaded_file(xml_file)
-                
-                # Preparar dados iniciais dos títulos
-                titulos_iniciais = []
-                for t in parsed.titulos:
-                    titulos_iniciais.append({
-                        "numero_titulo": t.numero_titulo,
-                        "sacado_nome": t.sacado_nome,
-                        "sacado_cpf_cnpj": t.sacado_doc,
-                        "sacado_endereco": t.sacado_endereco,
-                        "sacado_cep": t.sacado_cep,
-                        "valor_nominal": t.valor,
-                        "valor_aquisicao": t.valor,  # Mesmo valor por padrão
-                        "data_vencimento": t.vencimento_iso,
-                        "chave_nfe": t.chave_nfe,
-                    })
-                
-                # Criar formset com dados parseados
-                titulos_formset = TituloFormSet(initial=titulos_iniciais)
-                
-                # Preencher dados do cedente no form de operação
-                from datetime import date
+            xml_files = request.FILES.getlist("xml_file")
+
+            if not xml_files:
+                messages.error(request, "Selecione ao menos um arquivo XML.")
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
+
+            # Preserva fundo/datas já escolhidos na tela (bloco 0), se houver —
+            # esses campos não vêm do XML (fundo nunca vem; datas só têm default
+            # de hoje), então reimportar não deveria forçar o usuário a escolher
+            # tudo de novo. Vazio (primeira vez na página) mantém os defaults.
+            fundo_preservado = request.POST.get('op0-fundo') or ''
+            data_contrato_preservada = request.POST.get('op0-data_contrato') or date.today()
+            data_aquisicao_preservada = request.POST.get('op0-data_aquisicao') or date.today()
+
+            blocos_processados = []
+            total_titulos = 0
+            erros = 0
+            for xml_file in xml_files:
+                try:
+                    parsed = parse_nfe_uploaded_file(xml_file)
+                except Exception as e:
+                    erros += 1
+                    messages.error(request, f"Erro ao processar '{xml_file.name}': {str(e)}")
+                    continue
+
+                titulos_iniciais = _titulos_iniciais_from_parsed(parsed)
                 inicial_operacao = {
+                    'fundo': fundo_preservado,
                     'cedente_cnpj': parsed.partes.cedente_doc,
                     'cedente_nome': parsed.partes.cedente_nome,
                     'cedente_endereco': getattr(parsed.partes, 'cedente_endereco', ''),
                     'numero_contrato': f"NF-{parsed.partes.numero_nota}" if parsed.partes.numero_nota else "",
-                    'data_contrato': date.today(),
-                    'data_aquisicao': date.today(),
+                    'data_contrato': data_contrato_preservada,
+                    'data_aquisicao': data_aquisicao_preservada,
                 }
-                cessao_form = CessaoOperacaoForm(initial=inicial_operacao)
-                
-                messages.success(request, f"XML parseado com sucesso! {len(titulos_iniciais)} títulos encontrados.")
-                
-            except Exception as e:
-                messages.error(request, f"Erro ao processar XML: {str(e)}")
-            
-            return render(request, "operacoes/workflow_cessao.html", {
-                "cessao_form": cessao_form,
-                "titulos_formset": titulos_formset,
-            })
-        
+
+                idx = len(blocos_processados)
+                blocos_processados.append(_novo_bloco(
+                    idx,
+                    cessao_form=CessaoOperacaoForm(initial=inicial_operacao, prefix=f"op{idx}"),
+                    titulos_formset=TituloFormSet(initial=titulos_iniciais, prefix=f"tit{idx}"),
+                    nome_arquivo=xml_file.name,
+                ))
+                total_titulos += len(titulos_iniciais)
+
+            if blocos_processados:
+                blocos = blocos_processados
+                messages.success(
+                    request,
+                    f"{len(blocos_processados)} arquivo(s) XML processado(s) com sucesso "
+                    f"({total_titulos} título(s) no total)."
+                )
+            # Se todos os arquivos falharam, mantém o bloco vazio inicial para cadastro manual.
+
+            if erros:
+                messages.warning(request, f"{erros} arquivo(s) não puderam ser processados (veja mensagens acima).")
+
+            return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
+
         # ============================================
-        # AÇÃO: CONFIRMAR E SALVAR
+        # AÇÃO: CONFIRMAR E SALVAR (todos os blocos)
         # ============================================
         elif acao == "confirmar":
-            cessao_form = CessaoOperacaoForm(request.POST)
-            titulos_formset = TituloFormSet(request.POST)
-            
-            if not (cessao_form.is_valid() and titulos_formset.is_valid()):
-                messages.error(request, "Corrija os erros no formulário.")
-                return render(request, "operacoes/workflow_cessao.html", {
-                    "cessao_form": cessao_form,
-                    "titulos_formset": titulos_formset,
-                })
-            
-            # Validar que há pelo menos um título
-            titulos_validos = [f.cleaned_data for f in titulos_formset if f.cleaned_data and not f.cleaned_data.get('DELETE', False)]
-            
-            if not titulos_validos:
-                messages.error(request, "Adicione pelo menos um título.")
-                return render(request, "operacoes/workflow_cessao.html", {
-                    "cessao_form": cessao_form,
-                    "titulos_formset": titulos_formset,
-                })
-            
             try:
-                # Processar cessão usando service layer
-                operacao = processar_cessao(
-                    fundo=cessao_form.cleaned_data['fundo'],
-                    cedente_dados={
-                        'cnpj': _limpar_cnpj(cessao_form.cleaned_data['cedente_cnpj']),
-                        'nome': cessao_form.cleaned_data['cedente_nome'],
-                        'endereco': cessao_form.cleaned_data.get('cedente_endereco', ''),
-                    },
-                    titulos_dados=[
-                        {
-                            'numero_titulo': t['numero_titulo'],
-                            'sacado_nome': t['sacado_nome'],
-                            'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
-                            'valor_nominal': t['valor_nominal'],
-                            'valor_aquisicao': t['valor_aquisicao'],
-                            'data_vencimento': t['data_vencimento'],
-                        }
-                        for t in titulos_validos
-                    ],
-                    operacao_dados={
-                        'numero_contrato': cessao_form.cleaned_data['numero_contrato'],
-                        'data_contrato': cessao_form.cleaned_data['data_contrato'],
-                        'data_aquisicao': cessao_form.cleaned_data['data_aquisicao'],
-                        'observacoes': cessao_form.cleaned_data.get('observacoes', ''),
-                    },
-                    usuario=request.user
+                total_blocos = max(1, int(request.POST.get("total_blocos", "1")))
+            except ValueError:
+                total_blocos = 1
+
+            blocos_post = []
+            algum_invalido = False
+            for idx in range(total_blocos):
+                cessao_form = CessaoOperacaoForm(request.POST, prefix=f"op{idx}")
+                titulos_formset = TituloFormSet(request.POST, prefix=f"tit{idx}")
+                if not (cessao_form.is_valid() and titulos_formset.is_valid()):
+                    algum_invalido = True
+                blocos_post.append(_novo_bloco(idx, cessao_form=cessao_form, titulos_formset=titulos_formset))
+
+            if algum_invalido:
+                messages.error(request, "Corrija os erros indicados antes de confirmar.")
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+
+            # Cada bloco vira, no máximo, uma titulos_validos list; blocos sem
+            # nenhum título (ex.: bloco extra deixado em branco) são ignorados.
+            blocos_com_titulos = []
+            for bloco in blocos_post:
+                titulos_validos = [
+                    f.cleaned_data for f in bloco["titulos_formset"]
+                    if f.cleaned_data and not f.cleaned_data.get('DELETE', False)
+                ]
+                if titulos_validos:
+                    blocos_com_titulos.append((bloco["cessao_form"], titulos_validos))
+
+            if not blocos_com_titulos:
+                messages.error(request, "Adicione pelo menos um título.")
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+
+            operacoes_criadas = []
+            erros_criacao = []
+            for cessao_form, titulos_validos in blocos_com_titulos:
+                # Aviso (não bloqueio) de NF-e já importada anteriormente, em
+                # qualquer fundo/operação — checagem contra o banco inteiro.
+                chaves_nfe = [t.get('chave_nfe') for t in titulos_validos if t.get('chave_nfe')]
+                chaves_duplicadas = set()
+                if chaves_nfe:
+                    chaves_duplicadas = set(
+                        Titulo.objects.filter(chave_nfe__in=chaves_nfe).values_list('chave_nfe', flat=True)
+                    )
+
+                try:
+                    operacao = processar_cessao(
+                        fundo=cessao_form.cleaned_data['fundo'],
+                        cedente_dados={
+                            'cnpj': _limpar_cnpj(cessao_form.cleaned_data['cedente_cnpj']),
+                            'nome': cessao_form.cleaned_data['cedente_nome'],
+                            'endereco': cessao_form.cleaned_data.get('cedente_endereco', ''),
+                        },
+                        titulos_dados=[_titulo_dados_from_form(t) for t in titulos_validos],
+                        operacao_dados={
+                            'numero_contrato': cessao_form.cleaned_data['numero_contrato'],
+                            'data_contrato': cessao_form.cleaned_data['data_contrato'],
+                            'data_aquisicao': cessao_form.cleaned_data['data_aquisicao'],
+                            'observacoes': cessao_form.cleaned_data.get('observacoes', ''),
+                        },
+                        usuario=request.user
+                    )
+                    operacoes_criadas.append((operacao, len(titulos_validos), chaves_duplicadas))
+                except Exception as e:
+                    erros_criacao.append((cessao_form.cleaned_data.get('numero_contrato', '?'), str(e)))
+
+            for operacao, qtd_titulos, chaves_duplicadas in operacoes_criadas:
+                messages.success(
+                    request,
+                    f"Operação {operacao.numero_contrato} criada com sucesso! {qtd_titulos} títulos registrados."
                 )
-                
-                messages.success(request, f"Operação {operacao.numero_contrato} criada com sucesso! {len(titulos_validos)} títulos registrados.")
-                return redirect('operacoes:detalhe_cessao', pk=operacao.pk)
-                
-            except Exception as e:
-                messages.error(request, f"Erro ao criar operação: {str(e)}")
-                return render(request, "operacoes/workflow_cessao.html", {
-                    "cessao_form": cessao_form,
-                    "titulos_formset": titulos_formset,
-                })
-    
-    return render(request, "operacoes/workflow_cessao.html", {
-        "cessao_form": cessao_form,
-        "titulos_formset": titulos_formset,
-    })
+                if chaves_duplicadas:
+                    messages.warning(
+                        request,
+                        f"Atenção: {len(chaves_duplicadas)} NF-e já haviam sido importadas "
+                        f"anteriormente em outra operação (chave(s): {', '.join(sorted(chaves_duplicadas))})."
+                    )
+            for numero_contrato, erro in erros_criacao:
+                messages.error(request, f"Erro ao criar operação '{numero_contrato}': {erro}")
+
+            if not operacoes_criadas:
+                # Nenhuma operação foi criada: volta pra tela de revisão.
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post})
+
+            if len(operacoes_criadas) == 1:
+                return redirect('operacoes:detalhe_cessao', pk=operacoes_criadas[0][0].pk)
+            return redirect('operacoes:listar_cessoes')
+
+    return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos})
 
 
 @login_required
 def listar_cessoes(request):
-    """Lista todas as operações de cessão"""
-    operacoes = OperacaoCessao.objects.select_related('fundo').order_by('-data_aquisicao')
-
+    """Lista as operações de cessão de um fundo"""
     fundo_id = request.GET.get('fundo')
-    status = request.GET.get('status')
+    if not fundo_id:
+        return redirect('operacoes:painel_fundos')
 
-    if fundo_id:
-        operacoes = operacoes.filter(fundo_id=fundo_id)
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=request.empresa_ativa)
+
+    operacoes = OperacaoCessao.objects.select_related('fundo').filter(fundo_id=fundo_id).order_by('-data_aquisicao')
+
+    status = request.GET.get('status')
     if status:
         operacoes = operacoes.filter(status=status)
 
@@ -183,7 +252,16 @@ def listar_cessoes(request):
         total_aquisicao=Sum('valor_total_aquisicao'),
     )
 
+    primeiro_titulo = Titulo.objects.filter(
+        operacao_cessao=OuterRef('pk')
+    ).order_by('numero_titulo')
+    operacoes = operacoes.annotate(
+        devedor_nome=Subquery(primeiro_titulo.values('sacado_nome')[:1]),
+        devedores_count=Count('titulos__sacado_nome', distinct=True),
+    )
+
     return render(request, "operacoes/listar_cessoes.html", {
+        "fundo": fundo,
         "operacoes": operacoes,
         "totais": totais,
     })
@@ -335,35 +413,41 @@ def registrar_evento_titulo(request, pk):
 @login_required
 def nova_aplicacao(request):
     """Cria nova aplicação em ativo"""
+    fundo_id = request.GET.get('fundo')
+
     if request.method == "POST":
         form = AplicacaoForm(request.POST)
-        
+
         if form.is_valid():
             aplicacao = form.save(commit=False)
             aplicacao.criado_por = request.user
             aplicacao.save()
-            
+
             messages.success(request, "Aplicação registrada com sucesso!")
-            return redirect('operacoes:listar_aplicacoes')
+            return redirect(f"{reverse('operacoes:listar_aplicacoes')}?fundo={aplicacao.fundo_id}")
     else:
-        form = AplicacaoForm()
-    
+        form = AplicacaoForm(initial={'fundo': fundo_id} if fundo_id else None)
+
     return render(request, "operacoes/nova_aplicacao.html", {
         "form": form,
+        "fundo_id": fundo_id,
     })
 
 
 @login_required
 def listar_aplicacoes(request):
-    """Lista todas as aplicações"""
-    aplicacoes = Aplicacao.objects.select_related('fundo', 'criado_por').order_by('-data_aplicacao')
-
+    """Lista as aplicações de um fundo"""
     fundo_id = request.GET.get('fundo')
+    if not fundo_id:
+        return redirect('operacoes:painel_fundos')
+
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=request.empresa_ativa)
+
+    aplicacoes = Aplicacao.objects.select_related('fundo', 'criado_por').filter(fundo_id=fundo_id).order_by('-data_aplicacao')
+
     tipo = request.GET.get('tipo')
     status = request.GET.get('status')
 
-    if fundo_id:
-        aplicacoes = aplicacoes.filter(fundo_id=fundo_id)
     if tipo:
         aplicacoes = aplicacoes.filter(tipo_aplicacao=tipo)
     if status:
@@ -382,6 +466,7 @@ def listar_aplicacoes(request):
     }
 
     return render(request, "operacoes/listar_aplicacoes.html", {
+        "fundo": fundo,
         "aplicacoes": aplicacoes,
         "totais_por_tipo": totais_por_tipo,
         "liquidar_form": LiquidarAplicacaoForm(),
@@ -414,7 +499,7 @@ def liquidar_aplicacao(request, pk):
                 for erro in erros:
                     messages.error(request, erro)
 
-    return redirect('operacoes:listar_aplicacoes')
+    return redirect(f"{reverse('operacoes:listar_aplicacoes')}?fundo={aplicacao.fundo_id}")
 
 
 # ============================================
@@ -424,8 +509,14 @@ def liquidar_aplicacao(request, pk):
 @login_required
 def cnab_parametros(request, pk):
     """Exibe formulário de parâmetros antes de gerar o CNAB"""
-    operacao = get_object_or_404(OperacaoCessao, pk=pk)
+    operacao = get_object_or_404(OperacaoCessao.objects.select_related('fundo'), pk=pk)
     form = CnabParametrosForm()
+    if not operacao.fundo.codigo_originador_cnab:
+        messages.warning(
+            request,
+            f"O fundo {operacao.fundo.razao_social} não tem Código Originador (CDO) "
+            "configurado. Cadastre-o na tela do fundo antes de gerar o CNAB."
+        )
     return render(request, 'operacoes/cnab_parametros.html', {
         'form': form,
         'operacao': operacao,
@@ -436,10 +527,21 @@ def cnab_parametros(request, pk):
 def download_cnab_cessao(request, pk):
     """Gera e retorna o arquivo CNAB da cessão como download"""
     operacao = get_object_or_404(
-        OperacaoCessao.objects.prefetch_related('titulos'), pk=pk
+        OperacaoCessao.objects.select_related('fundo').prefetch_related('titulos'), pk=pk
     )
     form = CnabParametrosForm(request.POST)
     if not form.is_valid():
+        return render(request, 'operacoes/cnab_parametros.html', {
+            'form': form,
+            'operacao': operacao,
+        })
+
+    if not operacao.fundo.codigo_originador_cnab:
+        messages.error(
+            request,
+            f"O fundo {operacao.fundo.razao_social} não tem Código Originador (CDO) "
+            "configurado. Cadastre-o na tela do fundo antes de gerar o CNAB."
+        )
         return render(request, 'operacoes/cnab_parametros.html', {
             'form': form,
             'operacao': operacao,
@@ -459,16 +561,22 @@ def download_cnab_cessao(request, pk):
         cpf_cnpj_limpo = rp(titulo.sacado_cpf_cnpj)
         identificacao_sacado = "1" if len(cpf_cnpj_limpo) <= 11 else "2"
 
+        # VL_PAGO e VALOR_PAGO_TITULO representam a mesma coisa (valor já
+        # liquidado do título) e devem sair iguais no CNAB — confirmado com
+        # a origem das macros, que sempre preenche as duas colunas (BASE
+        # col 9 e col 18) com o mesmo valor.
+        valor_pago_str = str(valor_liquidado).replace('.', ',')
+
         base_data.append({
             "CNPJ_CEDENTE": operacao.cedente_cnpj,
-            "NOME_CEDENTE": operacao.cedente_nome,
+            "NOME_CEDENTE": remover_pontos(operacao.cedente_nome),
             "SEU_NUMERO": titulo.numero_titulo,
             "NU_DOCUMENTO": titulo.numero_titulo,
             "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
             "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
             "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
-            "NM_SACADO": titulo.sacado_nome,
-            "VL_PAGO": str(valor_liquidado).replace('.', ','),
+            "NM_SACADO": remover_caracteres_especiais(titulo.sacado_nome),
+            "VL_PAGO": valor_pago_str,
             "IDENTIFICACAO_CPF_CNPJ_SACADO": identificacao_sacado,
             "ENDERECO": titulo.sacado_endereco,
             "CEP": titulo.sacado_cep,
@@ -477,13 +585,13 @@ def download_cnab_cessao(request, pk):
             "COOBRIGACAO": titulo.coobrigacao,
             "IDENTIFICACAO_CPF_CNPJ_CEDENTE": "02",
             "NFE": titulo.chave_nfe,
-            "VALOR_PAGO_TITULO": str(titulo.valor_aquisicao).replace('.', ','),
+            "VALOR_PAGO_TITULO": valor_pago_str,
         })
 
     menu_data = {
         "DTL": form.cleaned_data['dtl'].strftime('%d/%m/%Y'),
-        "CDO": form.cleaned_data['cdo'],
-        "OCORRENCIA": form.cleaned_data['ocorrencia'],
+        "CDO": operacao.fundo.codigo_originador_cnab,
+        "OCORRENCIA": operacao.fundo.ocorrencia_cnab_padrao or '01',
     }
 
     buffer = gerar_cnab_stream(base_data, menu_data)
@@ -500,3 +608,28 @@ def download_cnab_cessao(request, pk):
 def _limpar_cnpj(valor):
     """Remove formatação de CNPJ/CPF"""
     return ''.join(c for c in valor if c.isdigit())
+
+
+def _titulo_dados_from_form(t):
+    """
+    Monta o dict de título esperado por `processar_cessao` a partir do
+    cleaned_data de um TituloForm. `chave_nfe`, `sacado_endereco` e
+    `sacado_cep` vêm do XML (campos ocultos no formset) e precisam ser
+    repassados; `data_emissao` só é incluída quando informada, para que
+    `processar_cessao` continue caindo no fallback (data de aquisição) nos
+    títulos cadastrados manualmente sem XML.
+    """
+    dados = {
+        'numero_titulo': t['numero_titulo'],
+        'sacado_nome': t['sacado_nome'],
+        'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
+        'valor_nominal': t['valor_nominal'],
+        'valor_aquisicao': t['valor_aquisicao'],
+        'data_vencimento': t['data_vencimento'],
+        'chave_nfe': t.get('chave_nfe') or '',
+        'sacado_endereco': t.get('sacado_endereco') or '',
+        'sacado_cep': t.get('sacado_cep') or '',
+    }
+    if t.get('data_emissao'):
+        dados['data_emissao'] = t['data_emissao']
+    return dados

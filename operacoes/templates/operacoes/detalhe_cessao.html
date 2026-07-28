@@ -10,7 +10,7 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <a href="{% url 'operacoes:listar_cessoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
                 &rsaquo; {{ operacao.numero_contrato }}
             </p>
             <h1 class="page-hero__title">{{ operacao.numero_contrato }}</h1>
@@ -34,7 +34,7 @@
             <a href="{% url 'operacoes:cnab_parametros' operacao.pk %}" class="btn-ghost-ds">
                 <i class="bi bi-file-earmark-arrow-down me-2"></i>CNAB
             </a>
-            <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds">
+            <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" class="btn-ghost-ds">
                 <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>

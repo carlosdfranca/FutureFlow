@@ -59,6 +59,7 @@ def test_parser():
             print(f"  Endereço Sacado: {titulo.sacado_endereco}")
             print(f"  CEP Sacado: {titulo.sacado_cep}")
             print(f"  Chave NF-e: {titulo.chave_nfe}")
+            print(f"  Data Emissão (título): {titulo.data_emissao_iso}")
         
         print(f"\n--- TOTAL ---")
         print(f"Valor Total: R$ {result.total:,.2f}")
@@ -73,13 +74,14 @@ def test_parser():
         assert result.partes.sacado_doc == "57010662001212", "CNPJ do sacado incorreto"
         assert result.partes.numero_nota == "154586", "Número da NF incorreto"
         assert len(result.titulos) == 1, "Deveria ter 1 duplicata"
-        assert result.titulos[0].numero_titulo == "001", "Número da duplicata incorreto"
+        assert result.titulos[0].numero_titulo == "154586", "numero_titulo deveria vir de nFat (fatura), não de nDup"
         assert result.titulos[0].vencimento_iso == "2026-07-10", "Vencimento incorreto"
         assert result.titulos[0].valor == 80911.50, "Valor da duplicata incorreto"
         assert "AV DAS INDUSTRIAS" in result.partes.cedente_endereco, "Endereço do cedente não foi extraído"
         assert "ROD SANTOS DUMONT" in result.titulos[0].sacado_endereco, "Endereço do sacado não foi extraído"
         assert result.titulos[0].sacado_cep == "13012100", "CEP do sacado incorreto"
         assert result.titulos[0].chave_nfe == "35260502455462000129550010001545861100956966", "Chave NF-e incorreta"
+        assert result.titulos[0].data_emissao_iso == "2026-05-11", "Data de emissão do título incorreta (deve vir sem componente de hora)"
         
         print("\n✓ Todas as validações passaram!")
         

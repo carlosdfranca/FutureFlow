@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Cessões de Crédito{% endblock %}
+{% block title %}Cessões — {{ fundo.razao_social }}{% endblock %}
 
 {% block content %}
 
@@ -9,12 +9,18 @@
 <div class="page-hero">
     <div class="page-hero__inner">
         <div>
-            <p class="page-hero__label">Operações</p>
+            <p class="page-hero__label">
+                <a href="{% url 'operacoes:painel_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Operações</a>
+                &rsaquo; {{ fundo.razao_social }}
+            </p>
             <h1 class="page-hero__title">Cessões de Crédito</h1>
-            <p class="page-hero__subtitle">Gerencie e monitore todas as operações de cessão registradas no sistema.</p>
+            <p class="page-hero__subtitle">Operações de cessão registradas para este fundo.</p>
         </div>
-        <div>
-            <a href="{% url 'operacoes:workflow_cessao' %}" class="btn btn-primary">
+        <div style="display:flex; gap:0.5rem;">
+            <a href="{% url 'operacoes:painel_fundos' %}" class="btn btn-ghost-ds">
+                <i class="bi bi-arrow-left me-1"></i>Voltar
+            </a>
+            <a href="{% url 'operacoes:workflow_cessao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Nova Cessão
             </a>
         </div>
@@ -45,6 +51,7 @@
     <!-- Filtros -->
     <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
         <form method="get" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <input type="hidden" name="fundo" value="{{ fundo.id }}">
             <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.06em;">Filtrar por</span>
             <select name="status" class="form-select form-select-sm" style="width:auto; min-width:160px;">
                 <option value="">Todos os status</option>
@@ -56,7 +63,7 @@
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
             {% if request.GET.status %}
-                <a href="{% url 'operacoes:listar_cessoes' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo.id }}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                     <i class="bi bi-x me-1"></i>Limpar
                 </a>
             {% endif %}
@@ -81,10 +88,9 @@
                         <tr>
                             <th>Nº Contrato</th>
                             <th>Cedente</th>
-                            <th>Fundo</th>
+                            <th>Devedor</th>
                             <th>Data Aquisição</th>
                             <th>Valor Nominal</th>
-                            <th>Valor Aquisição</th>
                             <th>Status</th>
                             <th></th>
                         </tr>
@@ -99,10 +105,14 @@
                                     </a>
                                 </td>
                                 <td style="color:var(--text-secondary);">{{ op.cedente_nome }}</td>
-                                <td style="color:var(--text-secondary);">{{ op.fundo.nome }}</td>
+                                <td style="color:var(--text-secondary);">
+                                    {{ op.devedor_nome|default:"-" }}
+                                    {% if op.devedores_count > 1 %}
+                                        <span class="badge-ds badge-ds--gray" title="Múltiplos devedores nesta cessão">+{{ op.devedores_count|add:"-1" }}</span>
+                                    {% endif %}
+                                </td>
                                 <td style="color:var(--text-secondary);">{{ op.data_aquisicao|date:"d/m/Y" }}</td>
                                 <td style="font-weight:500;">R$ {{ op.valor_total_nominal|floatformat:2 }}</td>
-                                <td style="font-weight:500;">R$ {{ op.valor_total_aquisicao|floatformat:2 }}</td>
                                 <td>
                                     {% if op.status == 'CONFIRMADA' %}
                                         <span class="badge-ds badge-ds--green">Confirmada</span>
@@ -146,7 +156,7 @@
                         Ainda não há operações de cessão registradas. Comece criando a primeira.
                     {% endif %}
                 </p>
-                <a href="{% url 'operacoes:workflow_cessao' %}" class="btn btn-primary">
+                <a href="{% url 'operacoes:workflow_cessao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>Nova Cessão
                 </a>
             </div>

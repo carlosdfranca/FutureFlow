@@ -17,6 +17,7 @@ class TipoFundo(models.TextChoices):
 class ClassificacaoInvestidor(models.TextChoices):
     PROFISSIONAL = 'PROFISSIONAL', 'Profissional'
     QUALIFICADO  = 'QUALIFICADO',  'Qualificado'
+    VAREJO       = 'VAREJO',       'Varejo'
 
 class TipoCondominio(models.TextChoices):
     PADRONIZADO     = 'PADRONIZADO',     'Padronizado'
@@ -80,12 +81,27 @@ class Fundo(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text='Limite máximo em Liquidez (Aplicações), em % da carteira',
     )
+    limite_concentracao_devedor = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text='Limite máximo por devedor/cessão individual, em % da carteira',
+    )
 
     # Classificação e estrutura
     classificacao_investidor = models.CharField(max_length=20, choices=ClassificacaoInvestidor.choices, blank=True)
     tipo_condominio = models.CharField(max_length=20, choices=TipoCondominio.choices, blank=True)
     estrutura_fundo = models.CharField(max_length=10, choices=EstruturaFundo.choices, blank=True)
-    
+
+    # Cobrança / CNAB
+    codigo_originador_cnab = models.CharField(
+        max_length=20, blank=True, default='',
+        help_text='Código originador (CDO) usado no header do arquivo de remessa CNAB deste fundo',
+    )
+    ocorrencia_cnab_padrao = models.CharField(
+        max_length=2, blank=True, default='01',
+        help_text='Código de ocorrência padrão usado nas linhas de detalhe do CNAB (ex: 01 - Remessa)',
+    )
+
     # Status
     ativo = models.BooleanField(default=True)
     data_cadastro = models.DateTimeField(auto_now_add=True)

@@ -95,7 +95,7 @@ class EmpresaAdmin(admin.ModelAdmin):
 
 @admin.register(EmpresaRole)
 class EmpresaRoleAdmin(admin.ModelAdmin):
-    list_display = ("nome", "empresa", "pode_gerenciar_usuarios", "pode_ver_fundos")
+    list_display = ("nome", "empresa", "pode_gerenciar_usuarios", "pode_ver_fundos", "pode_ver_documentos", "pode_gerenciar_documentos")
     search_fields = ("nome", "empresa__nome")
     list_filter = ("empresa",)
     autocomplete_fields = ["empresa"]

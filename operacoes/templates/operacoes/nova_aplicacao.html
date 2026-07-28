@@ -10,14 +10,14 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <a href="{% url 'operacoes:listar_aplicacoes' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Aplicações</a>
+                <a href="{% if fundo_id %}{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" style="color:inherit; text-decoration:none; opacity:0.75;">Aplicações</a>
                 &rsaquo; Nova Aplicação
             </p>
             <h1 class="page-hero__title">Nova Aplicação em Ativo</h1>
             <p class="page-hero__subtitle">Registre uma aplicação do fundo em ativo diversificado.</p>
         </div>
         <div>
-            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds">
+            <a href="{% if fundo_id %}{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
                 <i class="bi bi-arrow-left me-2"></i>Cancelar
             </a>
         </div>
@@ -87,7 +87,7 @@
                         </div>
 
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
-                            <a href="{% url 'operacoes:listar_aplicacoes' %}" class="btn-ghost-ds">
+                            <a href="{% if fundo_id %}{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">

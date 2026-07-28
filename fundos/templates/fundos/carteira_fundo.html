@@ -36,6 +36,9 @@
                     {% if enquadramento.liquidez_excede %}
                     <li>Liquidez: {{ enquadramento.pct_liquidez }}% da carteira (limite {{ enquadramento.limite_liquidez }}%)</li>
                     {% endif %}
+                    {% if enquadramento.devedor_excede %}
+                    <li>Concentração por devedor: {{ enquadramento.maior_devedor_nome|default:enquadramento.maior_devedor_doc }} representa {{ enquadramento.pct_maior_devedor }}% da carteira (limite {{ enquadramento.limite_devedor }}%)</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

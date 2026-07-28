@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load fundos_filters %}
+
+{% block title %}Documentos — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<style>
+.folder-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    position: relative;
+    overflow: hidden;
+}
+.folder-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+}
+.folder-card--blue::before   { background: linear-gradient(90deg, #6B1A2A, #C47080); }
+.folder-card--green::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+.folder-card--gray::before   { background: linear-gradient(90deg, #6b7585, #8892a0); }
+.folder-card--amber::before  { background: linear-gradient(90deg, #b45309, #fbbf24); }
+.folder-card--danger::before { background: linear-gradient(90deg, #dc2626, #f87171); }
+.folder-card:hover {
+    border-color: rgba(255,255,255,0.16);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.28);
+    transform: translateY(-2px);
+}
+.folder-card__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+.folder-card--blue   .folder-card__icon { background: rgba(196,112,128,0.14); color: #C47080; }
+.folder-card--green  .folder-card__icon { background: rgba(16,185,129,0.14);  color: #34d399; }
+.folder-card--gray   .folder-card__icon { background: rgba(107,117,133,0.14); color: #8892a0; }
+.folder-card--amber  .folder-card__icon { background: rgba(245,158,11,0.14); color: #fbbf24; }
+.folder-card--danger .folder-card__icon { background: rgba(220,38,38,0.14);  color: #f87171; }
+.folder-card__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+}
+.folder-card__count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.folder-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.folder-card {
+    flex: 0 1 calc(33.333% - 0.667rem);
+    min-width: 230px;
+}
+@media (max-width: 900px) {
+    .folder-grid { max-width: 700px; }
+    .folder-card { flex-basis: calc(50% - 0.5rem); }
+    .folder-card__title { white-space: normal; }
+}
+@media (max-width: 560px) {
+    .folder-grid { max-width: 100%; }
+    .folder-card { flex-basis: 100%; }
+}
+html[data-theme="light"] .folder-card:hover {
+    border-color: rgba(0,0,0,0.14);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.12);
+}
+</style>
+
+<div class="page-hero page-hero--compact">
+    <div class="page-hero__inner">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'documentos:index' %}" class="btn-back" title="Voltar">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'documentos:index' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Documentos</a>
+                    &rsaquo; {{ fundo.razao_social }}
+                </p>
+                <h1 class="page-hero__title" style="font-size:1.5rem;">{{ fundo.razao_social }}</h1>
+                <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+    <div class="folder-grid">
+        {% for cat in categorias %}
+        <a href="{% url 'documentos:documentos_categoria' fundo_id=fundo.id categoria=cat.value %}"
+           class="folder-card folder-card--{{ cat.variant }}">
+            <div class="d-flex align-items-center gap-3">
+                <div class="folder-card__icon"><i class="bi {{ cat.icon }}"></i></div>
+                <div>
+                    <p class="folder-card__title">{{ cat.label }}</p>
+                    <p class="folder-card__count">{{ cat.count }} arquivo{{ cat.count|pluralize }}</p>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

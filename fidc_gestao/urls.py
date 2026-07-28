@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("core.urls")),                          # base da plataforma   
     path('fundos/', include('fundos.urls')),                 # Fundos
     path('operacoes/', include('operacoes.urls')),           # Operações (Cessões e Aplicações)
+    path('documentos/', include('documentos.urls')),         # Documentos dos Fundos
 ]
 
 if settings.DEBUG:

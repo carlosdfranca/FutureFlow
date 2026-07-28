@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load documentos_filters %}
+
+{% block title %}{{ categoria_label }} — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<style>
+/* Ícones coloridos por tipo de arquivo (ver documentos_filters.py) */
+.file-icon {
+    font-size: 1.3rem;
+    vertical-align: -4px;
+}
+.file-icon--pdf     { color: #f87171; }
+.file-icon--word    { color: #60a5fa; }
+.file-icon--excel   { color: #34d399; }
+.file-icon--ppt     { color: #fb923c; }
+.file-icon--text    { color: #adadb1; }
+.file-icon--code    { color: #fbbf24; }
+.file-icon--image   { color: #c084fc; }
+.file-icon--archive { color: #eab308; }
+.file-icon--default { color: var(--text-muted); }
+</style>
+
+<div class="page-hero page-hero--compact">
+    <div class="page-hero__inner">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'documentos:documentos_fundo' fundo_id=fundo.id %}" class="btn-back" title="Voltar">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'documentos:index' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Documentos</a>
+                    &rsaquo;
+                    <a href="{% url 'documentos:documentos_fundo' fundo_id=fundo.id %}" style="color:inherit; text-decoration:none; opacity:0.75;">{{ fundo.razao_social }}</a>
+                    &rsaquo; {{ categoria_label }}
+                </p>
+                <h1 class="page-hero__title" style="font-size:1.5rem;">
+                    <i class="bi {{ categoria_icon }} me-2"></i>{{ categoria_label }}
+                </h1>
+            </div>
+        </div>
+        {% if pode_gerenciar %}
+        <button type="button" class="btn btn-primary-ds" data-bs-toggle="modal" data-bs-target="#modal-upload">
+            <i class="bi bi-upload me-1"></i>Enviar Documento
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container my-4">
+
+    {% if documentos %}
+    <div class="card shadow-sm" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-folder2 text-primary"></i>Arquivos
+            </span>
+            <span class="badge">{{ documentos|length }} arquivo{{ documentos|length|pluralize }}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-ds mb-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th class="text-end">Tamanho</th>
+                        <th>Enviado por</th>
+                        <th>Data</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documentos %}
+                    <tr>
+                        <td class="fw-medium">
+                            <i class="bi {{ doc.arquivo.name|icone_arquivo }} file-icon file-icon--{{ doc.arquivo.name|cor_arquivo }} me-1"></i>{{ doc.nome }}
+                        </td>
+                        <td class="small text-muted">{{ doc.descricao|default:"—" }}</td>
+                        <td class="text-end font-monospace small">{{ doc.tamanho|filesizeformat }}</td>
+                        <td class="small">{{ doc.enviado_por|default:"—" }}</td>
+                        <td class="small"><span class="period-pill">{{ doc.data_upload|date:"d/m/Y H:i" }}</span></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{% url 'documentos:download_documento' documento_id=doc.id %}"
+                                   class="btn-icon-ds btn-icon-ds--blue" title="Baixar arquivo">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% if pode_gerenciar %}
+                                <button type="button" class="btn-icon-ds btn-icon-ds--red" title="Excluir arquivo"
+                                        data-bs-toggle="modal" data-bs-target="#modal-excluir"
+                                        data-nome="{{ doc.nome }}"
+                                        data-action="{% url 'documentos:excluir_documento' documento_id=doc.id %}">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state-modern">
+        <div class="empty-state-modern__icon-wrap">
+            <i class="bi {{ categoria_icon }}"></i>
+        </div>
+        <p class="empty-state-modern__title">Nenhum documento nesta pasta</p>
+        <p class="empty-state-modern__text">Envie o primeiro arquivo de {{ categoria_label|lower }} para este fundo.</p>
+        {% if pode_gerenciar %}
+        <button type="button" class="btn btn-primary-ds mt-2" data-bs-toggle="modal" data-bs-target="#modal-upload">
+            <i class="bi bi-upload me-1"></i>Enviar Documento
+        </button>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+{% if pode_gerenciar %}
+<div class="modal fade" id="modal-upload" tabindex="-1" aria-labelledby="modal-upload-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
+            <form method="post" action="{% url 'documentos:upload_documento' fundo_id=fundo.id categoria=categoria %}" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="modal-upload-label">
+                        <i class="bi bi-upload me-2"></i>Enviar documento — {{ categoria_label }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-field mb-3">
+                        <label class="form-field__label" for="{{ form.arquivo.id_for_label }}">
+                            Arquivo <span class="form-field__required">*</span>
+                        </label>
+                        <input type="file" name="{{ form.arquivo.html_name }}" id="{{ form.arquivo.id_for_label }}"
+                               class="form-control {% if form.arquivo.errors %}is-invalid{% endif %}">
+                        {% if form.arquivo.errors %}
+                        <p class="form-field__error">
+                            <i class="bi bi-exclamation-circle me-1"></i>{% for err in form.arquivo.errors %}{{ err }}{% endfor %}
+                        </p>
+                        {% endif %}
+                        <p class="form-field__hint mt-1" style="font-size:.775rem;color:var(--text-muted);margin:0;">
+                            PDF, Word, Excel, imagem ou ZIP — máx. 25 MB.
+                        </p>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label class="form-field__label" for="{{ form.nome.id_for_label }}">Nome de exibição</label>
+                        <input type="text" name="{{ form.nome.html_name }}" id="{{ form.nome.id_for_label }}"
+                               class="form-control" placeholder="Opcional — usa o nome do arquivo se vazio">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-field__label" for="{{ form.descricao.id_for_label }}">Descrição</label>
+                        <textarea name="{{ form.descricao.html_name }}" id="{{ form.descricao.id_for_label }}"
+                                  class="form-control" rows="2" placeholder="Observações (opcional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary-ds">
+                        <i class="bi bi-upload me-1"></i>Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-excluir" tabindex="-1" aria-labelledby="modal-excluir-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" id="modal-excluir-label">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Excluir documento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color: var(--text-secondary);">
+                Tem certeza que deseja excluir
+                <strong id="modal-excluir-nome" class="text-danger"></strong>?
+                <p class="small text-muted mt-2 mb-0">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-1"></i>Cancelar
+                </button>
+                <form id="form-excluir" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash3 me-1"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+(function () {
+    var modal = document.getElementById('modal-excluir');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('modal-excluir-nome').textContent = btn.dataset.nome;
+        document.getElementById('form-excluir').action = btn.dataset.action;
+    });
+}());
+</script>
+{% endblock %}
+{% endif %}
+
+{% endblock %}
