@@ -13,6 +13,7 @@ from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
 from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
 from .services.movimentacoes import processar_aplicacao, processar_resgate
 from .services.enquadramento import avaliar_enquadramento, anexar_enquadramento
+from .services.dashboard import montar_dashboard
 from operacoes.models import Titulo, Aplicacao
 
 
@@ -184,10 +185,13 @@ def editar_fundo(request, fundo_id):
 
 @login_required
 def dashboard_fundo(request, fundo_id):
-    """Dashboard consolidado do fundo (em construção)."""
+    """Dashboard consolidado do fundo: resumo executivo, enquadramento, série
+    histórica dos Informes Mensais, saúde da carteira, concentração e risco."""
     empresa = request.empresa_ativa
     fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
-    return render(request, 'fundos/dashboard_fundo.html', {'fundo': fundo, 'empresa': empresa})
+    context = montar_dashboard(fundo)
+    context['empresa'] = empresa
+    return render(request, 'fundos/dashboard_fundo.html', context)
 
 
 @login_required
