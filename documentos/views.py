@@ -72,7 +72,7 @@ def index(request):
 
     if not _check_pode_ver_documentos(request):
         messages.error(request, 'Você não tem permissão para visualizar documentos.')
-        return redirect('home')
+        return redirect('fundos:listar_fundos')
 
     if empresa:
         fundos = (

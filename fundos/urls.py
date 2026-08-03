@@ -8,6 +8,7 @@ urlpatterns = [
     path('novo/', views.novo_fundo, name='novo_fundo'),
     path('<uuid:fundo_id>/editar/', views.editar_fundo, name='editar_fundo'),
     path('<uuid:fundo_id>/carteira/', views.carteira_fundo, name='carteira_fundo'),
+    path('<uuid:fundo_id>/dashboard/', views.dashboard_fundo, name='dashboard_fundo'),
     path('aplicacao/nova/', views.nova_aplicacao, name='nova_aplicacao'),
     path('resgate/novo/', views.novo_resgate, name='novo_resgate'),
     # Informes Mensais

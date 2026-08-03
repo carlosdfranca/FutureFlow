@@ -58,7 +58,12 @@ ROOT_URLCONF = 'fidc_gestao.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # usuarios/templates entra em DIRS (checado ANTES de APP_DIRS) para que
+        # nossos registration/password_reset_*.html tenham prioridade sobre os
+        # templates genéricos que django.contrib.admin/auth já embutem sob o
+        # mesmo caminho "registration/..." (admin vem antes de usuarios em
+        # INSTALLED_APPS, então por APP_DIRS puro venceria o template errado).
+        'DIRS': [BASE_DIR / 'usuarios' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -162,7 +167,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 AUTH_USER_MODEL = "usuarios.CustomUser"
 
 # Redirecionamentos de login/logout
-LOGIN_REDIRECT_URL = "/"       # Para onde o usuário vai depois de logar
+LOGIN_REDIRECT_URL = "/fundos/"       # Para onde o usuário vai depois de logar
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
 LOGIN_URL = "login"
 
@@ -207,3 +212,26 @@ CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
 # Logs
 CELERY_WORKER_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s] %(message)s'
 CELERY_WORKER_TASK_LOG_FORMAT = '[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s'
+
+
+# ==============================
+# EMAIL (envio via Microsoft Graph API - OAuth2)
+# ==============================
+
+# "graph" envia de verdade via Microsoft Graph; qualquer outro valor (ou
+# ausente) usa o console backend, que apenas imprime o e-mail no terminal
+# — útil para ambiente de teste/local sem depender do Azure.
+EMAIL_SEND_METHOD = os.getenv('EMAIL_SEND_METHOD', 'console')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@localhost')
+
+AZURE_TENANT_ID = os.getenv('AZURE_TENANT_ID', '')
+AZURE_CLIENT_ID = os.getenv('AZURE_CLIENT_ID', '')
+AZURE_CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET', '')
+
+if EMAIL_SEND_METHOD == 'graph':
+    EMAIL_BACKEND = 'usuarios.email_backends.GraphEmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Validade do link de redefinição de senha (24h; padrão do Django é 3 dias)
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24

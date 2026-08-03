@@ -79,11 +79,14 @@
         <button type="button" class="btn btn-ghost-ds btn-regulamento" data-bs-toggle="modal" data-bs-target="#modal-regulamento">
             <i class="bi bi-journal-text me-1"></i>Regulamento
         </button>
-        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds">
+        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
             <i class="bi bi-graph-up-arrow me-1"></i>Informes
         </a>
         <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
             <i class="bi bi-pie-chart me-1"></i>Carteira
+        </a>
+        <a href="{% url 'fundos:dashboard_fundo' fundo_id=fundo.id %}" class="btn btn-primary-ds btn-dashboard">
+            <i class="bi bi-speedometer2 me-1"></i>Dashboard
         </a>
     </div>
 </div>

@@ -67,7 +67,7 @@
         <div class="site-nav__inner">
 
             <!-- Brand -->
-            <a class="site-nav__brand" href="{% url 'home' %}">
+            <a class="site-nav__brand" href="{% url 'fundos:listar_fundos' %}">
                 <img src="{% static 'img/logo-dark.png' %}"
                      alt="Cinnamon FutureFlow"
                      class="site-nav__logo site-nav__logo--dark">
@@ -93,7 +93,6 @@
             <!-- Links principais -->
             <div class="collapse site-nav__links" id="navbarNav">
                 <ul class="site-nav__menu">
-                    <li><a class="site-nav__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
                     <!-- Fundos dropdown -->
                     <li class="site-nav__dropdown-wrap">
                         <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">

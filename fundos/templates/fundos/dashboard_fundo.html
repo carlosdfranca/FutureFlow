@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+{% load fundos_filters l10n %}
+
+{% block title %}Dashboard — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'fundos:listar_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Fundos</a>
+                &rsaquo; Dashboard
+            </p>
+            <h1 class="page-hero__title">{{ fundo.razao_social }}</h1>
+            <p class="page-hero__subtitle">
+                CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}
+                {% if kpis.competencia_atual %} &middot; Competência {{ kpis.competencia_atual }}{% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
+                <i class="bi bi-pie-chart me-1"></i>Carteira
+            </a>
+            <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
+                <i class="bi bi-graph-up-arrow me-1"></i>Informes
+            </a>
+            <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-ghost-ds">
+                <i class="bi bi-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+
+    {% if enquadramento.desenquadrado %}
+    <div class="enq-alert enq-alert--danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill enq-alert__icon"></i>
+        <div>
+            <p class="enq-alert__title">Fundo Desenquadrado</p>
+            <ul class="enq-alert__list">
+                {% if enquadramento.dc_excede %}
+                <li>Direitos Creditórios: {{ enquadramento.pct_dc }}% da carteira (limite {{ enquadramento.limite_dc }}%)</li>
+                {% endif %}
+                {% if enquadramento.liquidez_excede %}
+                <li>Liquidez: {{ enquadramento.pct_liquidez }}% da carteira (limite {{ enquadramento.limite_liquidez }}%)</li>
+                {% endif %}
+                {% if enquadramento.devedor_excede %}
+                <li>Concentração por devedor: {{ enquadramento.maior_devedor_nome|default:enquadramento.maior_devedor_doc }} representa {{ enquadramento.pct_maior_devedor }}% da carteira (limite {{ enquadramento.limite_devedor }}%)</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Bloco 1 — KPIs Executivos ─────────────────────────────────── -->
+    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+        <div class="kpi-card kpi-card--blue">
+            <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">Patrimônio Líquido</div>
+            <div class="kpi-card__value">{% if kpis.patrimonio_liquido is not None %}R$ {{ kpis.patrimonio_liquido|brl }}{% else %}—{% endif %}</div>
+            <div class="kpi-card__sub">
+                {% if kpis.patrimonio_liquido_var is not None %}
+                    <i class="bi {% if kpis.patrimonio_liquido_var >= 0 %}bi-arrow-up-short{% else %}bi-arrow-down-short{% endif %}"></i>
+                    {{ kpis.patrimonio_liquido_var }}% vs mês anterior
+                {% else %}sem histórico anterior{% endif %}
+            </div>
+        </div>
+        <div class="kpi-card kpi-card--gray">
+            <i class="bi bi-briefcase kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">Total da Carteira</div>
+            <div class="kpi-card__value">R$ {{ total_carteira|brl }}</div>
+            <div class="kpi-card__sub">Direito Creditório + Liquidez (ao vivo)</div>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+            <i class="bi bi-people-fill kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">Cotistas</div>
+            <div class="kpi-card__value">{% if kpis.qt_total_cotistas is not None %}{{ kpis.qt_total_cotistas }}{% else %}—{% endif %}</div>
+            <div class="kpi-card__sub">
+                {% if kpis.qt_total_cotistas_var is not None %}{{ kpis.qt_total_cotistas_var }}% vs mês anterior{% else %}sem histórico anterior{% endif %}
+            </div>
+        </div>
+        <div class="kpi-card {% if kpis.rentabilidade_senior is not None and kpis.rentabilidade_senior < 0 %}kpi-card--danger{% else %}kpi-card--green{% endif %}">
+            <i class="bi bi-graph-up-arrow kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">Rentabilidade Sênior (mês)</div>
+            <div class="kpi-card__value">{% if kpis.rentabilidade_senior is not None %}{{ kpis.rentabilidade_senior }}%{% else %}—{% endif %}</div>
+            <div class="kpi-card__sub">{{ kpis.competencia_atual|default:"sem informe" }}</div>
+        </div>
+        <div class="kpi-card {% if kpis.pct_inadimplencia and kpis.pct_inadimplencia > 0 %}kpi-card--danger{% else %}kpi-card--green{% endif %}">
+            <i class="bi bi-exclamation-triangle kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">Inadimplência</div>
+            <div class="kpi-card__value">{% if kpis.pct_inadimplencia is not None %}{{ kpis.pct_inadimplencia }}%{% else %}—{% endif %}</div>
+            <div class="kpi-card__sub">R$ {{ kpis.saldo_vencido|brl }} vencido</div>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+            <i class="bi bi-shield-exclamation kpi-card__ghost-icon"></i>
+            <div class="kpi-card__label">PDD</div>
+            <div class="kpi-card__value">R$ {{ kpis.pdd_total|brl }}</div>
+            <div class="kpi-card__sub">{% if kpis.pdd_pct is not None %}{{ kpis.pdd_pct }}% da carteira{% else %}—{% endif %}</div>
+        </div>
+    </div>
+
+    {% if not tem_informes and not tem_titulos and not valor_liquidez %}
+    <div class="empty-state-modern mb-4">
+        <div class="empty-state-modern__icon-wrap"><i class="bi bi-speedometer2"></i></div>
+        <p class="empty-state-modern__title">Ainda não há dados operacionais para este fundo</p>
+        <p class="empty-state-modern__text">Assim que houver cessões/aplicações lançadas ou Informes Mensais importados, o resumo completo aparece aqui.</p>
+    </div>
+    {% endif %}
+
+    <!-- ── Bloco 2 — Enquadramento ────────────────────────────────────── -->
+    {% if enquadramento.avaliavel %}
+    <div class="card mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-shield-check text-primary"></i>Enquadramento da Carteira
+            </span>
+        </div>
+        <div style="padding:1.25rem;">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                    <span style="color:var(--text-secondary);">Direito Creditório</span>
+                    <span style="font-weight:600;">{{ enquadramento.pct_dc }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_dc }}%</span></span>
+                </div>
+                <div class="progress" style="height:8px; background:var(--surface-3);">
+                    <div class="progress-bar" style="width: {{ enquadramento.pct_dc|unlocalize }}%; background: {% if enquadramento.dc_excede %}#f87171{% else %}#34d399{% endif %};"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                    <span style="color:var(--text-secondary);">Liquidez</span>
+                    <span style="font-weight:600;">{{ enquadramento.pct_liquidez }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_liquidez }}%</span></span>
+                </div>
+                <div class="progress" style="height:8px; background:var(--surface-3);">
+                    <div class="progress-bar" style="width: {{ enquadramento.pct_liquidez|unlocalize }}%; background: {% if enquadramento.liquidez_excede %}#f87171{% else %}#34d399{% endif %};"></div>
+                </div>
+            </div>
+            {% if enquadramento.limite_devedor is not None %}
+            <div>
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                    <span style="color:var(--text-secondary);">Maior Devedor ({{ enquadramento.maior_devedor_nome|default:enquadramento.maior_devedor_doc }})</span>
+                    <span style="font-weight:600;">{{ enquadramento.pct_maior_devedor }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_devedor }}%</span></span>
+                </div>
+                <div class="progress" style="height:8px; background:var(--surface-3);">
+                    <div class="progress-bar" style="width: {{ enquadramento.pct_maior_devedor|unlocalize }}%; background: {% if enquadramento.devedor_excede %}#f87171{% else %}#34d399{% endif %};"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Bloco 3 — Evolução Histórica (Informes Mensais) ─────────────── -->
+    {% if tem_informes %}
+    <div class="card mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-graph-up text-primary"></i>Evolução do Patrimônio Líquido
+            </span>
+        </div>
+        <div id="chart-pl" style="min-height:260px;" class="px-3 pb-3 pt-2"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-graph-up-arrow me-1"></i>Valor da Cota</span>
+                </div>
+                <div id="chart-cota" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-arrow-left-right me-1"></i>Captação &times; Resgate</span>
+                </div>
+                <div id="chart-captacao-resgate" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state-modern mb-4">
+        <div class="empty-state-modern__icon-wrap"><i class="bi bi-graph-up"></i></div>
+        <p class="empty-state-modern__title">Sem Informes Mensais importados</p>
+        <p class="empty-state-modern__text">A evolução histórica (PL, cota, captação e resgate) aparece aqui assim que houver Informes Mensais importados para este fundo.</p>
+        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
+            <i class="bi bi-upload me-1"></i>Importar Informe
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ── Bloco 4 — Saúde da Carteira ──────────────────────────────────── -->
+    {% if tem_titulos %}
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-hourglass-split me-1"></i>Aging de Vencimentos</span>
+                </div>
+                <div id="chart-aging" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-calendar-range me-1"></i>Fluxo de Recebimentos (próx. 12 meses)</span>
+                </div>
+                {% if fluxo_vencer %}
+                <div id="chart-fluxo" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
+                {% else %}
+                <div class="text-center py-4" style="color:var(--text-secondary);">
+                    <i class="bi bi-calendar-x" style="font-size:1.8rem; opacity:0.4;"></i>
+                    <p class="mb-0 mt-2" style="font-size:0.85rem;">Nenhum título ativo com vencimento futuro.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Bloco 5 — Concentração ────────────────────────────────────────── -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-person-lines-fill me-1"></i>Concentração por Sacado</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-ds mb-0">
+                        <thead><tr><th>Sacado</th><th class="text-end">Saldo</th><th style="width:130px;">% Carteira</th></tr></thead>
+                        <tbody>
+                        {% for s in top_sacados %}
+                        <tr>
+                            <td>{{ s.nome }}</td>
+                            <td class="text-end">R$ {{ s.total|brl }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:6px; background:var(--surface-3);">
+                                        <div class="progress-bar" style="width: {{ s.pct|unlocalize }}%; background:#C47080;"></div>
+                                    </div>
+                                    <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">{{ s.pct }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center py-3" style="color:var(--text-secondary);">Sem títulos ativos.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-building me-1"></i>Concentração por Cedente</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-ds mb-0">
+                        <thead><tr><th>Cedente</th><th class="text-end">Saldo</th><th style="width:130px;">% Carteira</th></tr></thead>
+                        <tbody>
+                        {% for c in top_cedentes %}
+                        <tr>
+                            <td>{{ c.nome }}</td>
+                            <td class="text-end">R$ {{ c.total|brl }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:6px; background:var(--surface-3);">
+                                        <div class="progress-bar" style="width: {{ c.pct|unlocalize }}%; background:#93c5fd;"></div>
+                                    </div>
+                                    <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">{{ c.pct }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center py-3" style="color:var(--text-secondary);">Sem títulos ativos.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Bloco 6 — Distribuição de Risco ───────────────────────────────── -->
+    {% if distribuicao_risco %}
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-shield-exclamation me-1"></i>Distribuição por Rating</span>
+                </div>
+                <div id="chart-risco" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title"><i class="bi bi-exclamation-diamond me-1"></i>Provisão (PDD) por Rating</span>
+                </div>
+                <div style="padding:1.25rem;">
+                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                        <thead>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Rating</th>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Saldo</th>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color); text-align:right;">% Carteira</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for r in distribuicao_risco %}
+                        <tr>
+                            <th style="border-color:var(--border-color);">{{ r.label }}</th>
+                            <td style="border-color:var(--border-color);">R$ {{ r.total|brl }}</td>
+                            <td style="border-color:var(--border-color); text-align:right;">{{ r.pct }}%</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% if tem_informes %}
+<script>
+(function () {
+    const categorias = [{% for h in serie_historica %}"{{ h.competencia_display }}",{% endfor %}];
+    const pl = [{% for h in serie_historica %}{% if h.pl is not None %}{{ h.pl|unlocalize }}{% else %}null{% endif %},{% endfor %}];
+    const options = {
+        chart: { type: 'line', height: 260, toolbar: { show: false } },
+        series: [{ name: 'Patrimônio Líquido', data: pl }],
+        xaxis: { categories: categorias },
+        colors: ['#C47080'],
+        stroke: { width: 2, curve: 'smooth' },
+        markers: { size: 4 },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        tooltip: { y: { formatter: v => v != null ? 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—' } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-pl'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+
+<script>
+(function () {
+    const categorias = [{% for h in serie_historica %}"{{ h.competencia_display }}",{% endfor %}];
+    const senior = [{% for h in serie_historica %}{% if h.cota_senior is not None %}{{ h.cota_senior|unlocalize }}{% else %}null{% endif %},{% endfor %}];
+    const subord = [{% for h in serie_historica %}{% if h.cota_subord is not None %}{{ h.cota_subord|unlocalize }}{% else %}null{% endif %},{% endfor %}];
+    const options = {
+        chart: { type: 'line', height: 240, toolbar: { show: false } },
+        series: [
+            { name: 'Cota Sênior', data: senior },
+            { name: 'Cota Subordinada', data: subord },
+        ],
+        xaxis: { categories: categorias },
+        colors: ['#C47080', '#fbbf24'],
+        stroke: { width: 2, curve: 'smooth' },
+        markers: { size: 3 },
+        dataLabels: { enabled: false },
+        legend: { position: 'bottom', fontSize: '12px' },
+        tooltip: { y: { formatter: v => v != null ? v.toLocaleString('pt-BR', { minimumFractionDigits: 6 }) : '—' } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-cota'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+
+<script>
+(function () {
+    const categorias = [{% for h in serie_historica %}"{{ h.competencia_display }}",{% endfor %}];
+    const captacao = [{% for h in serie_historica %}{{ h.captacao|unlocalize }},{% endfor %}];
+    const resgate = [{% for h in serie_historica %}{{ h.resgate|unlocalize }},{% endfor %}];
+    const options = {
+        chart: { type: 'bar', height: 240, toolbar: { show: false } },
+        series: [
+            { name: 'Captação', data: captacao },
+            { name: 'Resgate', data: resgate },
+        ],
+        xaxis: { categories: categorias },
+        colors: ['#34d399', '#8892a0'],
+        plotOptions: { bar: { columnWidth: '55%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        legend: { position: 'bottom', fontSize: '12px' },
+        tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-captacao-resgate'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+{% endif %}
+
+{% if tem_titulos %}
+<script>
+(function () {
+    const categorias = [{% for a in aging %}"{{ a.label }}",{% endfor %}];
+    const valores = [{% for a in aging %}{{ a.total|unlocalize }},{% endfor %}];
+    const options = {
+        chart: { type: 'bar', height: 240, toolbar: { show: false } },
+        series: [{ name: 'Saldo Devedor', data: valores }],
+        xaxis: { categories: categorias },
+        plotOptions: { bar: { horizontal: true, distributed: true, borderRadius: 3, barHeight: '55%' } },
+        colors: ['#f87171', '#fb923c', '#fbbf24', '#8892a0', '#34d399'],
+        legend: { show: false },
+        dataLabels: {
+            enabled: true,
+            formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 0 }),
+        },
+        tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-aging'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+{% endif %}
+
+{% if fluxo_vencer %}
+<script>
+(function () {
+    const categorias = [{% for f in fluxo_vencer %}"{{ f.mes }}",{% endfor %}];
+    const valores = [{% for f in fluxo_vencer %}{{ f.total|unlocalize }},{% endfor %}];
+    const options = {
+        chart: { type: 'bar', height: 240, toolbar: { show: false } },
+        series: [{ name: 'A Vencer', data: valores }],
+        xaxis: { categories: categorias },
+        colors: ['#93c5fd'],
+        plotOptions: { bar: { columnWidth: '55%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-fluxo'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+{% endif %}
+
+{% if distribuicao_risco %}
+<script>
+(function () {
+    const RISCO_CORES = {
+        'AA': '#34d399', 'A': '#6ee7b7', 'B': '#fbbf24', 'C': '#fb923c',
+        'D': '#f97316', 'E': '#f87171', 'F': '#ef4444', 'G': '#dc2626', 'H': '#b91c1c',
+    };
+    const items = [
+        {% for r in distribuicao_risco %}{ label: "{{ r.label }}", value: {{ r.total|unlocalize }} },{% endfor %}
+    ];
+    const options = {
+        chart: { type: 'donut', height: 240 },
+        series: items.map(i => i.value),
+        labels: items.map(i => i.label),
+        colors: items.map(i => RISCO_CORES[i.label] || '#8892a0'),
+        legend: { position: 'bottom', fontSize: '12px' },
+        dataLabels: { enabled: true, formatter: (val) => val.toFixed(1) + '%' },
+        tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+        plotOptions: { pie: { donut: { size: '60%' } } },
+    };
+    const chart = new ApexCharts(document.querySelector('#chart-risco'), applyCinnamonChartTheme(options));
+    chart.render();
+    registerCinnamonChart(chart);
+})();
+</script>
+{% endif %}
+
+{% endblock %}
