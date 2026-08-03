@@ -162,7 +162,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 AUTH_USER_MODEL = "usuarios.CustomUser"
 
 # Redirecionamentos de login/logout
-LOGIN_REDIRECT_URL = "/"       # Para onde o usuário vai depois de logar
+LOGIN_REDIRECT_URL = "/fundos/"       # Para onde o usuário vai depois de logar
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
 LOGIN_URL = "login"
 

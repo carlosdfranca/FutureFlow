@@ -1,42 +1,9 @@
-from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
 from usuarios.models import *
-from fundos.models import Fundo
-from fundos.services.enquadramento import anexar_enquadramento
-
-import markdown
-import os
-
-@login_required
-def home(request):
-    # Caminho do release_notes.md
-    release_path = os.path.join(settings.BASE_DIR, "static", "docs", "release_notes.md")
-
-    release_html = ""
-    if os.path.exists(release_path):
-        with open(release_path, "r", encoding="utf-8") as f:
-            text = f.read()
-            release_html = markdown.markdown(text)
-
-    fundos_desenquadrados = []
-    empresa = request.empresa_ativa
-    if empresa:
-        fundos_ativos = list(Fundo.objects.filter(empresa=empresa, ativo=True))
-        anexar_enquadramento(fundos_ativos)
-        fundos_desenquadrados = [f for f in fundos_ativos if f.enquadramento.desenquadrado]
-
-    popup_pendente = request.session.pop('mostrar_popup_desenquadramento', False)
-    mostrar_popup = bool(fundos_desenquadrados) and popup_pendente
-
-    return render(request, "home.html", {
-        "release_notes": release_html,
-        "fundos_desenquadrados": fundos_desenquadrados,
-        "mostrar_popup_desenquadramento": mostrar_popup,
-    })
 
 @login_required
 def limites(request):
@@ -98,7 +65,7 @@ def trocar_empresa(request):
         request.session["empresa_ativa"] = empresa_id
         request.session["mostrar_popup_desenquadramento"] = True
         messages.success(request, "Empresa alterada (superusuário).")
-        return redirect(request.META.get("HTTP_REFERER", "home"))
+        return redirect(request.META.get("HTTP_REFERER", "fundos:listar_fundos"))
 
     # Usuários normais: só empresas vinculadas
     pertence = UserEmpresa.objects.filter(
@@ -113,4 +80,4 @@ def trocar_empresa(request):
     else:
         messages.error(request, "Você não tem acesso a esta empresa.")
 
-    return redirect(request.META.get("HTTP_REFERER", "home"))
+    return redirect(request.META.get("HTTP_REFERER", "fundos:listar_fundos"))

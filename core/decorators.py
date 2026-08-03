@@ -33,7 +33,7 @@ def permissao_necessaria(attr):
 
             if not getattr(role, attr, False):
                 messages.error(request, "Você não tem permissão para acessar esta área.")
-                return redirect("home")
+                return redirect("fundos:listar_fundos")
 
             return view_func(request, *args, **kwargs)
 

@@ -1,9 +1,12 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count
 from decimal import Decimal
 from datetime import date
+import markdown
+import os
 import uuid
 
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
@@ -110,6 +113,16 @@ def listar_fundos(request):
     fundos_fii  = [f for f in fundos if f.tipo_fundo == 'FII']
     fundos_fip  = [f for f in fundos if f.tipo_fundo == 'FIP']
 
+    fundos_desenquadrados = [f for f in fundos if f.ativo and f.enquadramento.desenquadrado]
+    popup_pendente = request.session.pop('mostrar_popup_desenquadramento', False)
+    mostrar_popup = bool(fundos_desenquadrados) and popup_pendente
+
+    release_path = os.path.join(settings.BASE_DIR, "static", "docs", "release_notes.md")
+    release_html = ""
+    if os.path.exists(release_path):
+        with open(release_path, "r", encoding="utf-8") as f:
+            release_html = markdown.markdown(f.read())
+
     context = {
         'fundos': fundos,
         'fundos_fidc': fundos_fidc,
@@ -122,6 +135,9 @@ def listar_fundos(request):
         'total_fii': len(fundos_fii),
         'total_fip': len(fundos_fip),
         'total_desenquadrados': sum(1 for f in fundos if f.enquadramento.desenquadrado),
+        'fundos_desenquadrados': fundos_desenquadrados,
+        'mostrar_popup_desenquadramento': mostrar_popup,
+        'release_notes': release_html,
     }
     return render(request, 'fundos/listar_fundos.html', context)
 
@@ -164,6 +180,14 @@ def editar_fundo(request, fundo_id):
         form = FundoForm(instance=fundo)
 
     return render(request, 'fundos/editar_fundo.html', {'form': form, 'fundo': fundo, 'empresa': empresa})
+
+
+@login_required
+def dashboard_fundo(request, fundo_id):
+    """Dashboard consolidado do fundo (em construção)."""
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+    return render(request, 'fundos/dashboard_fundo.html', {'fundo': fundo, 'empresa': empresa})
 
 
 @login_required

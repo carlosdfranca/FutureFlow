@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load fundos_filters %}
+
+{% block title %}Dashboard — {{ fundo.razao_social }}{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div>
+            <p class="page-hero__label">
+                <a href="{% url 'fundos:listar_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Fundos</a>
+                &rsaquo; Dashboard
+            </p>
+            <h1 class="page-hero__title">{{ fundo.razao_social }}</h1>
+            <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}</p>
+        </div>
+        <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-ghost-ds">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="container my-4">
+
+    <div class="empty-state-modern">
+        <div class="empty-state-modern__icon">
+            <i class="bi bi-speedometer2"></i>
+        </div>
+        <h3 class="empty-state-modern__title">Dashboard em construção</h3>
+        <p class="empty-state-modern__text">
+            Em breve este espaço vai reunir um resumo consolidado dos dados do fundo.
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}
