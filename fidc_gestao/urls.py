@@ -5,8 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),  # login/logout do Django
-    path("usuarios/", include("usuarios.urls")),             # perfil e futuros endpoints
+    path("usuarios/", include("usuarios.urls")),             # login, perfil, password reset
     path("", include("core.urls")),                          # base da plataforma   
     path('fundos/', include('fundos.urls')),                 # Fundos
     path('operacoes/', include('operacoes.urls')),           # Operações (Cessões e Aplicações)
