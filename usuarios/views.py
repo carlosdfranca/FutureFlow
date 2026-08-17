@@ -1,12 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, update_session_auth_hash, get_user_model
-from django.core.cache import cache
+from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.views.decorators.clickjacking import xframe_options_exempt
 from .forms import ProfileForm
-
-import random
 
 @login_required
 def profile_view(request):
@@ -43,25 +40,3 @@ def login_view(request):
     response = render(request, "registration/login.html")
     response["Content-Security-Policy"] = "frame-ancestors https://fsbuilder.com.br"
     return response
-
-def otp_view(request):
-    if request.method == "POST":
-        otp_input = request.POST.get("otp")
-        user_id = request.session.get("otp_user_id")
-
-        if not user_id:
-            messages.error(request, "Sessão expirada. Faça login novamente.")
-            return redirect("login")
-
-        user = get_user_model().objects.get(id=user_id)
-        otp_real = cache.get(f"otp_{user.id}")
-
-        if otp_input == otp_real:
-            login(request, user)
-            cache.delete(f"otp_{user.id}")  # limpa OTP
-            del request.session["otp_user_id"]
-            return redirect("fundos:listar_fundos")
-        else:
-            messages.error(request, "Código OTP inválido. Tente novamente.")
-
-    return render(request, "registration/otp.html")

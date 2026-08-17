@@ -50,22 +50,6 @@ def _to_decimal(value: str | None) -> Decimal:
         return Decimal("0")
 
 
-def _find_first_text(elem: ET.Element, paths: list[str], ns: dict[str, str]) -> str:
-    """
-    Procura o primeiro texto existente em uma lista de XPaths (relativos ao elem).
-    Retorna "" se não achar.
-    """
-    for p in paths:
-        found = elem.find(p, ns)
-        if found is not None and (found.text or "").strip():
-            return (found.text or "").strip()
-    return ""
-
-
-def _all(elem: ET.Element, path: str, ns: dict[str, str]) -> list[ET.Element]:
-    return list(elem.findall(path, ns))
-
-
 def _safe_find(elem: ET.Element, tag_name: str, ns: dict[str, str]) -> ET.Element | None:
     """
     Busca elemento tentando primeiro sem namespace, depois com namespace se disponível.

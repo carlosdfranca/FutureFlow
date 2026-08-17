@@ -231,7 +231,7 @@ def importar_lote_zip(zip_bytes: bytes, fundo: Fundo, user) -> list[dict]:
         - mensagem  : descrição do erro se status=='erro'
         - informe_id: UUID str se status=='ok'
     """
-    from fundos.services.informe_xml import parse_informe_mensal, InformeParseError
+    from fundos.services.informe_xml import parse_informe_mensal
 
     resultados = []
 

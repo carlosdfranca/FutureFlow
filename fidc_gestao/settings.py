@@ -147,6 +147,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -155,14 +156,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-import os
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
 # Indicar que usamos usuário customizado
 AUTH_USER_MODEL = "usuarios.CustomUser"
 
@@ -170,13 +163,6 @@ AUTH_USER_MODEL = "usuarios.CustomUser"
 LOGIN_REDIRECT_URL = "/fundos/"       # Para onde o usuário vai depois de logar
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
 LOGIN_URL = "login"
-
-
-# ==============================
-# TEMPLATES DIR
-# ==============================
-
-DOC_TEMPLATE_DIR = BASE_DIR / "doc_templates"
 
 
 # ==============================

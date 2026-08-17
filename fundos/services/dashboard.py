@@ -14,7 +14,7 @@ template atender FIDC (rico em títulos/cessões e Informes Mensais) e FII/FIP
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
 
 from fundos.models import InformeMensal

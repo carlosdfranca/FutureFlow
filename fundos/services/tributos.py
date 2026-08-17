@@ -7,7 +7,6 @@ Referências:
 """
 
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Tuple
 
 
 def calcular_pdd(dias_atraso: int, valor_nominal: Decimal) -> Decimal:
@@ -136,43 +135,6 @@ def calcular_iof(valor_resgate: Decimal, dias_aplicado: int) -> Decimal:
     # IOF é 1% sobre o rendimento, ajustado pelo percentual regressivo
     iof = valor_resgate * percentual_iof * Decimal('0.01')
     return iof.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-
-def calcular_come_cotas(
-    patrimonio_liquido: Decimal,
-    quantidade_cotas: Decimal,
-    aliquota: Decimal = Decimal('0.15')
-) -> Tuple[Decimal, Decimal]:
-    """
-    Calcula come-cotas semestral (maio e novembro).
-    
-    O come-cotas é a antecipação de IR sobre rendimentos acumulados.
-    Reduz o número de cotas do cotista sem movimentação financeira.
-    
-    Args:
-        patrimonio_liquido: PL atual do fundo
-        quantidade_cotas: Quantidade total de cotas
-        aliquota: Alíquota (padrão 15% para fundos de longo prazo)
-        
-    Returns:
-        Tuple (valor_cota_atual, cotas_a_reduzir)
-    """
-    if quantidade_cotas == 0:
-        return Decimal('0.00'), Decimal('0.00')
-    
-    valor_cota_atual = patrimonio_liquido / quantidade_cotas
-    
-    # Simplificação: assume que toda valorização é tributável
-    # Em produção, deve considerar o custo médio de cada cotista
-    rendimento_medio = valor_cota_atual - Decimal('1.00')  # Assumindo cota inicial = 1,00
-    
-    if rendimento_medio <= 0:
-        return valor_cota_atual, Decimal('0.00')
-    
-    ir_devido = rendimento_medio * aliquota
-    cotas_a_reduzir = (ir_devido / valor_cota_atual) * quantidade_cotas
-    
-    return valor_cota_atual, cotas_a_reduzir.quantize(Decimal('0.000001'), rounding=ROUND_HALF_UP)
 
 
 def calcular_impostos_resgate(

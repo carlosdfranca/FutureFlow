@@ -112,18 +112,6 @@ body {
 /* Light mode: swap */
 html[data-theme="light"] .site-nav__logo--dark  { display: none; }
 html[data-theme="light"] .site-nav__logo--light { display: block; }
-.site-nav__brand-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #6B1A2A, #4A0F1C);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    color: #fff;
-    flex-shrink: 0;
-}
 
 /* Company selector */
 .site-nav__empresa {
@@ -329,27 +317,6 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     background: rgba(255,255,255,0.05);
     color: var(--text-primary);
 }
-.site-nav__avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-.site-nav__avatar-fallback {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6B1A2A, #7D2A3F);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
-    letter-spacing: 0.02em;
-}
 .site-nav__username {
     max-width: 110px;
     overflow: hidden;
@@ -419,24 +386,6 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 }
 
 /* ================================
-   Topbar (legacy — mantido caso usado)
-================================ */
-.navbar-custom {
-    background-color: var(--surface-3);
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.navbar-custom .navbar-brand,
-.navbar-custom .nav-link,
-.navbar-custom .text-white {
-    color: #fff !important;
-}
-.navbar-custom .btn {
-    font-size: 0.85rem;
-}
-
-/* ================================
    Cards
 ================================ */
 .card {
@@ -464,38 +413,6 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 }
 
 /* ================================
-   KPIs
-================================ */
-.kpi-list li {
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-}
-
-/* ================================
-   Downloads estilo lista
-================================ */
-.download-list a {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    background-color: var(--surface-raised);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-.download-list a:hover {
-    background-color: rgba(255,255,255,0.05);
-    text-decoration: none;
-}
-.download-list i {
-    margin-right: 10px;
-    font-size: 1.2rem;
-    color: #C47080;
-}
-
-/* ================================
    Release Notes
 ================================ */
 .markdown-content h1 {
@@ -510,228 +427,8 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     color: #C47080;
 }
 
-
-
-.grafico {
-    width: 100%;
-    height: 250px;
-}
-
-/* ============================
-   Downloads - Botões em Grade
-=============================== */
-.btn-download {
-    background-color: #1e272e;
-    color: #f5f6fa;
-    border: 1px solid #2f3640;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
-}
-
-.btn-download i {
-    margin-right: 8px;
-    font-size: 1.1rem;
-}
-
-.btn-download:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 12px rgba(107, 26, 42, 0.4);
-    border-color: #6B1A2A;
-    color: #fff;
-}
-
-/* Ajuste para badges */
-.btn-download .badge {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    border-radius: 6px;
-}
-
-/* Cores específicas para formatos */
-.badge-pdf {
-    background-color: #b12323 !important;
-}
-.badge-zip {
-    background-color: #3742fa !important;
-}
-.badge-csv {
-    background-color: #4b883b !important;
-}
-
 .text-muted {
     color: var(--text-secondary) !important;
-}
-
-/* ================================
-   Page Header
-================================ */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.75rem;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-.page-header__titles {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.page-header__title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-.page-header__subtitle {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-.page-header__actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-/* ================================
-   KPI Bar
-================================ */
-.kpi-bar {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-    flex-wrap: wrap;
-}
-.kpi-stat {
-    background-color: var(--surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    padding: 0.875rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    min-width: 160px;
-    flex: 1;
-}
-.kpi-stat__icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
-.kpi-stat__icon--blue  { background-color: rgba(107,26,42,0.18); color: #C47080; }
-.kpi-stat__icon--green { background-color: rgba(16,185,129,0.15); color: #10b981; }
-.kpi-stat__icon--gray  { background-color: rgba(107,117,133,0.15); color: #6b7585; }
-.kpi-stat__value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1;
-}
-.kpi-stat__label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-top: 2px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-/* ================================
-   Fundo Card
-================================ */
-.fidc-card {
-    background-color: var(--surface-2);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    border-left: 3px solid var(--accent-primary);
-    box-shadow: var(--shadow-card);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-}
-.fidc-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
-}
-.fidc-card--fidc { border-left-color: var(--accent-fidc); }
-.fidc-card--fii  { border-left-color: var(--accent-fii);  }
-.fidc-card--fip  { border-left-color: var(--accent-fip);  }
-
-.fidc-card__header {
-    padding: 0.875rem 1.1rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.5rem;
-}
-.fidc-card__body {
-    padding: 0.75rem 1.1rem 1rem;
-    flex: 1;
-}
-.fidc-card__name {
-    font-size: 0.975rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 2px 0;
-    line-height: 1.3;
-}
-.fidc-card__alias {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin: 0 0 0.75rem 0;
-}
-.fidc-card__meta {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-.fidc-card__meta li {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-.fidc-card__meta li i {
-    font-size: 0.85rem;
-    opacity: 0.6;
-    flex-shrink: 0;
-}
-.fidc-card__meta strong {
-    color: var(--text-primary);
-    font-weight: 500;
-}
-.fidc-card__footer {
-    padding: 0.75rem 1.1rem;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    gap: 0.5rem;
-}
-.fidc-card__footer .btn {
-    flex: 1;
-    font-size: 0.8rem;
-    padding: 0.4rem 0.6rem;
-    font-weight: 500;
 }
 
 /* Badges de tipo e status */
@@ -740,43 +437,14 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 .badge-tipo-fip  { background-color: rgba(59,130,246,0.18);  color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
 .badge-ativo     { background-color: rgba(16,185,129,0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
 .badge-inativo   { background-color: rgba(107,117,133,0.12); color: #8892a0; border: 1px solid rgba(107,117,133,0.25); }
-.badge-desenquadrado { background-color: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
 .badge-tipo-fidc, .badge-tipo-fii, .badge-tipo-fip,
-.badge-ativo, .badge-inativo, .badge-desenquadrado {
+.badge-ativo, .badge-inativo {
     font-size: 0.7rem;
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 999px;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-}
-
-/* ================================
-   Empty State
-================================ */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background-color: var(--surface-2);
-    border: 1px dashed var(--border-color);
-    border-radius: var(--border-radius);
-}
-.empty-state__icon {
-    font-size: 3rem;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
-    display: block;
-}
-.empty-state__title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.4rem;
-}
-.empty-state__text {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
 }
 
 /* ================================
@@ -1146,26 +814,6 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
     appearance: textfield;
-}
-
-/* Input com sufixo (ex: %) */
-.input-suffix-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.input-suffix-wrap .form-control {
-    padding-right: 2.5rem;
-}
-.input-suffix {
-    position: absolute;
-    right: 0.85rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    font-weight: 600;
-    pointer-events: none;
-    user-select: none;
-    letter-spacing: 0;
 }
 
 /* Compact hero variant */
@@ -2014,25 +1662,6 @@ html[data-theme="light"] .form-select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236C6C70' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
 }
 
-/* Download / btn-download */
-html[data-theme="light"] .download-list a {
-    background-color: var(--surface-3);
-    color: var(--text-primary);
-}
-html[data-theme="light"] .download-list a:hover {
-    background-color: rgba(0, 0, 0, 0.06);
-}
-html[data-theme="light"] .btn-download {
-    background-color: var(--surface-3);
-    border-color: rgba(0, 0, 0, 0.10);
-    color: var(--text-primary);
-}
-html[data-theme="light"] .btn-download:hover {
-    border-color: #6B1A2A;
-    box-shadow: 0 0 12px rgba(107, 26, 42, 0.20);
-    color: var(--text-primary);
-}
-
 /* Funds search */
 html[data-theme="light"] .funds-search-input {
     background: var(--surface-2);
@@ -2091,16 +1720,6 @@ html[data-theme="light"] .text-white {
     color: var(--text-primary) !important;
 }
 
-/* Legacy .navbar-custom (home.html) — dark bg class with white text children */
-html[data-theme="light"] .navbar-custom {
-    background-color: var(--surface-3);
-    border-color: rgba(0, 0, 0, 0.08);
-}
-html[data-theme="light"] .navbar-custom .navbar-brand,
-html[data-theme="light"] .navbar-custom .nav-link {
-    color: var(--text-primary) !important;
-}
-
 /* Form controls — explicit bg + color (safety, CSS vars should cover but Bootstrap
    sometimes wins with its own var(--bs-body-color) in edge cases) */
 html[data-theme="light"] .form-control,
@@ -2148,27 +1767,6 @@ html[data-theme="light"] .table-dark tbody tr {
     border-color: rgba(0, 0, 0, 0.06);
 }
 
-/* Bootstrap pagination */
-html[data-theme="light"] .page-link {
-    background-color: var(--surface-2);
-    border-color: rgba(0, 0, 0, 0.15);
-    color: var(--accent-primary);
-}
-html[data-theme="light"] .page-link:hover {
-    background-color: var(--surface-3);
-    border-color: rgba(0, 0, 0, 0.20);
-    color: var(--accent-primary);
-}
-html[data-theme="light"] .page-item.active .page-link {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: #fff;
-}
-html[data-theme="light"] .page-item.disabled .page-link {
-    background-color: var(--surface-3);
-    border-color: rgba(0, 0, 0, 0.10);
-    color: var(--text-muted);
-}
 
 /* Bootstrap modal — close button (btn-close-white invisible on light bg) */
 html[data-theme="light"] .btn-close-white {
@@ -2179,13 +1777,6 @@ html[data-theme="light"] .btn-close-white {
 html[data-theme="light"] .card .card-body {
     color: var(--text-primary);
 }
-html[data-theme="light"] .card .card-title {
-    color: var(--text-primary);
-}
-html[data-theme="light"] .card .card-text {
-    color: var(--text-secondary);
-}
-
 /* Bootstrap alerts in light mode */
 html[data-theme="light"] .alert-danger {
     background-color: rgba(239, 68, 68, 0.10);
@@ -2334,18 +1925,6 @@ html[data-theme="light"] .enq-alert--ok .enq-alert__title {
     object-fit: contain;
     margin-bottom: 2rem;
 }
-.login-form-title {
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 0.35rem;
-    letter-spacing: -0.02em;
-}
-.login-form-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0 0 1.5rem;
-}
 .login-btn {
     height: 44px;
     font-size: 0.9rem;
@@ -2362,12 +1941,6 @@ html[data-theme="light"] .enq-alert--ok .enq-alert__title {
 /* -- Login � Light Mode overrides -- */
 html[data-theme="light"] .login-panel--form {
     background-color: var(--surface-1);
-}
-html[data-theme="light"] .login-form-title {
-    color: var(--text-primary);
-}
-html[data-theme="light"] .login-form-subtitle {
-    color: var(--text-secondary);
 }
 html[data-theme="light"] .login-form-logo.site-nav__logo--dark  { display: none; }
 html[data-theme="light"] .login-form-logo.site-nav__logo--light { display: block; }

@@ -141,23 +141,6 @@ def format_date_ddmmyy(date_str: str) -> str:
     return dd + mm + yy
 
 
-def format_date_ddmmaaaa(date_str: str) -> str:
-    """
-    Converte data de DD/MM/YYYY para DDMMAAAA.
-
-    Args:
-        date_str: Data em formato DD/MM/YYYY
-
-    Returns:
-        Data em formato DDMMAAAA
-    """
-    parts = date_str.split("/")
-    dd = parts[0][:2]
-    mm = parts[1][:2]
-    aaaa = parts[2][:4] if len(parts[2]) == 4 else "20" + parts[2]  # Assume 20XX se ano de 2 dígitos
-    return dd + mm + aaaa
-
-
 def pad_left_zeros(value: str, width: int) -> str:
     """
     Preenche uma string com zeros à esquerda até atingir a largura especificada.

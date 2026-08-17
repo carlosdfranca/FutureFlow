@@ -4,10 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count
 from decimal import Decimal
-from datetime import date
 import markdown
 import os
-import uuid
 
 from .models import Fundo, Cotista, MovimentacaoCota, InformeMensal
 from .forms import FundoForm, InformeUploadForm, InformeLoteUploadForm
@@ -303,7 +301,6 @@ def importar_informe(request, fundo_id):
             if form_lote.is_valid():
                 zip_file = request.FILES['zip_file']
                 try:
-                    from .services.informe_xml import parse_informe_mensal, InformeParseError
                     from .services.importar_informe import importar_lote_zip
 
                     zip_bytes = zip_file.read()
@@ -329,7 +326,7 @@ def importar_informe(request, fundo_id):
             if form.is_valid():
                 xml_file = request.FILES['xml_file']
                 try:
-                    from .services.informe_xml import parse_informe_mensal, InformeParseError
+                    from .services.informe_xml import parse_informe_mensal
                     from .services.importar_informe import importar_informe_mensal
 
                     xml_bytes = xml_file.read()

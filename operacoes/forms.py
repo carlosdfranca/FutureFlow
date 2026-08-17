@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from fundos.models import Fundo
-from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao, TipoAplicacao
+from .models import Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 
 
 # ============================================

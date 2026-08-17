@@ -128,8 +128,11 @@ ipython_config.py
 __pypackages__/
 
 # Celery stuff
-celerybeat-schedule
+celerybeat-schedule*
 celerybeat.pid
+
+# Word/Office lock files
+~$*
 
 # SageMath parsed files
 *.sage.py

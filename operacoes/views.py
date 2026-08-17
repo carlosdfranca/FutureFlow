@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
 from django.db.models import Sum, Count, Q, OuterRef, Subquery
 from django.http import HttpResponse
 from django.conf import settings
@@ -11,14 +10,14 @@ from decimal import Decimal
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
-from .services.cessao import processar_cessao, criar_evento_titulo, calcular_totais_operacao
+from .services.cessao import processar_cessao, criar_evento_titulo
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
 from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
 
 # Importar serviços existentes do core
 from core.services.cessao_xml import parse_nfe_uploaded_file
-from core.services.cessao_doc import render_termo_cessao_docx, render_termo_confirmacao_docx
+from core.services.cessao_doc import render_termo_cessao_docx
 
 
 # ============================================

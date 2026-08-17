@@ -4,7 +4,6 @@ Handles business logic for creating cessões, títulos, and events.
 """
 from decimal import Decimal
 from django.db import transaction
-from django.utils import timezone
 from operacoes.models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo
 
 
@@ -153,23 +152,3 @@ def criar_evento_titulo(
         pass
     
     return evento
-
-
-def calcular_totais_operacao(titulos_dados: list[dict]) -> dict:
-    """
-    Calcula valores totais de uma operação de cessão.
-    
-    Args:
-        titulos_dados: list de dicts com valor_nominal e valor_aquisicao
-        
-    Returns:
-        dict com valor_total_nominal e valor_total_aquisicao
-    """
-    valor_total_nominal = sum(Decimal(str(t['valor_nominal'])) for t in titulos_dados)
-    valor_total_aquisicao = sum(Decimal(str(t['valor_aquisicao'])) for t in titulos_dados)
-    
-    return {
-        'valor_total_nominal': valor_total_nominal,
-        'valor_total_aquisicao': valor_total_aquisicao,
-        'quantidade_titulos': len(titulos_dados)
-    }

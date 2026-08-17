@@ -1,6 +1,6 @@
 from django import forms
 from decimal import Decimal, InvalidOperation
-from .models import Fundo, TipoFundo
+from .models import Fundo
 
 
 class FundoForm(forms.ModelForm):

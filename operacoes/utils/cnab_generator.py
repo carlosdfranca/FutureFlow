@@ -4,8 +4,8 @@ Converte dados de cobrança para o formato CNAB padrão bancário brasileiro.
 """
 
 from .cnab_utils import (
-    rep, fd, rp, format_valor, format_date_ddmmyy,
-    format_date_ddmmaaaa, pad_left_zeros, pad_right_spaces, pad_left_spaces
+    rep, rp, format_valor, format_date_ddmmyy,
+    pad_left_zeros, pad_right_spaces, pad_left_spaces
 )
 
 
@@ -156,41 +156,3 @@ def gerar_linha_trailer(total_records: int) -> str:
     )
 
     return linha
-
-
-def gerar_cnab(base_data: list, menu_data: dict, output_path: str) -> str:
-    """
-    Gera um arquivo CNAB completo a partir dos dados fornecidos.
-
-    Args:
-        base_data: Lista de dicionários com dados dos registros (coluna BASE)
-        menu_data: Dicionário com dados do menu (DTL, CDO, OCORRENCIA)
-        output_path: Caminho do arquivo de saída
-
-    Returns:
-        Mensagem de sucesso ou erro
-    """
-    try:
-        with open(output_path, "w", encoding="utf-8") as arquivo:
-            # Linha 1: Header
-            linha_header = gerar_linha_header(menu_data)
-            arquivo.write(linha_header + "\n")
-
-            # Linhas 2 a N+1: Detalhes
-            for index, record in enumerate(base_data, start=2):
-                # Verifica se SEU_NUMERO está vazio (condição de parada)
-                if not record.get("SEU_NUMERO", "").strip():
-                    break
-
-                linha_detalhe = gerar_linha_detalhe(record, index, menu_data)
-                arquivo.write(linha_detalhe + "\n")
-
-            # Última linha: Trailer
-            total_records = len(base_data) + 2  # +2 para incluir header e trailer
-            linha_trailer = gerar_linha_trailer(total_records)
-            arquivo.write(linha_trailer + "\n")
-
-        return f"✓ Arquivo CNAB gerado com sucesso: {output_path}"
-
-    except Exception as e:
-        return f"✗ Erro ao gerar arquivo CNAB: {str(e)}"

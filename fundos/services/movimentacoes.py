@@ -259,36 +259,5 @@ def efetivar_movimentacao(movimentacao_id: str) -> MovimentacaoCota:
         movimentacao.status = StatusMovimentacao.CONFIRMADO
     
     movimentacao.save()
-    
-    return movimentacao
 
-
-@transaction.atomic
-def cancelar_movimentacao(movimentacao_id: str, motivo: str = None) -> MovimentacaoCota:
-    """
-    Cancela movimentação pendente.
-    
-    Args:
-        movimentacao_id: UUID da movimentação
-        motivo: Motivo do cancelamento
-        
-    Returns:
-        MovimentacaoCota cancelada
-    """
-    try:
-        movimentacao = MovimentacaoCota.objects.get(id=movimentacao_id)
-    except MovimentacaoCota.DoesNotExist:
-        raise ValueError(f"Movimentação {movimentacao_id} não encontrada")
-    
-    if movimentacao.status == StatusMovimentacao.CONFIRMADO:
-        raise ValueError("Não é possível cancelar movimentação já confirmada")
-    
-    movimentacao.status = StatusMovimentacao.CANCELADO
-    
-    if motivo:
-        movimentacao.dados_adicionais = movimentacao.dados_adicionais or {}
-        movimentacao.dados_adicionais['motivo_cancelamento'] = motivo
-    
-    movimentacao.save()
-    
     return movimentacao
