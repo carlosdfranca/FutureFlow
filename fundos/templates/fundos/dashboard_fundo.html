@@ -18,7 +18,7 @@
                 {% if kpis.competencia_atual %} &middot; Competência {{ kpis.competencia_atual }}{% endif %}
             </p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
                 <i class="bi bi-pie-chart me-1"></i>Carteira
             </a>
@@ -119,7 +119,7 @@
         </div>
         <div style="padding:1.25rem;">
             <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                <div class="d-flex justify-content-between flex-wrap gap-1 mb-1" style="font-size:0.85rem;">
                     <span style="color:var(--text-secondary);">Direito Creditório</span>
                     <span style="font-weight:600;">{{ enquadramento.pct_dc }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_dc }}%</span></span>
                 </div>
@@ -128,7 +128,7 @@
                 </div>
             </div>
             <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                <div class="d-flex justify-content-between flex-wrap gap-1 mb-1" style="font-size:0.85rem;">
                     <span style="color:var(--text-secondary);">Liquidez</span>
                     <span style="font-weight:600;">{{ enquadramento.pct_liquidez }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_liquidez }}%</span></span>
                 </div>
@@ -138,7 +138,7 @@
             </div>
             {% if enquadramento.limite_devedor is not None %}
             <div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.85rem;">
+                <div class="d-flex justify-content-between flex-wrap gap-1 mb-1" style="font-size:0.85rem;">
                     <span style="color:var(--text-secondary);">Maior Devedor ({{ enquadramento.maior_devedor_nome|default:enquadramento.maior_devedor_doc }})</span>
                     <span style="font-weight:600;">{{ enquadramento.pct_maior_devedor }}% <span style="color:var(--text-muted); font-weight:400;">/ limite {{ enquadramento.limite_devedor }}%</span></span>
                 </div>
@@ -301,24 +301,26 @@
                     <span class="card-header-ds__title"><i class="bi bi-exclamation-diamond me-1"></i>Provisão (PDD) por Rating</span>
                 </div>
                 <div style="padding:1.25rem;">
-                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
-                        <thead>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                            <thead>
+                                <tr>
+                                    <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Rating</th>
+                                    <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Saldo</th>
+                                    <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color); text-align:right;">% Carteira</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for r in distribuicao_risco %}
                             <tr>
-                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Rating</th>
-                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Saldo</th>
-                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color); text-align:right;">% Carteira</th>
+                                <th style="border-color:var(--border-color);">{{ r.label }}</th>
+                                <td style="border-color:var(--border-color);">R$ {{ r.total|brl }}</td>
+                                <td style="border-color:var(--border-color); text-align:right;">{{ r.pct }}%</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                        {% for r in distribuicao_risco %}
-                        <tr>
-                            <th style="border-color:var(--border-color);">{{ r.label }}</th>
-                            <td style="border-color:var(--border-color);">R$ {{ r.total|brl }}</td>
-                            <td style="border-color:var(--border-color); text-align:right;">{{ r.pct }}%</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -342,6 +344,13 @@
         dataLabels: { enabled: false },
         legend: { show: false },
         tooltip: { y: { formatter: v => v != null ? 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—' } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                xaxis: { labels: { rotate: -45, style: { fontSize: '9px' } }, tickAmount: 4 },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-pl'), applyCinnamonChartTheme(options));
     chart.render();
@@ -367,6 +376,13 @@
         dataLabels: { enabled: false },
         legend: { position: 'bottom', fontSize: '12px' },
         tooltip: { y: { formatter: v => v != null ? v.toLocaleString('pt-BR', { minimumFractionDigits: 6 }) : '—' } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                xaxis: { labels: { rotate: -45, style: { fontSize: '9px' } }, tickAmount: 4 },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-cota'), applyCinnamonChartTheme(options));
     chart.render();
@@ -391,6 +407,13 @@
         dataLabels: { enabled: false },
         legend: { position: 'bottom', fontSize: '12px' },
         tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                xaxis: { labels: { rotate: -45, style: { fontSize: '9px' } }, tickAmount: 4 },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-captacao-resgate'), applyCinnamonChartTheme(options));
     chart.render();
@@ -416,6 +439,13 @@
             formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 0 }),
         },
         tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                dataLabels: { style: { fontSize: '9px' } },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-aging'), applyCinnamonChartTheme(options));
     chart.render();
@@ -438,6 +468,13 @@
         dataLabels: { enabled: false },
         legend: { show: false },
         tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                xaxis: { labels: { rotate: -45, style: { fontSize: '9px' } }, tickAmount: 4 },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-fluxo'), applyCinnamonChartTheme(options));
     chart.render();
@@ -465,6 +502,14 @@
         dataLabels: { enabled: true, formatter: (val) => val.toFixed(1) + '%' },
         tooltip: { y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
         plotOptions: { pie: { donut: { size: '60%' } } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 260 },
+                legend: { fontSize: '10px' },
+                dataLabels: { style: { fontSize: '9px' } },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-risco'), applyCinnamonChartTheme(options));
     chart.render();

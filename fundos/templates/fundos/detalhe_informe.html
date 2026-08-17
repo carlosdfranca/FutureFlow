@@ -91,27 +91,29 @@
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-ds mb-0">
-                        <thead>
-                            <tr>
-                                <th>Subclasse</th>
-                                <th class="text-end">Qtd. Cotas</th>
-                                <th class="text-end">Valor da Cota</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Sênior</td>
-                                <td class="text-end font-monospace">{{ informe.qt_cotas_senior|brl:"8" }}</td>
-                                <td class="text-end font-monospace">{{ informe.vl_cota_senior|brl:"8" }}</td>
-                            </tr>
-                            <tr>
-                                <td>Subordinada</td>
-                                <td class="text-end font-monospace">{{ informe.qt_cotas_subord|brl:"8" }}</td>
-                                <td class="text-end font-monospace">{{ informe.vl_cota_subord|brl:"8" }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-ds mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Subclasse</th>
+                                    <th class="text-end">Qtd. Cotas</th>
+                                    <th class="text-end">Valor da Cota</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sênior</td>
+                                    <td class="text-end font-monospace">{{ informe.qt_cotas_senior|brl:"8" }}</td>
+                                    <td class="text-end font-monospace">{{ informe.vl_cota_senior|brl:"8" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Subordinada</td>
+                                    <td class="text-end font-monospace">{{ informe.qt_cotas_subord|brl:"8" }}</td>
+                                    <td class="text-end font-monospace">{{ informe.vl_cota_subord|brl:"8" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -125,30 +127,32 @@
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-ds mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Ativo</th>
-                                <th class="text-end">Valor (R$)</th>
-                                <th class="text-end">% Carteira</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for seg in segs %}
-                            <tr>
-                                <td>{{ seg.get_segmento_display }}</td>
-                                <td class="text-muted small">{{ seg.subsegmento|default:"—" }}</td>
-                                <td class="text-end font-monospace">{{ seg.valor|brl }}</td>
-                                <td class="text-end">
-                                    {% if seg.percentual_carteira %}
-                                        {{ seg.percentual_carteira|floatformat:2 }}%
-                                    {% else %}—{% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-ds mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Ativo</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                    <th class="text-end">% Carteira</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for seg in segs %}
+                                <tr>
+                                    <td>{{ seg.get_segmento_display }}</td>
+                                    <td class="text-muted small">{{ seg.subsegmento|default:"—" }}</td>
+                                    <td class="text-end font-monospace">{{ seg.valor|brl }}</td>
+                                    <td class="text-end">
+                                        {% if seg.percentual_carteira %}
+                                            {{ seg.percentual_carteira|floatformat:2 }}%
+                                        {% else %}—{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div id="chart-carteira" style="min-height:200px;" class="px-3 pb-3"></div>
             </div>
@@ -165,24 +169,26 @@
                     </span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-ds mb-0">
-                        <thead>
-                            <tr>
-                                <th>CNPJ / CPF</th>
-                                <th class="text-end">% Cedentes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for ced in cedentes %}
-                            <tr>
-                                <td class="font-monospace">{{ ced.nr_pf_pj_cedent|cpf_cnpj }}</td>
-                                <td class="text-end">
-                                    {% if ced.pr_cedent %}{{ ced.pr_cedent|floatformat:2 }}%{% else %}—{% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-ds mb-0">
+                            <thead>
+                                <tr>
+                                    <th>CNPJ / CPF</th>
+                                    <th class="text-end">% Cedentes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ced in cedentes %}
+                                <tr>
+                                    <td class="font-monospace">{{ ced.nr_pf_pj_cedent|cpf_cnpj }}</td>
+                                    <td class="text-end">
+                                        {% if ced.pr_cedent %}{{ ced.pr_cedent|floatformat:2 }}%{% else %}—{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             {% endif %}
@@ -379,6 +385,14 @@
             y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }
         },
         plotOptions: { pie: { donut: { size: '60%' } } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 260 },
+                legend: { fontSize: '10px' },
+                dataLabels: { enabled: false },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-carteira'), applyCinnamonChartTheme(options));
     chart.render();

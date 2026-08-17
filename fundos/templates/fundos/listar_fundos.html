@@ -267,7 +267,7 @@
             <div class="reg-modal__body">
                 {% for f in fundos_desenquadrados %}
                 <div class="reg-section">
-                    <div class="d-flex justify-content-between align-items-center gap-3">
+                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <div>
                             <p class="reg-section__heading" style="margin-bottom:0.25rem;">{{ f.get_tipo_fundo_display }}</p>
                             <p class="mb-0" style="color:var(--text-primary); font-weight:600;">{{ f.razao_social }}</p>
@@ -346,7 +346,7 @@
                 <!-- Taxas — mini-cards estilo kpi -->
                 <div class="reg-section">
                     <p class="reg-section__heading reg-section__heading--amber"><i class="bi bi-percent"></i>Taxas</p>
-                    <div class="reg-taxa-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="reg-taxa-grid">
                         <div class="reg-taxa-card reg-taxa-card--red">
                             <span class="reg-taxa-card__label">Administração</span>
                             <span class="reg-taxa-card__value" id="reg-taxa-adm"></span>

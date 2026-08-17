@@ -74,36 +74,38 @@
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Dados da Operação</span>
                 </div>
                 <div style="padding:1.25rem;">
-                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Fundo</th>
-                            <td style="border-color:var(--border-color);">{{ operacao.fundo.nome }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Nº Contrato</th>
-                            <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.numero_contrato }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Contrato</th>
-                            <td style="border-color:var(--border-color);">{{ operacao.data_contrato|date:"d/m/Y" }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Aquisição</th>
-                            <td style="border-color:var(--border-color);">{{ operacao.data_aquisicao|date:"d/m/Y" }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Status</th>
-                            <td style="border-color:var(--border-color);">
-                                {% if operacao.status == 'CONFIRMADA' %}
-                                    <span class="badge-ds badge-ds--green">Confirmada</span>
-                                {% elif operacao.status == 'RASCUNHO' %}
-                                    <span class="badge-ds badge-ds--amber">Rascunho</span>
-                                {% else %}
-                                    <span class="badge-ds badge-ds--red">Cancelada</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Fundo</th>
+                                <td style="border-color:var(--border-color);">{{ operacao.fundo.nome }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Nº Contrato</th>
+                                <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.numero_contrato }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Contrato</th>
+                                <td style="border-color:var(--border-color);">{{ operacao.data_contrato|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Data Aquisição</th>
+                                <td style="border-color:var(--border-color);">{{ operacao.data_aquisicao|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Status</th>
+                                <td style="border-color:var(--border-color);">
+                                    {% if operacao.status == 'CONFIRMADA' %}
+                                        <span class="badge-ds badge-ds--green">Confirmada</span>
+                                    {% elif operacao.status == 'RASCUNHO' %}
+                                        <span class="badge-ds badge-ds--amber">Rascunho</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--red">Cancelada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,22 +117,24 @@
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Cedente</span>
                 </div>
                 <div style="padding:1.25rem;">
-                    <table class="table table-sm mb-0" style="color:var(--text-primary);">
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">CNPJ</th>
-                            <td style="font-family:monospace; border-color:var(--border-color);">{{ operacao.cedente_cnpj }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Razão Social</th>
-                            <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.cedente_nome }}</td>
-                        </tr>
-                        {% if operacao.cedente_endereco %}
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Endereço</th>
-                            <td style="border-color:var(--border-color);">{{ operacao.cedente_endereco }}</td>
-                        </tr>
-                        {% endif %}
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="color:var(--text-primary);">
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">CNPJ</th>
+                                <td style="font-family:monospace; border-color:var(--border-color);">{{ operacao.cedente_cnpj }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Razão Social</th>
+                                <td style="font-weight:600; border-color:var(--border-color);">{{ operacao.cedente_nome }}</td>
+                            </tr>
+                            {% if operacao.cedente_endereco %}
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Endereço</th>
+                                <td style="border-color:var(--border-color);">{{ operacao.cedente_endereco }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

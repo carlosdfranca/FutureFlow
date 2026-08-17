@@ -72,7 +72,7 @@
                             {% endif %}
                         </div>
 
-                        <div style="display:flex; gap:0.75rem; align-items:center;">
+                        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
                             <button type="submit" class="btn btn-primary" {% if not operacao.fundo.codigo_originador_cnab %}disabled{% endif %}>
                                 <i class="bi bi-download me-2"></i>Baixar CNAB
                             </button>
@@ -87,7 +87,7 @@
 
         <!-- Sidebar: resumo da cessão -->
         <div class="col-md-4">
-            <div style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
+            <div class="sticky-sidebar-ds" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
                 <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
                     <div style="width:36px; height:36px; border-radius:8px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:center;">
                         <i class="bi bi-file-earmark-text" style="color:#93c5fd;"></i>

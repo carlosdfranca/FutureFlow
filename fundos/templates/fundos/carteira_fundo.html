@@ -118,20 +118,22 @@
                 </div>
                 <div style="padding:1.25rem;">
                     {% if titulos_agg.count %}
-                    <table class="table table-sm mb-3" style="color:var(--text-primary);">
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Saldo Devedor Total</th>
-                            <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ saldo_dc|brl }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Valor Nominal Total</th>
-                            <td style="border-color:var(--border-color);">R$ {{ titulos_agg.nominal_total|brl }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Títulos Ativos</th>
-                            <td style="border-color:var(--border-color);">{{ titulos_agg.count }}</td>
-                        </tr>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-3" style="color:var(--text-primary);">
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Saldo Devedor Total</th>
+                                <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ saldo_dc|brl }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Valor Nominal Total</th>
+                                <td style="border-color:var(--border-color);">R$ {{ titulos_agg.nominal_total|brl }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Títulos Ativos</th>
+                                <td style="border-color:var(--border-color);">{{ titulos_agg.count }}</td>
+                            </tr>
+                        </table>
+                    </div>
                     {% else %}
                     <div class="text-center py-4" style="color:var(--text-secondary);">
                         <i class="bi bi-file-earmark-text" style="font-size:1.8rem; opacity:0.4;"></i>
@@ -155,30 +157,32 @@
                 </div>
                 <div style="padding:1.25rem;">
                     {% if aplicacoes_agg.count %}
-                    <table class="table table-sm mb-3" style="color:var(--text-primary);">
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Valor Total Ativo</th>
-                            <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ valor_liquidez|brl }}</td>
-                        </tr>
-                        <tr>
-                            <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Aplicações Ativas</th>
-                            <td style="border-color:var(--border-color);">{{ aplicacoes_agg.count }}</td>
-                        </tr>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-3" style="color:var(--text-primary);">
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; width:55%; border-color:var(--border-color);">Valor Total Ativo</th>
+                                <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ valor_liquidez|brl }}</td>
+                            </tr>
+                            <tr>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Aplicações Ativas</th>
+                                <td style="border-color:var(--border-color);">{{ aplicacoes_agg.count }}</td>
+                            </tr>
+                        </table>
+                    </div>
                     <ul class="list-unstyled mb-3" style="font-size:0.85rem;">
-                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                        <li class="d-flex justify-content-between flex-wrap gap-1 py-1" style="border-bottom:1px solid var(--border-color);">
                             <span style="color:var(--text-secondary);">Tesouro Direto</span>
                             <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.TESOURO|default:0|brl }}</span>
                         </li>
-                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                        <li class="d-flex justify-content-between flex-wrap gap-1 py-1" style="border-bottom:1px solid var(--border-color);">
                             <span style="color:var(--text-secondary);">Cota de Fundo</span>
                             <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.COTA_FUNDO|default:0|brl }}</span>
                         </li>
-                        <li class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--border-color);">
+                        <li class="d-flex justify-content-between flex-wrap gap-1 py-1" style="border-bottom:1px solid var(--border-color);">
                             <span style="color:var(--text-secondary);">Compromissada</span>
                             <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.COMPROMISSADA|default:0|brl }}</span>
                         </li>
-                        <li class="d-flex justify-content-between py-1">
+                        <li class="d-flex justify-content-between flex-wrap gap-1 py-1">
                             <span style="color:var(--text-secondary);">Outros</span>
                             <span style="font-weight:600;">R$ {{ aplicacoes_por_tipo.OUTROS|default:0|brl }}</span>
                         </li>
@@ -214,6 +218,13 @@
             y: { formatter: v => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }
         },
         plotOptions: { pie: { donut: { size: '60%' } } },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: { height: 220 },
+                legend: { fontSize: '10px' },
+            },
+        }],
     };
     const chart = new ApexCharts(document.querySelector('#chart-composicao'), applyCinnamonChartTheme(options));
     chart.render();

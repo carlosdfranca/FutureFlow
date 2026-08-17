@@ -86,7 +86,7 @@
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
                             <a href="{% if fundo_id %}{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
                                 <i class="bi bi-x-circle me-2"></i>Cancelar
                             </a>
@@ -101,7 +101,7 @@
 
         <!-- Sidebar informativa -->
         <div class="col-md-4">
-            <div style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
+            <div class="sticky-sidebar-ds" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
                 <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
                     <div style="width:36px; height:36px; border-radius:8px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:center;">
                         <i class="bi bi-info-circle" style="color:#93c5fd;"></i>

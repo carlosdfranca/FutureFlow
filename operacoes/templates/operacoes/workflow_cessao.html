@@ -223,7 +223,7 @@
         {% endfor %}
 
         <!-- Ações -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding:1.25rem; background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:2rem; padding:1.25rem; background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px;">
             <a href="{% if fundo_id %}{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
                 <i class="bi bi-x-circle me-2"></i>Cancelar
             </a>

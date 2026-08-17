@@ -35,45 +35,49 @@
                     <small class="text-muted">Exemplo: 10000.00</small>
                 </div>
                 
-                <button type="submit" class="btn btn-success">Processar Aplicação</button>
-                <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-secondary">Voltar</a>
+                <div class="d-flex gap-2 flex-wrap legacy-action-row">
+                    <button type="submit" class="btn btn-success">Processar Aplicação</button>
+                    <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-secondary">Voltar</a>
+                </div>
             </form>
         </div>
     </div>
     
     <h4>Últimas Aplicações</h4>
-    <table class="table table-dark table-striped">
-        <thead>
-            <tr>
-                <th>Data Solicitação</th>
-                <th>Fundo</th>
-                <th>Cotista</th>
-                <th>Valor</th>
-                <th>Data Cotização</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for mov in ultimas_aplicacoes %}
-            <tr>
-                <td>{{ mov.data_solicitacao|date:"d/m/Y H:i" }}</td>
-                <td>{{ mov.fundo.razao_social }}</td>
-                <td>{{ mov.cotista.nome_razao_social }}</td>
-                <td>R$ {{ mov.valor_financeiro|floatformat:2 }}</td>
-                <td>{{ mov.data_cotizacao|date:"d/m/Y" }}</td>
-                <td>
-                    <span class="badge 
-                        {% if mov.status == 'CONFIRMADO' %}bg-success
-                        {% elif mov.status == 'AGUARDANDO_PAGAMENTO' %}bg-warning
-                        {% else %}bg-secondary{% endif %}">
-                        {{ mov.get_status_display }}
-                    </span>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center">Nenhuma aplicação cadastrada</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-dark table-striped">
+            <thead>
+                <tr>
+                    <th>Data Solicitação</th>
+                    <th>Fundo</th>
+                    <th>Cotista</th>
+                    <th>Valor</th>
+                    <th>Data Cotização</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in ultimas_aplicacoes %}
+                <tr>
+                    <td>{{ mov.data_solicitacao|date:"d/m/Y H:i" }}</td>
+                    <td>{{ mov.fundo.razao_social }}</td>
+                    <td>{{ mov.cotista.nome_razao_social }}</td>
+                    <td>R$ {{ mov.valor_financeiro|floatformat:2 }}</td>
+                    <td>{{ mov.data_cotizacao|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge
+                            {% if mov.status == 'CONFIRMADO' %}bg-success
+                            {% elif mov.status == 'AGUARDANDO_PAGAMENTO' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            {{ mov.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">Nenhuma aplicação cadastrada</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

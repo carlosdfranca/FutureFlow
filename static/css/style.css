@@ -78,6 +78,9 @@ body {
     gap: 0.5rem;
     height: 100%;
 }
+@media (max-width: 991px) {
+    .site-nav__inner { flex-wrap: wrap; height: auto; }
+}
 
 /* Brand */
 .site-nav__brand {
@@ -154,6 +157,14 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     padding-right: 1rem;
     cursor: pointer;
     outline: none;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 991px) {
+    /* linha própria (ver .site-nav__empresa order/flex-basis abaixo) — sobra bem mais espaço */
+    .site-nav__empresa-select { max-width: 260px; }
 }
 .site-nav__empresa-select option {
     background: var(--surface-3);
@@ -169,10 +180,16 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 
 /* Links area */
 .site-nav__links {
-    display: flex !important;
+    display: flex;
     align-items: center;
     flex: 1;
     gap: 0;
+}
+/* Acima de 991px o menu deve permanecer sempre visível, mesmo antes do JS do
+   Bootstrap inicializar o .collapse (que por padrão parte fechado). Abaixo
+   disso, o .collapse controla show/hide normalmente (ver @media 991px). */
+@media (min-width: 992px) {
+    .site-nav__links.collapse:not(.show) { display: flex !important; }
 }
 .site-nav__menu {
     list-style: none;
@@ -357,6 +374,15 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 @media (max-width: 991px) {
     .site-nav { height: auto; padding: 0.6rem 0; }
     .site-nav__toggle { display: flex; align-items: center; }
+
+    /* Layout em até 3 linhas, controlado só por ordem visual (não mexe no HTML):
+       linha 1 = logo + hambúrguer · linha 2 = seletor de empresa · linha 3 = menu.
+       flex-basis:100% força cada item a ocupar a linha inteira, quebrando a linha. */
+    .site-nav__brand   { order: 1; }
+    .site-nav__toggle  { order: 2; }
+    .site-nav__empresa { order: 3; flex: 1 1 100%; margin-top: 0.5rem; margin-right: 0; }
+    .site-nav__links   { order: 4; flex: 1 1 100%; }
+
     .site-nav__links {
         flex-direction: column;
         align-items: flex-start;
@@ -368,7 +394,6 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     .site-nav__menu li { width: 100%; }
     .site-nav__link { width: 100%; }
     .site-nav__user { margin-left: 0; width: 100%; }
-    .site-nav__empresa { margin-top: 0.5rem; }
     .site-nav__dropdown {
         position: static;
         box-shadow: none;
@@ -376,6 +401,21 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
         background: rgba(255,255,255,0.03);
         margin: 0.2rem 0 0.2rem 1rem;
     }
+}
+
+/* Toast de mensagens (Django messages) — precisa ficar abaixo da navbar,
+   cuja altura muda entre desktop (1 linha) e mobile (até 3 linhas). */
+.toast-container-ds {
+    position: fixed;
+    top: 5rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    max-width: 420px;
+    margin-left: auto;
+}
+@media (max-width: 991px) {
+    .toast-container-ds { top: 8.5rem; }
 }
 
 /* ================================
@@ -1500,7 +1540,7 @@ html[data-theme="light"] .table {
 ================================ */
 .fundo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
     gap: 1.25rem;
 }
 .fundo-card {
@@ -2490,3 +2530,58 @@ html[data-theme="light"] .reg-section__heading--amber { color: #b45309; }
 html[data-theme="light"] .reg-taxa-card--red   .reg-taxa-card__value { color: #9f1239; }
 html[data-theme="light"] .reg-taxa-card--blue  .reg-taxa-card__value { color: #1d4ed8; }
 html[data-theme="light"] .reg-taxa-card--amber .reg-taxa-card__value { color: #b45309; }
+
+/* ================================
+   Rede de segurança global (mobile)
+================================ */
+img, svg { max-width: 100%; height: auto; }
+pre, code { overflow-wrap: anywhere; }
+
+/* ================================
+   Mobile (viewport < 768px)
+   Ver plano de responsividade — cada bloco abaixo referencia o padrão
+   (P2..P8) descrito lá. Nada aqui altera o layout acima de 767.98px.
+================================ */
+@media (max-width: 767.98px) {
+
+    /* P2 — KPI cards: valor em R$ não pode ser cortado */
+    .kpi-card { padding: 1rem 1.1rem; }
+    .kpi-card__value {
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: anywhere;
+    }
+
+    /* P3 — grids fixos do Design System sem fallback mobile */
+    .reg-grid,
+    .reg-taxa-grid,
+    .fundo-card__footer { grid-template-columns: 1fr; }
+
+    /* P4 — linhas flex que não quebram e apertam botões/títulos */
+    .card-header-ds,
+    .enq-alert__fundo-row { flex-wrap: wrap; }
+    .form-actions { flex-wrap: wrap; }
+    .form-actions > .btn,
+    .form-actions > a { flex: 1 1 100%; }
+
+    /* P6 — sidebars sticky que, empilhadas, ficam depois do conteúdo */
+    .sticky-sidebar-ds { position: static !important; top: auto !important; }
+
+    /* P7 — padding/tipografia do hero e das seções de formulário */
+    .page-hero { padding: 1.75rem 1rem 1.5rem; }
+    .page-hero--compact { padding: 1.25rem 1rem 1rem; }
+    .page-hero__title { font-size: 1.5rem; }
+    .form-section__header,
+    .form-section__body { padding: 1rem; }
+    .empty-state-modern { padding: 3rem 1.25rem; }
+
+    /* P8 — inputs abaixo de 16px disparam zoom automático no iOS Safari */
+    .form-control,
+    .form-select,
+    .funds-search-input { font-size: 16px; }
+
+    /* Botões de ação dos formulários legados (fundos/novo_resgate.html,
+       fundos/nova_aplicacao.html) — empilhar em largura total */
+    .legacy-action-row { flex-direction: column; align-items: stretch; }
+    .legacy-action-row > .btn { width: 100%; }
+}

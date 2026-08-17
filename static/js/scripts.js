@@ -32,6 +32,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ===============================
+    // Navbar mobile: troca o ícone do hambúrguer (≡ / ✕) conforme abre/fecha
+    // ===============================
+    const navToggle = document.querySelector('.site-nav__toggle');
+    const navMenu = document.getElementById('navbarNav');
+    if (navToggle && navMenu) {
+        const navToggleIcon = navToggle.querySelector('i');
+        navMenu.addEventListener('shown.bs.collapse', function () {
+            if (navToggleIcon) navToggleIcon.className = 'bi bi-x-lg';
+        });
+        navMenu.addEventListener('hidden.bs.collapse', function () {
+            if (navToggleIcon) navToggleIcon.className = 'bi bi-list';
+        });
+    }
+
+    // ===============================
     // Gráfico de Barras - Evolução Patrimônio
     // ===============================
     var optionsPatrimonio = {
