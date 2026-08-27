@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load fundos_filters %}
+{% load ui %}
 
 {% block title %}Documentos — {{ fundo.razao_social }}{% endblock %}
 
@@ -90,16 +91,14 @@ html[data-theme="light"] .folder-card:hover {
 
 <div class="page-hero page-hero--compact">
     <div class="page-hero__inner">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'documentos:index' %}" class="btn-back" title="Voltar">
-                <i class="bi bi-arrow-left"></i>
-            </a>
+        <div class="page-hero__lead">
+            {% back_button %}
             <div>
                 <p class="page-hero__label">
                     <a href="{% url 'documentos:index' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Documentos</a>
                     &rsaquo; {{ fundo.razao_social }}
                 </p>
-                <h1 class="page-hero__title" style="font-size:1.5rem;">{{ fundo.razao_social }}</h1>
+                <h1 class="page-hero__title page-hero__title--sm">{{ fundo.razao_social }}</h1>
                 <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}</p>
             </div>
         </div>

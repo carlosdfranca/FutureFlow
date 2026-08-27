@@ -35,6 +35,9 @@
     /* Sombras */
     --shadow-card: none;
     --shadow-card-hover: 0 10px 36px rgba(0, 0, 0, 0.75);
+
+    /* Altura da navbar — usada pelo drawer mobile e pelo offset do toast de mensagens */
+    --nav-h: 60px;
 }
 
 /* ================================
@@ -64,10 +67,11 @@ body {
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    height: 60px;
+    min-height: var(--nav-h);
     display: flex;
     align-items: center;
     margin-bottom: 0;
+    overflow: visible;
 }
 .site-nav__inner {
     width: 100%;
@@ -76,10 +80,8 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    height: 100%;
-}
-@media (max-width: 991px) {
-    .site-nav__inner { flex-wrap: wrap; height: auto; }
+    min-height: var(--nav-h);
+    min-width: 0;
 }
 
 /* Brand */
@@ -150,10 +152,6 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-@media (max-width: 991px) {
-    /* linha própria (ver .site-nav__empresa order/flex-basis abaixo) — sobra bem mais espaço */
-    .site-nav__empresa-select { max-width: 260px; }
-}
 .site-nav__empresa-select option {
     background: var(--surface-3);
     color: var(--text-primary);
@@ -166,18 +164,17 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     margin-left: -0.9rem;
 }
 
+/* Seletor de empresa: só uma das duas versões (desktop/drawer) fica visível por vez */
+.site-nav__empresa--mobile { display: none; }
+.site-nav__empresa--desktop { display: block; }
+
 /* Links area */
 .site-nav__links {
     display: flex;
     align-items: center;
     flex: 1;
     gap: 0;
-}
-/* Acima de 991px o menu deve permanecer sempre visível, mesmo antes do JS do
-   Bootstrap inicializar o .collapse (que por padrão parte fechado). Abaixo
-   disso, o .collapse controla show/hide normalmente (ver @media 991px). */
-@media (min-width: 992px) {
-    .site-nav__links.collapse:not(.show) { display: flex !important; }
+    min-width: 0;
 }
 .site-nav__menu {
     list-style: none;
@@ -185,8 +182,17 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     padding: 0;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0;
+    row-gap: 0.2rem;
     flex: 1;
+    min-width: 0;
+}
+/* Chrome exclusivo do drawer (header/dividers/rodapé) — escondido no desktop, some <992px */
+.site-nav__drawer-header,
+.site-nav__drawer-divider,
+.site-nav__drawer-footer {
+    display: none;
 }
 .site-nav__link {
     display: flex;
@@ -211,6 +217,9 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 }
 .site-nav__link--dropdown {
     cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
 }
 .site-nav__chevron {
     font-size: 0.6rem;
@@ -239,17 +248,11 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     display: none;
 }
 .site-nav__dropdown--end { left: auto; right: 0; }
+.site-nav__dropdown.show { display: block; }
 
 .site-nav__dropdown-wrap {
     position: relative;
-}
-.site-nav__dropdown-wrap .site-nav__dropdown.show,
-.site-nav__dropdown-wrap:focus-within .site-nav__dropdown {
-    display: block;
-}
-/* Bootstrap toggle */
-.site-nav__dropdown-wrap .dropdown-menu {
-    display: none;
+    overflow: visible;
 }
 
 .site-nav__dropdown-item {
@@ -300,6 +303,8 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     gap: 0.25rem;
     padding-left: 0.75rem;
     border-left: 1px solid var(--border-color);
+    position: static;
+    overflow: visible;
 }
 .site-nav__user-btn {
     display: flex;
@@ -311,22 +316,42 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     color: var(--text-secondary);
     font-size: 0.82rem;
     font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
     transition: background 0.14s ease, color 0.14s ease;
 }
 .site-nav__user-btn:hover {
     background: rgba(255,255,255,0.05);
     color: var(--text-primary);
 }
-.site-nav__username {
+.site-nav__user-btn > span:not(.site-nav__avatar-fallback) {
     max-width: 110px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.site-nav__avatar-fallback {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6B1A2A, #7D2A3F);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
 
 /* Mobile hamburger */
 .site-nav__toggle {
     display: none;
+    align-items: center;
+    justify-content: center;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 7px;
@@ -338,29 +363,166 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     line-height: 1;
 }
 
-@media (max-width: 991px) {
-    .site-nav { height: auto; padding: 0.6rem 0; }
-    .site-nav__toggle { display: flex; align-items: center; }
-
-    /* Layout em até 3 linhas, controlado só por ordem visual (não mexe no HTML):
-       linha 1 = logo + hambúrguer · linha 2 = seletor de empresa · linha 3 = menu.
-       flex-basis:100% força cada item a ocupar a linha inteira, quebrando a linha. */
-    .site-nav__brand   { order: 1; }
-    .site-nav__toggle  { order: 2; }
-    .site-nav__empresa { order: 3; flex: 1 1 100%; margin-top: 0.5rem; margin-right: 0; }
-    .site-nav__links   { order: 4; flex: 1 1 100%; }
-
-    .site-nav__links {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.15rem;
-        padding: 0.75rem 0 0.5rem;
-        width: 100%;
+@media (max-width: 991.98px) {
+    .site-nav {
+        --nav-h: 56px;
+        /* backdrop-filter cria um containing block para descendentes position:fixed —
+           isso ancoraria o drawer na caixa da navbar em vez do viewport */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--surface-1);
     }
-    .site-nav__menu { flex-direction: column; align-items: flex-start; width: 100%; }
+    .site-nav__inner {
+        padding: 0 1rem;
+    }
+
+    .site-nav__toggle {
+        display: flex;
+        order: 2;
+        position: relative;
+        z-index: 1003;
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+    }
+
+    .site-nav__user {
+        order: 1;
+        margin-left: auto;
+        border-left: none;
+        padding-left: 0;
+        gap: 0.35rem;
+        overflow: visible;
+    }
+    /* qualificador extra .site-nav para vencer a regra base de .site-nav__theme-btn,
+       definida mais abaixo no arquivo com a mesma especificidade */
+    .site-nav .site-nav__theme-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+        margin-right: 0;
+    }
+    .site-nav__user-btn {
+        padding: 0.3rem 0.5rem;
+        gap: 0.4rem;
+        /* as ações reais vivem no rodapé do drawer — aqui vira um chip decorativo */
+        pointer-events: none;
+    }
+    .site-nav__user-btn > span:not(.site-nav__avatar-fallback) {
+        display: none;
+    }
+    .site-nav__user-btn .site-nav__chevron {
+        display: none;
+    }
+    .site-nav__avatar-fallback {
+        width: 36px;
+        height: 36px;
+        font-size: 0.78rem;
+    }
+
+    .site-nav__empresa--desktop {
+        display: none;
+    }
+    .site-nav__empresa--mobile {
+        display: block;
+        padding: 0 1rem;
+        margin-bottom: 0;
+    }
+    .site-nav__empresa-form {
+        width: 100%;
+        padding: 0.4rem 0.75rem;
+    }
+    .site-nav__empresa-select {
+        font-size: 16px; /* >=16px evita zoom automático do iOS Safari no foco */
+        max-width: 100%;
+        flex: 1;
+    }
+
+    /* Drawer */
+    .site-nav__links {
+        position: fixed;
+        inset: 0 0 0 auto;
+        width: min(82vw, 340px);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: calc(var(--nav-h) + 0.5rem) 0 max(1rem, env(safe-area-inset-bottom));
+        background: var(--surface-2);
+        border-left: 1px solid var(--border-color);
+        box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
+        z-index: 1002;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+    }
+    .site-nav__links.is-open {
+        transform: translateX(0);
+    }
+
+    .site-nav__drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem 0.75rem;
+    }
+    .site-nav__drawer-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+    }
+
+    .site-nav__drawer-divider {
+        display: block;
+        height: 1px;
+        background: var(--border-color);
+        margin: 0.5rem 1rem;
+    }
+
+    .site-nav__menu {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        padding: 0 0.5rem;
+        gap: 0.15rem;
+    }
     .site-nav__menu li { width: 100%; }
-    .site-nav__link { width: 100%; }
-    .site-nav__user { margin-left: 0; width: 100%; }
+    .site-nav__link {
+        width: 100%;
+        min-height: 48px;
+        padding: 0.65rem 0.75rem;
+        font-size: 0.92rem;
+        gap: 0.5rem;
+    }
+
+    .site-nav__drawer-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0 0.5rem;
+    }
+    .site-nav__drawer-user {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem 0.75rem;
+    }
+    .site-nav__drawer-username {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .site-nav__drawer-footer .site-nav__dropdown-item {
+        min-height: 48px;
+        font-size: 0.9rem;
+    }
+
     .site-nav__dropdown {
         position: static;
         box-shadow: none;
@@ -368,21 +530,44 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
         background: rgba(255,255,255,0.03);
         margin: 0.2rem 0 0.2rem 1rem;
     }
+
+    /* Fundo escuro atrás do drawer */
+    .site-nav__backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+    .site-nav__backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    body.site-nav-open {
+        overflow: hidden;
+    }
 }
 
-/* Toast de mensagens (Django messages) — precisa ficar abaixo da navbar,
-   cuja altura muda entre desktop (1 linha) e mobile (até 3 linhas). */
+/* Muito pequenos (celulares estreitos) */
+@media (max-width: 479.98px) {
+    .site-nav__inner {
+        padding: 0 0.75rem;
+    }
+}
+
+/* Toast de mensagens (Django messages) — acompanha a altura real da navbar via --nav-h,
+   que muda entre desktop e mobile (ver @media acima) */
 .toast-container-ds {
     position: fixed;
-    top: 5rem;
+    top: calc(var(--nav-h) + 1rem);
     left: 1rem;
     right: 1rem;
     z-index: 9999;
     max-width: 420px;
     margin-left: auto;
-}
-@media (max-width: 991px) {
-    .toast-container-ds { top: 8.5rem; }
 }
 
 /* ================================
@@ -790,7 +975,7 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
     color: var(--text-secondary);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1rem;
@@ -801,6 +986,19 @@ html[data-theme="light"] .site-nav__logo--light { display: block; }
 .btn-back:hover {
     background: rgba(255,255,255,0.1);
     color: var(--text-primary);
+}
+
+/* Wrapper canônico do lado esquerdo do page-hero: botão de Voltar + título */
+.page-hero__lead {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+
+/* Título compacto usado junto com .btn-back (páginas de formulário/detalhe) */
+.page-hero__title--sm {
+    font-size: 1.5rem;
 }
 
 /* ================================
@@ -901,6 +1099,12 @@ input[type=number] {
     margin-bottom: 2rem;
     animation: fadeInUp 0.4s ease both;
     animation-delay: 0.04s;
+}
+
+/* KPI bar da listagem de Fundos — colunas um pouco mais estreitas que o padrão */
+.kpi-grid--fundos {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-bottom: 2rem;
 }
 .kpi-card {
     background: var(--surface-2);
@@ -1539,8 +1743,14 @@ html[data-theme="light"] body {
 
 /* Navbar */
 html[data-theme="light"] .site-nav {
-    background: rgba(248, 245, 240, 0.96);
     border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+}
+@media (min-width: 992px) {
+    /* Abaixo de 992px o fundo precisa ficar opaco (var(--surface-1), definido no
+       bloco mobile) — o blur/translúcido só existe no desktop, onde não há drawer. */
+    html[data-theme="light"] .site-nav {
+        background: rgba(248, 245, 240, 0.96);
+    }
 }
 html[data-theme="light"] .site-nav__theme-btn {
     background: rgba(0, 0, 0, 0.05);
@@ -1686,6 +1896,9 @@ html[data-theme="light"] .funds-tab-nav .nav-link {
 }
 html[data-theme="light"] .funds-tab-nav .nav-link:hover {
     background: rgba(0, 0, 0, 0.04);
+    color: var(--text-primary);
+}
+html[data-theme="light"] .funds-tab-nav .nav-link.funds-tab--todos.active {
     color: var(--text-primary);
 }
 
@@ -2130,6 +2343,9 @@ pre, code { overflow-wrap: anywhere; }
     .reg-taxa-grid,
     .fundo-card__footer { grid-template-columns: 1fr; }
 
+    /* KPI bar da listagem de Fundos — 1 coluna no mobile (era 2) */
+    .kpi-grid--fundos { grid-template-columns: 1fr; }
+
     /* P4 — linhas flex que não quebram e apertam botões/títulos */
     .card-header-ds,
     .enq-alert__fundo-row { flex-wrap: wrap; }
@@ -2147,6 +2363,10 @@ pre, code { overflow-wrap: anywhere; }
     .form-section__header,
     .form-section__body { padding: 1rem; }
     .empty-state-modern { padding: 3rem 1.25rem; }
+
+    /* Botão de Voltar — alvo de toque mínimo de 44px */
+    .btn-back { width: 44px; height: 44px; }
+    .page-hero__lead { gap: 0.75rem; }
 
     /* P8 — inputs abaixo de 16px disparam zoom automático no iOS Safari */
     .form-control,

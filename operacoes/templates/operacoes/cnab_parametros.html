@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load ui %}
 
 {% block title %}Gerar CNAB — {{ operacao.numero_contrato }}{% endblock %}
 
@@ -8,20 +9,18 @@
 <!-- Page Hero -->
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
-                &rsaquo;
-                <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" style="color:inherit; text-decoration:none; opacity:0.75;">{{ operacao.numero_contrato }}</a>
-                &rsaquo; Gerar CNAB
-            </p>
-            <h1 class="page-hero__title">Gerar Arquivo CNAB</h1>
-            <p class="page-hero__subtitle">Preencha os parâmetros de remessa para gerar o arquivo CNAB desta cessão.</p>
-        </div>
-        <div>
-            <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn-ghost-ds">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
-            </a>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                    &rsaquo;
+                    <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" style="color:inherit; text-decoration:none; opacity:0.75;">{{ operacao.numero_contrato }}</a>
+                    &rsaquo; Gerar CNAB
+                </p>
+                <h1 class="page-hero__title">Gerar Arquivo CNAB</h1>
+                <p class="page-hero__subtitle">Preencha os parâmetros de remessa para gerar o arquivo CNAB desta cessão.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -76,7 +75,7 @@
                             <button type="submit" class="btn btn-primary" {% if not operacao.fundo.codigo_originador_cnab %}disabled{% endif %}>
                                 <i class="bi bi-download me-2"></i>Baixar CNAB
                             </button>
-                            <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn-ghost-ds">
+                            <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn btn-ghost-ds">
                                 Cancelar
                             </a>
                         </div>

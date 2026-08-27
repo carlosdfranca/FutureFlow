@@ -1,0 +1,7 @@
+{% if back_url %}
+<a href="{{ back_url }}" class="btn-back"
+   title="Voltar{% if back_label %} para {{ back_label }}{% endif %}"
+   aria-label="Voltar{% if back_label %} para {{ back_label }}{% endif %}">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+</a>
+{% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load ui %}
 
 {% block title %}Novo Fundo — {{ empresa.nome }}{% endblock %}
 
@@ -7,13 +8,11 @@
 <!-- Hero -->
 <div class="page-hero page-hero--compact">
     <div class="page-hero__inner">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'fundos:listar_fundos' %}" class="btn-back" title="Voltar">
-                <i class="bi bi-arrow-left"></i>
-            </a>
+        <div class="page-hero__lead">
+            {% back_button %}
             <div>
                 <p class="page-hero__label"><i class="bi bi-plus-circle me-1"></i>Novo Fundo</p>
-                <h1 class="page-hero__title" style="font-size:1.5rem;">Cadastrar Fundo de Investimento</h1>
+                <h1 class="page-hero__title page-hero__title--sm">Cadastrar Fundo de Investimento</h1>
                 <p class="page-hero__subtitle">{{ empresa.nome }}</p>
             </div>
         </div>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load ui %}
 
 {% block title %}Importar Informe Mensal — {{ fundo.razao_social }}{% endblock %}
 
@@ -61,13 +62,11 @@
 
 <div class="page-hero page-hero--compact">
     <div class="page-hero__inner">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn-back" title="Voltar">
-                <i class="bi bi-arrow-left"></i>
-            </a>
+        <div class="page-hero__lead">
+            {% back_button %}
             <div>
                 <p class="page-hero__label"><i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}</p>
-                <h1 class="page-hero__title" style="font-size:1.5rem;">Importar Informe Mensal</h1>
+                <h1 class="page-hero__title page-hero__title--sm">Importar Informe Mensal</h1>
                 <p class="page-hero__subtitle">XML CVM — DOC_ARQ &mdash; CNPJ {{ fundo.cnpj }}</p>
             </div>
         </div>

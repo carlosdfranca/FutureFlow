@@ -77,30 +77,40 @@
                      class="site-nav__logo site-nav__logo--light">
             </a>
 
-            <!-- Company selector -->
+            <!-- Company selector — versão desktop -->
             {% if user.is_authenticated %}
                 {% if user.is_superuser or empresas_qtd > 1 %}
-                    <div class="site-nav__empresa">
+                    <div class="site-nav__empresa site-nav__empresa--desktop">
                         {% include "partials/dropdown_empresas.html" %}
                     </div>
                 {% endif %}
             {% endif %}
 
-            <!-- Hamburger (mobile) -->
-            <button class="site-nav__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
-                <i class="bi bi-list"></i>
-            </button>
+            <!-- Links principais (desktop: menu horizontal / mobile: drawer) -->
+            <div class="site-nav__links" id="navbarNav">
 
-            <!-- Links principais -->
-            <div class="collapse site-nav__links" id="navbarNav">
+                <div class="site-nav__drawer-header">
+                    <span class="site-nav__drawer-title">Menu</span>
+                </div>
+
+                <!-- Company selector — versão mobile, dentro do drawer -->
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or empresas_qtd > 1 %}
+                        <div class="site-nav__empresa site-nav__empresa--mobile">
+                            {% include "partials/dropdown_empresas.html" %}
+                        </div>
+                        <div class="site-nav__drawer-divider"></div>
+                    {% endif %}
+                {% endif %}
+
                 <ul class="site-nav__menu">
                     <!-- Fundos dropdown -->
                     <li class="site-nav__dropdown-wrap">
-                        <a class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button type="button" class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" data-dropdown="fundosDropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="bi bi-bank"></i>Fundos
                             <i class="bi bi-chevron-down site-nav__chevron"></i>
-                        </a>
-                        <ul class="site-nav__dropdown dropdown-menu">
+                        </button>
+                        <ul class="site-nav__dropdown" id="fundosDropdown" role="menu">
                             <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-list-ul"></i>Ver Fundos</a></li>
                             <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}"><i class="bi bi-plus-lg"></i>Novo Fundo</a></li>
                             <li class="site-nav__dropdown-divider"></li>
@@ -114,42 +124,80 @@
                     <li><a class="site-nav__link {% if request.resolver_match.app_name == 'documentos' %}is-active{% endif %}" href="{% url 'documentos:index' %}"><i class="bi bi-folder2-open"></i>Documentos</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
-
-                    
                 </ul>
 
-                <!-- User menu -->
-                <div class="site-nav__user">
-                    <!-- Theme toggle -->
-                    <button id="theme-toggle" class="site-nav__theme-btn" aria-label="Alternar tema" title="Modo claro / escuro">
-                        <i id="theme-icon" class="bi bi-sun-fill"></i>
-                    </button>
+                <div class="site-nav__drawer-divider"></div>
 
-                    {% if user.is_authenticated %}
-                        <div class="site-nav__dropdown-wrap">
-                            <a class="site-nav__user-btn" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="site-nav__username">{{ user.first_name }}</span>
-                                <i class="bi bi-chevron-down site-nav__chevron"></i>
-                            </a>
-                            <ul class="site-nav__dropdown site-nav__dropdown--end dropdown-menu">
-                                <li><a class="site-nav__dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person"></i>Editar Perfil</a></li>
-                                <li class="site-nav__dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="{% url 'logout' %}" style="margin:0;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
-                                            <i class="bi bi-box-arrow-right"></i>Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
+                <!-- Ações do usuário (mobile: única via de acesso, o dropdown desktop fica inerte) -->
+                {% if user.is_authenticated %}
+                    <div class="site-nav__drawer-footer">
+                        <div class="site-nav__drawer-user">
+                            <span class="site-nav__avatar-fallback">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+                            <span class="site-nav__drawer-username">{{ user.first_name|default:user.username }}</span>
                         </div>
-                    {% else %}
+                        {% if user.is_staff %}
+                            <a class="site-nav__dropdown-item" href="{% url 'admin:index' %}">
+                                <i class="bi bi-database-fill-gear"></i>Painel Admin
+                            </a>
+                        {% endif %}
+                        <a class="site-nav__dropdown-item" href="{% url 'profile' %}">
+                            <i class="bi bi-person"></i>Editar Perfil
+                        </a>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
+                                <i class="bi bi-box-arrow-right"></i>Logout
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="site-nav__drawer-footer">
                         <a class="site-nav__link" href="{% url 'login' %}">Login</a>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
+
+            <!-- Usuário (desktop: dropdown funcional / mobile: chip decorativo) -->
+            <div class="site-nav__user site-nav__dropdown-wrap">
+                <!-- Theme toggle -->
+                <button id="theme-toggle" class="site-nav__theme-btn" aria-label="Alternar tema" title="Modo claro / escuro">
+                    <i id="theme-icon" class="bi bi-sun-fill"></i>
+                </button>
+
+                {% if user.is_authenticated %}
+                    <button type="button" class="site-nav__user-btn" data-dropdown="userDropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="site-nav__avatar-fallback">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+                        <span>{{ user.first_name|default:user.username }}</span>
+                        <i class="bi bi-chevron-down site-nav__chevron"></i>
+                    </button>
+                    <ul class="site-nav__dropdown site-nav__dropdown--end" id="userDropdown" role="menu">
+                        {% if user.is_staff %}
+                            <li><a class="site-nav__dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-database-fill-gear"></i>Painel Admin</a></li>
+                        {% endif %}
+                        <li><a class="site-nav__dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person"></i>Editar Perfil</a></li>
+                        <li class="site-nav__dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                                {% csrf_token %}
+                                <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
+                                    <i class="bi bi-box-arrow-right"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                {% else %}
+                    <a class="site-nav__link" href="{% url 'login' %}">Login</a>
+                {% endif %}
+            </div>
+
+            <!-- Hamburger (mobile) -->
+            <button class="site-nav__toggle" type="button" aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menu">
+                <i class="bi bi-list"></i>
+            </button>
+
         </div>
+
+        <div class="site-nav__backdrop" hidden></div>
     </nav>
 
     {% if messages %}

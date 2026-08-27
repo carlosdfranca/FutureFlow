@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load ui %}
 
 {% block title %}Nova Cessão{% endblock %}
 
@@ -8,15 +9,13 @@
 <!-- Page Hero -->
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">Operações</p>
-            <h1 class="page-hero__title">Nova Operação de Cessão</h1>
-            <p class="page-hero__subtitle">Importe um ou mais XML de NF-e ou cadastre os títulos manualmente.</p>
-        </div>
-        <div>
-            <a href="{% if fundo_id %}{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
-                <i class="bi bi-arrow-left me-2"></i>Cancelar
-            </a>
+        <div class="page-hero__lead">
+            {% back_button fundo=fundo_id %}
+            <div>
+                <p class="page-hero__label">Operações</p>
+                <h1 class="page-hero__title">Nova Operação de Cessão</h1>
+                <p class="page-hero__subtitle">Importe um ou mais XML de NF-e ou cadastre os títulos manualmente.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -214,7 +213,7 @@
                         {% endfor %}
                     </div>
 
-                    <button type="button" class="btn-ghost-ds add-titulo-btn" data-bloco-index="{{ bloco.index }}">
+                    <button type="button" class="btn btn-ghost-ds add-titulo-btn" data-bloco-index="{{ bloco.index }}">
                         <i class="bi bi-plus-circle me-2"></i>Adicionar Título
                     </button>
                 </div>
@@ -224,7 +223,7 @@
 
         <!-- Ações -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:2rem; padding:1.25rem; background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px;">
-            <a href="{% if fundo_id %}{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn-ghost-ds">
+            <a href="{% if fundo_id %}{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn btn-ghost-ds">
                 <i class="bi bi-x-circle me-2"></i>Cancelar
             </a>
             <button type="submit" name="acao" value="confirmar" class="btn btn-primary btn-lg">

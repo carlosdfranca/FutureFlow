@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load fundos_filters %}
+{% load ui %}
 
 {% block title %}Informes Mensais — {{ fundo.razao_social }}{% endblock %}
 
@@ -7,14 +8,17 @@
 
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
-            </p>
-            <h1 class="page-hero__title">Informes Mensais</h1>
-            <p class="page-hero__subtitle">
-                CNPJ {{ fundo.cnpj }} &mdash; Histórico CVM
-            </p>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
+                </p>
+                <h1 class="page-hero__title">Informes Mensais</h1>
+                <p class="page-hero__subtitle">
+                    CNPJ {{ fundo.cnpj }} &mdash; Histórico CVM
+                </p>
+            </div>
         </div>
         {% if pode_importar %}
             <a href="{% url 'fundos:importar_informe' fundo_id=fundo.id %}"

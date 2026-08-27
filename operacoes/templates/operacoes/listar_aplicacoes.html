@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load ui %}
 
 {% block title %}Aplicações — {{ fundo.razao_social }}{% endblock %}
 
@@ -8,18 +9,18 @@
 <!-- Page Hero -->
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <a href="{% url 'operacoes:painel_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Operações</a>
-                &rsaquo; {{ fundo.razao_social }}
-            </p>
-            <h1 class="page-hero__title">Aplicações em Ativos</h1>
-            <p class="page-hero__subtitle">Registros de aplicações deste fundo em ativos diversificados.</p>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'operacoes:painel_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Operações</a>
+                    &rsaquo; {{ fundo.razao_social }}
+                </p>
+                <h1 class="page-hero__title">Aplicações em Ativos</h1>
+                <p class="page-hero__subtitle">Registros de aplicações deste fundo em ativos diversificados.</p>
+            </div>
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <a href="{% url 'operacoes:painel_fundos' %}" class="btn btn-ghost-ds">
-                <i class="bi bi-arrow-left me-1"></i>Voltar
-            </a>
             <a href="{% url 'operacoes:nova_aplicacao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
             </a>
@@ -94,11 +95,11 @@
                 <option value="ATIVA" {% if request.GET.status == 'ATIVA' %}selected{% endif %}>Ativa</option>
                 <option value="LIQUIDADA" {% if request.GET.status == 'LIQUIDADA' %}selected{% endif %}>Liquidada</option>
             </select>
-            <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+            <button type="submit" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
             {% if request.GET.tipo or request.GET.status %}
-                <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                     <i class="bi bi-x me-1"></i>Limpar
                 </a>
             {% endif %}

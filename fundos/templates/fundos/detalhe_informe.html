@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load fundos_filters %}
+{% load ui %}
 
 {% block title %}Informe {{ informe.competencia_display }} — {{ fundo.razao_social }}{% endblock %}
 
@@ -7,17 +8,16 @@
 
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
-            </p>
-            <h1 class="page-hero__title">Informe {{ informe.competencia_display }}</h1>
-            <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj }}</p>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
+                </p>
+                <h1 class="page-hero__title">Informe {{ informe.competencia_display }}</h1>
+                <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj }}</p>
+            </div>
         </div>
-        <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}"
-           class="btn btn-ghost-ds">
-            <i class="bi bi-arrow-left me-1"></i>Todos os Informes
-        </a>
     </div>
 </div>
 

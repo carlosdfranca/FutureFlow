@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load fundos_filters l10n %}
+{% load ui %}
 
 {% block title %}Dashboard — {{ fundo.razao_social }}{% endblock %}
 
@@ -7,16 +8,19 @@
 
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <a href="{% url 'fundos:listar_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Fundos</a>
-                &rsaquo; Dashboard
-            </p>
-            <h1 class="page-hero__title">{{ fundo.razao_social }}</h1>
-            <p class="page-hero__subtitle">
-                CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}
-                {% if kpis.competencia_atual %} &middot; Competência {{ kpis.competencia_atual }}{% endif %}
-            </p>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'fundos:listar_fundos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Fundos</a>
+                    &rsaquo; Dashboard
+                </p>
+                <h1 class="page-hero__title">{{ fundo.razao_social }}</h1>
+                <p class="page-hero__subtitle">
+                    CNPJ {{ fundo.cnpj|cpf_cnpj }} &middot; {{ fundo.get_tipo_fundo_display }}
+                    {% if kpis.competencia_atual %} &middot; Competência {{ kpis.competencia_atual }}{% endif %}
+                </p>
+            </div>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
@@ -24,9 +28,6 @@
             </a>
             <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
                 <i class="bi bi-graph-up-arrow me-1"></i>Informes
-            </a>
-            <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-ghost-ds">
-                <i class="bi bi-arrow-left me-1"></i>Voltar
             </a>
         </div>
     </div>

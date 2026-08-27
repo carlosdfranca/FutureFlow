@@ -1,9 +1,22 @@
 {% extends "base.html" %}
+{% load ui %}
+
+{% block title %}Novo Resgate{% endblock %}
 
 {% block content %}
+
+<div class="page-hero page-hero--compact">
+    <div class="page-hero__inner">
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <h1 class="page-hero__title page-hero__title--sm">Novo Resgate</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container my-4">
-    <h2>Novo Resgate</h2>
-    
     <div class="card my-4">
         <div class="card-body">
             <form method="post">
@@ -35,9 +48,11 @@
                     <small class="text-muted">Exemplo: 1000.500000</small>
                 </div>
                 
-                <div class="d-flex gap-2 flex-wrap legacy-action-row">
+                <div class="form-actions legacy-action-row">
+                    <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x me-1"></i>Cancelar
+                    </a>
                     <button type="submit" class="btn btn-danger">Solicitar Resgate</button>
-                    <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-secondary">Voltar</a>
                 </div>
             </form>
         </div>

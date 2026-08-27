@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load ui %}
 
 {% block title %}{{ operacao.numero_contrato }} — Cessão{% endblock %}
 
@@ -8,34 +9,34 @@
 <!-- Page Hero -->
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">
-                <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
-                &rsaquo; {{ operacao.numero_contrato }}
-            </p>
-            <h1 class="page-hero__title">{{ operacao.numero_contrato }}</h1>
-            <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem; flex-wrap:wrap;">
-                {% if operacao.status == 'CONFIRMADA' %}
-                    <span class="badge-ds badge-ds--green">Confirmada</span>
-                {% elif operacao.status == 'RASCUNHO' %}
-                    <span class="badge-ds badge-ds--amber">Rascunho</span>
-                {% else %}
-                    <span class="badge-ds badge-ds--red">Cancelada</span>
-                {% endif %}
-                <span style="font-size:0.82rem; color:var(--text-secondary);">
-                    <i class="bi bi-calendar3 me-1"></i>{{ operacao.data_aquisicao|date:"d/m/Y" }}
-                </span>
+        <div class="page-hero__lead">
+            {% back_button fundo=operacao.fundo_id %}
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" style="color:inherit; text-decoration:none; opacity:0.75;">Cessões</a>
+                    &rsaquo; {{ operacao.numero_contrato }}
+                </p>
+                <h1 class="page-hero__title">{{ operacao.numero_contrato }}</h1>
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem; flex-wrap:wrap;">
+                    {% if operacao.status == 'CONFIRMADA' %}
+                        <span class="badge-ds badge-ds--green">Confirmada</span>
+                    {% elif operacao.status == 'RASCUNHO' %}
+                        <span class="badge-ds badge-ds--amber">Rascunho</span>
+                    {% else %}
+                        <span class="badge-ds badge-ds--red">Cancelada</span>
+                    {% endif %}
+                    <span style="font-size:0.82rem; color:var(--text-secondary);">
+                        <i class="bi bi-calendar3 me-1"></i>{{ operacao.data_aquisicao|date:"d/m/Y" }}
+                    </span>
+                </div>
             </div>
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <a href="{% url 'operacoes:gerar_termo_cessao' operacao.pk %}" class="btn btn-primary">
                 <i class="bi bi-file-word me-2"></i>Gerar Termo
             </a>
-            <a href="{% url 'operacoes:cnab_parametros' operacao.pk %}" class="btn-ghost-ds">
+            <a href="{% url 'operacoes:cnab_parametros' operacao.pk %}" class="btn btn-ghost-ds">
                 <i class="bi bi-file-earmark-arrow-down me-2"></i>CNAB
-            </a>
-            <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ operacao.fundo_id }}" class="btn-ghost-ds">
-                <i class="bi bi-arrow-left me-2"></i>Voltar
             </a>
         </div>
     </div>

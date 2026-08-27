@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load ui %}
 
 {% block title %}Títulos (Recebíveis){% endblock %}
 
@@ -8,10 +9,13 @@
 <!-- Page Hero -->
 <div class="page-hero">
     <div class="page-hero__inner">
-        <div>
-            <p class="page-hero__label">Operações</p>
-            <h1 class="page-hero__title">Títulos (Recebíveis)</h1>
-            <p class="page-hero__subtitle">Gerencie os recebíveis cedidos e monitore seus saldos e status.</p>
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">Operações</p>
+                <h1 class="page-hero__title">Títulos (Recebíveis)</h1>
+                <p class="page-hero__subtitle">Gerencie os recebíveis cedidos e monitore seus saldos e status.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -46,11 +50,11 @@
                 <option value="true" {% if request.GET.ativo == 'true' %}selected{% endif %}>Ativos</option>
                 <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Baixados</option>
             </select>
-            <button type="submit" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+            <button type="submit" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
             {% if request.GET.ativo %}
-                <a href="{% url 'operacoes:listar_titulos' %}" class="btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <a href="{% url 'operacoes:listar_titulos' %}" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
                     <i class="bi bi-x me-1"></i>Limpar
                 </a>
             {% endif %}
