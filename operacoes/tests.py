@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -9,7 +10,7 @@ from django.urls import reverse
 from fundos.models import Fundo, TipoFundo
 from usuarios.models import Empresa
 from .models import OperacaoCessao
-from .services.cessao import processar_cessao
+from .services.cessao import processar_cessao, calcular_valor_presente
 
 
 XML_PATH = Path(
@@ -25,9 +26,34 @@ XML_REAL_PATH = (
 )
 
 
-def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="2026-05-11"):
+def _nfe_xml_upload(cnpj_cedente, numero_nota, chave, valor="1000.00", vencimento="2026-09-01"):
+    """Monta um XML de NF-e mínimo (mesma estrutura nfeProc + protNFe dos
+    arquivos reais) como SimpleUploadedFile, com CNPJ do cedente
+    parametrizável — usado para testar o agrupamento por cedente no import
+    em lote (cedentes diferentes não podem cair na mesma OperacaoCessao,
+    já que o modelo só guarda um cedente por operação)."""
+    xml_bytes = f"""<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe{chave}" versao="4.00">
+      <ide><nNF>{numero_nota}</nNF><dhEmi>2026-08-01T00:00:00-03:00</dhEmi></ide>
+      <emit><CNPJ>{cnpj_cedente}</CNPJ><xNome>CEDENTE {cnpj_cedente}</xNome></emit>
+      <dest><CNPJ>43201151000110</CNPJ><xNome>SACADO TESTE LTDA</xNome></dest>
+      <cobr><fat><nFat>{numero_nota}</nFat></fat><dup><nDup>001</nDup><dVenc>{vencimento}</dVenc><vDup>{valor}</vDup></dup></cobr>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt><chNFe>{chave}</chNFe></infProt>
+  </protNFe>
+</nfeProc>""".encode("utf-8")
+    return SimpleUploadedFile(f"nfe_{numero_nota}.xml", xml_bytes, content_type="text/xml")
+
+
+def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="2026-05-11", taxa_desconto="0"):
     """Monta o dict de POST (prefixado por bloco, como o template gera) para
-    confirmar uma operação a partir de um único título."""
+    confirmar uma operação a partir de um único título. `taxa_desconto`
+    default '0' mantém o valor presente igual ao nominal, preservando o
+    comportamento dos testes que já existiam antes dessa feature."""
     op = f"op{idx}"
     tit = f"tit{idx}"
     return {
@@ -35,6 +61,7 @@ def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="20
         f"{op}-numero_contrato": numero_contrato,
         f"{op}-data_contrato": "2026-07-21",
         f"{op}-data_aquisicao": "2026-07-21",
+        f"{op}-taxa_desconto": taxa_desconto,
         f"{op}-cedente_cnpj": "02455462000129",
         f"{op}-cedente_nome": "PROTURBO USINAGEM DE PRECISAO LTDA.",
         f"{op}-cedente_endereco": "",
@@ -82,14 +109,14 @@ class WorkflowCessaoXmlTest(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
-    def _parse_xml(self, n_arquivos=1, xml_path=None):
+    def _parse_xml(self, n_arquivos=1, xml_path=None, taxa_desconto_import="0"):
         from contextlib import ExitStack
         xml_path = xml_path or XML_PATH
         with ExitStack() as stack:
             arquivos = [stack.enter_context(open(xml_path, "rb")) for _ in range(n_arquivos)]
             response = self.client.post(
                 reverse("operacoes:workflow_cessao"),
-                {"acao": "parse_xml", "xml_file": arquivos},
+                {"acao": "parse_xml", "xml_file": arquivos, "taxa_desconto_import": taxa_desconto_import},
             )
         self.assertEqual(response.status_code, 200)
         return response
@@ -126,6 +153,7 @@ class WorkflowCessaoXmlTest(TestCase):
                 {
                     "acao": "parse_xml",
                     "xml_file": f,
+                    "taxa_desconto_import": "0",
                     "op0-fundo": str(self.fundo.pk),
                     "op0-data_contrato": "2026-01-15",
                     "op0-data_aquisicao": "2026-01-16",
@@ -179,6 +207,42 @@ class WorkflowCessaoXmlTest(TestCase):
         self.assertIn("35260502455462000129550010001545861100956966", detalhe)  # NFE (não mais zeros)
         self.assertEqual(detalhe[10:20], "0000000000")  # taxa de juros vazia -> zero-fill
         self.assertEqual(linhas[2][-6:], "000003")  # trailer count correto
+
+    def test_cnab_traz_vl_nominal_e_vl_presente_em_posicoes_separadas(self):
+        """VL_NOMINAL (pos. 127-139) e VL_PRESENTE (pos. 193-205) são dois
+        campos monetários DISTINTOS no CNAB — confirmado pelo cabeçalho e
+        pela fórmula reais da planilha GERADOR_OPERAÇÕES_ESTOQUE.xlsm
+        (colunas F e I da aba BASE). VL_NOMINAL é o valor cheio da
+        duplicata; VL_PRESENTE é o nominal descontado pela taxa_desconto —
+        eles não podem sair iguais quando a taxa é != 0, e nenhum dos dois
+        é o valor pago/liquidado (VALOR_PAGO_TITULO, pos. 83-92)."""
+        post_data = {"acao": "confirmar", "total_blocos": "1"}
+        post_data.update(_bloco_post_data(
+            0, "NF-CNAB-VLPRESENTE", self.fundo.pk,
+            "35260502455462000129550010009999998800956966",
+            taxa_desconto="0.60",
+        ))
+        response = self.client.post(reverse("operacoes:workflow_cessao"), post_data)
+        self.assertEqual(response.status_code, 302, response.content.decode("utf-8")[:2000])
+        operacao = OperacaoCessao.objects.get(numero_contrato="NF-CNAB-VLPRESENTE")
+        titulo = operacao.titulos.get()
+        self.assertEqual(titulo.valor_nominal, Decimal("80911.50"))
+        self.assertEqual(titulo.valor_aquisicao, Decimal("80426.03"))  # valor presente
+
+        response = self.client.post(
+            reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
+            {"dtl": "2026-07-21"},
+        )
+        self.assertEqual(response.status_code, 200)
+        detalhe = response.content.decode("utf-8").splitlines()[1]
+
+        # Posições 1-based 127-139 -> slice Python [126:139].
+        self.assertEqual(detalhe[126:139], "0000008091150")  # VL_NOMINAL = valor_nominal cheio
+        # Posições 1-based 193-205 -> slice Python [192:205].
+        self.assertEqual(detalhe[192:205], "0000008042603")  # VL_PRESENTE = valor_aquisicao
+        # VALOR_PAGO_TITULO (pos. 83-92, 1-based -> slice [82:92]) continua
+        # zerado: título recém-criado, sem liquidação.
+        self.assertEqual(detalhe[82:92], "0000000000")
 
     def test_cnab_bloqueado_se_fundo_sem_cdo(self):
         """Sem CDO cadastrado no fundo, a geração deve ser bloqueada com uma
@@ -247,20 +311,69 @@ class WorkflowCessaoXmlTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(OperacaoCessao.objects.filter(numero_contrato="NF-MANUAL-1").exists())
 
-    def test_parse_xml_em_lote_gera_um_bloco_por_arquivo(self):
-        """Upload de 2 XMLs no mesmo envio deve gerar 2 blocos de revisão
-        independentes (op0/tit0 e op1/tit1), sem agrupar títulos."""
-        response = self._parse_xml(n_arquivos=2)
+    def test_parse_xml_em_lote_mesmo_cedente_agrupa_em_um_bloco(self):
+        """N XMLs do MESMO cedente no mesmo envio devem virar 1 único bloco
+        de revisão (op0) com N títulos (tit0-0, tit0-1, ...) — replica o
+        comportamento real da planilha legada (GERADOR_OPERAÇÕES_ESTOQUE.xlsm):
+        um lote de import de um cedente vira uma única cessão com várias
+        duplicatas, não uma cessão por nota fiscal."""
+        with open(XML_PATH, "rb") as f1, open(XML_REAL_PATH, "rb") as f2:
+            response = self.client.post(
+                reverse("operacoes:workflow_cessao"),
+                {"acao": "parse_xml", "xml_file": [f1, f2], "taxa_desconto_import": "0"},
+            )
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode("utf-8")
+
+        self.assertIn('name="op0-fundo"', html)
+        self.assertNotIn('name="op1-fundo"', html)  # só 1 bloco, não 2
+        # INITIAL_FORMS=2 confirma 2 títulos REAIS (vindos do XML) nesse
+        # bloco — o formset sempre soma +1 form extra em branco por cima
+        # disso (TOTAL_FORMS=3), então não dá pra usar a mera presença de
+        # "tit0-1-numero_titulo" como sinal (ele existiria de qualquer jeito,
+        # até com 1 título só, por causa do form extra).
+        self.assertIn('name="tit0-INITIAL_FORMS" value="2"', html)
+        self.assertIn('name="tit0-0-numero_titulo"', html)
+        self.assertIn('name="tit0-1-numero_titulo"', html)  # 2º título no MESMO bloco
+        # numero_contrato fica em branco (não há 1 única NF para nomear o
+        # contrato de uma operação com vários títulos) — Django omite o
+        # atributo value="" por completo quando o valor é string vazia.
+        self.assertNotIn('name="op0-numero_contrato" value="NF-', html)
+
+    def test_parse_xml_em_lote_cedentes_diferentes_gera_blocos_separados(self):
+        """XMLs de cedentes DIFERENTES no mesmo envio não podem cair na
+        mesma OperacaoCessao (o modelo só guarda um cedente por operação) —
+        devem virar blocos (op0/op1) separados."""
+        arquivo_a = _nfe_xml_upload("11111111000191", "9001", "1" * 44)
+        arquivo_b = _nfe_xml_upload("22222222000172", "9002", "2" * 44)
+        response = self.client.post(
+            reverse("operacoes:workflow_cessao"),
+            {"acao": "parse_xml", "xml_file": [arquivo_a, arquivo_b], "taxa_desconto_import": "0"},
+        )
+        self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
 
         self.assertIn('name="op0-fundo"', html)
         self.assertIn('name="op1-fundo"', html)
+        self.assertIn('value="11111111000191"', html)
+        self.assertIn('value="22222222000172"', html)
+        # Cada bloco com exatamente 1 título REAL — nada foi misturado (o
+        # form extra em branco do formset ainda aparece em cada bloco, daí
+        # checar INITIAL_FORMS em vez da mera presença de "tit*-1-...").
+        self.assertIn('name="tit0-INITIAL_FORMS" value="1"', html)
+        self.assertIn('name="tit1-INITIAL_FORMS" value="1"', html)
         self.assertIn('name="tit0-0-numero_titulo"', html)
         self.assertIn('name="tit1-0-numero_titulo"', html)
+        # Com 1 único título no grupo, a sugestão de numero_contrato = NF-{nNF}
+        # continua valendo (não fica em branco).
+        self.assertIn('name="op0-numero_contrato" value="NF-9001"', html)
+        self.assertIn('name="op1-numero_contrato" value="NF-9002"', html)
 
     def test_confirmar_lote_cria_uma_operacao_por_bloco(self):
         """Confirmar um lote com 2 blocos deve criar 2 OperacaoCessao
-        distintas, cada uma com seu próprio título — sem agrupar."""
+        distintas, cada uma com seu próprio título — sem agrupar. Testa a
+        ação "confirmar" diretamente (blocos já montados no POST), não a
+        etapa de import/agrupamento em si."""
         self._parse_xml(n_arquivos=2)
 
         post_data = {"acao": "confirmar", "total_blocos": "2"}
@@ -304,6 +417,7 @@ class WorkflowCessaoXmlTest(TestCase):
             "op0-numero_contrato": "NF-155771",
             "op0-data_contrato": "2026-07-21",
             "op0-data_aquisicao": "2026-07-21",
+            "op0-taxa_desconto": "0",
             "op0-cedente_cnpj": "02455462000129",
             "op0-cedente_nome": "PROTURBO USINAGEM DE PRECISAO LTDA.",
             "op0-cedente_endereco": "",
@@ -334,6 +448,8 @@ class WorkflowCessaoXmlTest(TestCase):
         self.assertEqual(titulo.sacado_cep, "07180900")
         self.assertEqual(titulo.data_emissao, date(2026, 6, 15))
         self.assertEqual(titulo.valor_nominal, Decimal("21448.80"))
+        # taxa_desconto = 0 nesta operação -> valor presente = valor nominal.
+        self.assertEqual(titulo.valor_aquisicao, Decimal("21448.80"))
 
         cnab_response = self.client.post(
             reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
@@ -346,3 +462,118 @@ class WorkflowCessaoXmlTest(TestCase):
             self.assertEqual(len(linha), 444)
         detalhe = linhas[1]
         self.assertIn("35260602455462000129550010001557711769163725", detalhe)
+
+    def test_parse_xml_sem_taxa_desconto_e_bloqueado(self):
+        """Sem a taxa de desconto informada, o import do XML não deve
+        processar nenhum arquivo — o valor presente depende dela."""
+        with open(XML_PATH, "rb") as f:
+            response = self.client.post(
+                reverse("operacoes:workflow_cessao"),
+                {"acao": "parse_xml", "xml_file": f},
+            )
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode("utf-8")
+        self.assertIn("Informe uma taxa de desconto válida", html)
+        # Nenhum bloco processado: continua só o bloco vazio inicial (op0),
+        # sem os dados vindos do XML.
+        self.assertNotIn("35260502455462000129550010001545861100956966", html)
+
+    def test_confirmar_calcula_valor_presente_com_taxa_da_operacao(self):
+        """Com taxa_desconto != 0, valor_aquisicao (valor presente) do
+        título deve sair da fórmula ARRED(nominal - nominal*taxa; 2),
+        recalculada no servidor — não o valor bruto que veio no POST."""
+        post_data = {"acao": "confirmar", "total_blocos": "1"}
+        post_data.update(_bloco_post_data(
+            0, "NF-TAXA-1", self.fundo.pk, "", taxa_desconto="0.60",
+        ))
+        # Mesmo que o POST tente forçar um valor_aquisicao diferente do
+        # calculado, o servidor deve ignorá-lo e recalcular.
+        post_data["tit0-0-valor_aquisicao"] = "1.00"
+        response = self.client.post(reverse("operacoes:workflow_cessao"), post_data)
+
+        self.assertEqual(response.status_code, 302, response.content.decode("utf-8")[:2000])
+        operacao = OperacaoCessao.objects.get(numero_contrato="NF-TAXA-1")
+        titulo = operacao.titulos.get()
+
+        self.assertEqual(operacao.taxa_desconto, Decimal("0.6000"))
+        # 80911.50 - 80911.50 * 0.006 = 80426.026999... -> ARRED = 80426.03
+        self.assertEqual(titulo.valor_aquisicao, Decimal("80426.03"))
+        self.assertEqual(operacao.valor_total_aquisicao, Decimal("80426.03"))
+
+    def test_parse_xml_aceita_taxa_com_virgula(self):
+        """O campo de taxa da Etapa 1 é texto livre (não <input type="number">,
+        que trava a digitação de vírgula em vários navegadores) — o servidor
+        precisa interpretar "2,88" da mesma forma que "2.88"."""
+        response = self._parse_xml(taxa_desconto_import="2,88")
+        html = response.content.decode("utf-8")
+        self.assertNotIn("Informe uma taxa de desconto válida", html)
+        self.assertIn("35260502455462000129550010001545861100956966", html)  # chave_nfe do XML importado
+
+    def test_parse_xml_taxa_fora_da_faixa_e_bloqueado(self):
+        """Sem min/max nativos do HTML no campo (agora texto livre), a
+        validação de faixa 0-100 precisa acontecer inteiramente no servidor."""
+        response = self._parse_xml(taxa_desconto_import="150")
+        html = response.content.decode("utf-8")
+        self.assertIn("Informe uma taxa de desconto válida", html)
+
+
+class CessaoOperacaoFormTaxaDescontoTest(TestCase):
+    """`taxa_desconto` precisa aceitar tanto vírgula quanto ponto como
+    separador decimal (PercentualDecimalField em operacoes/forms.py)."""
+
+    def _dados_minimos(self, **overrides):
+        dados = {
+            "fundo": "",  # ModelChoiceField: só testamos taxa_desconto isoladamente
+            "numero_contrato": "NF-1",
+            "data_contrato": "2026-01-01",
+            "data_aquisicao": "2026-01-01",
+            "taxa_desconto": "2,88",
+            "cedente_cnpj": "00000000000100",
+            "cedente_nome": "Cedente Teste",
+        }
+        dados.update(overrides)
+        return dados
+
+    def test_aceita_taxa_com_virgula(self):
+        from .forms import CessaoOperacaoForm
+        form = CessaoOperacaoForm(data=self._dados_minimos(taxa_desconto="2,88"))
+        form.is_valid()
+        self.assertEqual(form.cleaned_data.get("taxa_desconto"), Decimal("2.88"))
+
+    def test_aceita_taxa_com_ponto(self):
+        from .forms import CessaoOperacaoForm
+        form = CessaoOperacaoForm(data=self._dados_minimos(taxa_desconto="2.88"))
+        form.is_valid()
+        self.assertEqual(form.cleaned_data.get("taxa_desconto"), Decimal("2.88"))
+
+    def test_rejeita_taxa_acima_de_100(self):
+        from .forms import CessaoOperacaoForm
+        form = CessaoOperacaoForm(data=self._dados_minimos(taxa_desconto="150"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("taxa_desconto", form.errors)
+
+
+class CalcularValorPresenteTest(TestCase):
+    """Cobertura unitária da fórmula do valor presente, isolada do fluxo
+    web: VL_PRESENTE = ARRED(VL_NOMINAL - VL_NOMINAL * TAXA_DESCONTO; 2)."""
+
+    def test_formula_basica(self):
+        self.assertEqual(
+            calcular_valor_presente("80911.50", "0.60"), Decimal("80426.03")
+        )
+
+    def test_taxa_zero_mantem_valor_nominal(self):
+        self.assertEqual(
+            calcular_valor_presente("100.00", "0"), Decimal("100.00")
+        )
+
+    def test_arredondamento_half_up_nao_bankers_rounding(self):
+        # 100.00 - 100.00 * 0.00125 = 99.875 -> ARRED (half-up) = 99.88,
+        # não 99.87 (o que round() nativo do Python daria, por ser
+        # bankers' rounding).
+        self.assertEqual(
+            calcular_valor_presente("100.00", "0.125"), Decimal("99.88")
+        )
+
+    def test_entrada_none_e_tratada_como_zero(self):
+        self.assertEqual(calcular_valor_presente(None, None), Decimal("0.00"))

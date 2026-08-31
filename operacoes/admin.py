@@ -18,11 +18,12 @@ class TituloInline(admin.TabularInline):
 @admin.register(OperacaoCessao)
 class OperacaoCessaoAdmin(admin.ModelAdmin):
     list_display = [
-        'numero_contrato', 
-        'cedente_nome', 
-        'fundo', 
-        'data_aquisicao', 
+        'numero_contrato',
+        'cedente_nome',
+        'fundo',
+        'data_aquisicao',
         'valor_total_nominal',
+        'taxa_desconto',
         'status'
     ]
     list_filter = ['status', 'fundo', 'data_aquisicao']
@@ -37,7 +38,7 @@ class OperacaoCessaoAdmin(admin.ModelAdmin):
             'fields': ('cedente_cnpj', 'cedente_nome', 'cedente_endereco')
         }),
         ('Valores', {
-            'fields': ('valor_total_nominal', 'valor_total_aquisicao')
+            'fields': ('taxa_desconto', 'valor_total_nominal', 'valor_total_aquisicao')
         }),
         ('Observações', {
             'fields': ('observacoes',),

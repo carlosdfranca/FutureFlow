@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
 import uuid
@@ -61,7 +62,17 @@ class OperacaoCessao(models.Model):
     numero_contrato = models.CharField(max_length=50, unique=True, db_index=True)
     data_contrato = models.DateField()
     data_aquisicao = models.DateField(help_text='Data de aquisição dos títulos pelo fundo')
-    
+
+    # Taxa de desconto aplicada sobre o valor nominal para obter o valor
+    # presente de cada título da operação. Percentual (0.60 = 0,6%).
+    # VL_PRESENTE = ARRED(VL_NOMINAL - VL_NOMINAL * TAXA_DESCONTO; 2)
+    taxa_desconto = models.DecimalField(
+        max_digits=7,
+        decimal_places=4,
+        default=Decimal('0'),
+        help_text='Taxa de desconto em % aplicada sobre o valor nominal para obter o valor presente'
+    )
+
     # Valores Totais
     valor_total_nominal = models.DecimalField(
         max_digits=16,
@@ -71,7 +82,7 @@ class OperacaoCessao(models.Model):
     valor_total_aquisicao = models.DecimalField(
         max_digits=16,
         decimal_places=2,
-        help_text='Valor pago pelo fundo na aquisição'
+        help_text='Valor presente total (soma dos valores nominais descontados pela taxa_desconto)'
     )
     
     # Controle
@@ -150,7 +161,7 @@ class Titulo(models.Model):
     valor_aquisicao = models.DecimalField(
         max_digits=16,
         decimal_places=2,
-        help_text='Valor pago pelo fundo'
+        help_text='Valor presente do título: valor nominal descontado pela taxa_desconto da operação'
     )
     
     # Datas

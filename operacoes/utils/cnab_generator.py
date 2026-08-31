@@ -112,8 +112,9 @@ def gerar_linha_detalhe(base_record: dict, index: int, menu_data: dict) -> str:
         rep("0", 12) +                                           # Zeros (12 chars)
         rep("0", 6) +                                            # Zeros (6 chars)
         rep("0", 13) +                                           # Zeros (13 chars)
-        # VL_PAGO (coluna 9) - 13 chars, preenchido com zeros
-        pad_left_zeros(format_valor(base_record["VL_PAGO"]), 13) +
+        # VL_PRESENTE (coluna 9) - 13 chars, preenchido com zeros. Valor
+        # presente (nominal descontado pela taxa_desconto), NÃO valor pago.
+        pad_left_zeros(format_valor(base_record["VL_PRESENTE"]), 13) +
         rep("0", 13) +                                           # Zeros (13 chars)
         # IDENTIFICACAO_CPF_CNPJ_SACADO (coluna 10) - "01" ou "02"
         ("01" if identificacao_sacado == "1" else "02") +
@@ -121,8 +122,12 @@ def gerar_linha_detalhe(base_record: dict, index: int, menu_data: dict) -> str:
         cpf_cnpj_sacado +
         # NM_SACADO (coluna 8) - 40 chars, alinhado à esquerda
         pad_right_spaces(base_record["NM_SACADO"].strip()[:40], 40) +
-        # ENDERECO (coluna 11) - 40 chars, alinhado à esquerda
-        pad_right_spaces(base_record["ENDERECO"].strip()[:40], 40) +
+        # ENDERECO (coluna 11) - 40 chars. O banco ainda não aceita este
+        # campo preenchido no CNAB (confirmado com quem mantém a macro
+        # legada): o endereço continua sendo capturado/armazenado no
+        # sistema normalmente, mas aqui a posição sai só com espaços até
+        # que o banco passe a aceitar o dado.
+        rep(" ", 40) +
         rep(" ", 12) +                                           # Espaços (12 chars)
         # CEP (coluna 12) - primeiros 8 chars, alinhado à esquerda
         pad_right_spaces(base_record["CEP"].strip()[:8], 8) +

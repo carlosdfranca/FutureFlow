@@ -61,9 +61,14 @@ OperacaoCessao (contrato/lote)
 ```
 `TipoEventoTitulo` integer values intentionally match CNAB OCORRENCIA codes (e.g. LIQUIDACAO_TOTAL = 6, LIQUIDACAO_PARCIAL = 14).
 
+XML batch import (`workflow_cessao` view, action `parse_xml`) groups títulos **by cedente CNPJ** extracted from the XML: N XMLs from the same cedente in one upload become 1 `OperacaoCessao` with N `Titulo` rows (not N separate operações) — `OperacaoCessao` only stores one cedente, so different cedentes in the same upload still produce separate blocos. See `docs/plano_agrupamento_cessao_e_cnab.md`.
+
 Business logic goes through the service layer (`operacoes/services/cessao.py`):
-- `processar_cessao()` — creates `OperacaoCessao` + `Titulo` list + initial `EventoTitulo(AQUISICAO)` in one `@transaction.atomic`.
+- `processar_cessao()` — creates `OperacaoCessao` + `Titulo` list + initial `EventoTitulo(AQUISICAO)` in one `@transaction.atomic`. Always recalculates `Titulo.valor_aquisicao` (valor presente) server-side from `valor_nominal` and `OperacaoCessao.taxa_desconto` — never trusts the value posted from the form.
+- `calcular_valor_presente(valor_nominal, taxa_desconto_pct)` — `ARRED(nominal - nominal*taxa; 2)` with `ROUND_HALF_UP`; taxa is % (e.g. `0.60` = 0,6%). See `docs/plano_valor_presente_cessao.md`.
 - `criar_evento_titulo()` — creates the event and mutates `Titulo.saldo_devedor` / `Titulo.ativo` as a side effect.
+
+CNAB detail line (`download_cnab_cessao` → `cnab_generator.gerar_linha_detalhe`) has `VL_NOMINAL` (pos. 127-139, `Titulo.valor_nominal`, full value) and `VL_PRESENTE` (pos. 193-205, `Titulo.valor_aquisicao`, discounted) as **separate** fields — do not conflate them. `VALOR_PAGO_TITULO` (pos. 83-92) is the sum of liquidation events, unrelated to either. See `docs/plano_agrupamento_cessao_e_cnab.md`.
 
 ### `core` app
 - Shell/stub views for sections not yet implemented (limites, risco, conformidade, etc.).

@@ -39,14 +39,21 @@
             </div>
             <div class="form-section__body">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label class="form-label" style="color:var(--text-secondary); font-size:0.82rem;">
                             Arquivo(s) NF-e (.xml)
                         </label>
                         <input type="file" name="xml_file" accept=".xml" class="form-control" multiple>
                         <div class="form-text">Selecione um ou mais XML de NF-e para importar os títulos automaticamente. Cada XML gera uma operação separada, com sua própria revisão abaixo.</div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label" for="id_taxa_desconto_import" style="color:var(--text-secondary); font-size:0.82rem;">
+                            Taxa de Desconto (%)
+                        </label>
+                        <input type="text" inputmode="decimal" name="taxa_desconto_import" id="id_taxa_desconto_import" class="form-control" placeholder="2,88" value="{{ taxa_desconto_import|default_if_none:'' }}" required>
+                        <div class="form-text">Obrigatória antes de importar — calcula o valor presente de cada título.</div>
+                    </div>
+                    <div class="col-md-3">
                         <button type="submit" name="acao" value="parse_xml" formnovalidate class="btn btn-primary w-100">
                             <i class="bi bi-arrow-down-circle me-2"></i>Importar XML
                         </button>
@@ -93,18 +100,26 @@
                                 <div class="text-danger small mt-1">{{ bloco.cessao_form.numero_contrato.errors }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             {{ bloco.cessao_form.data_contrato.label_tag }}
                             {{ bloco.cessao_form.data_contrato }}
                             {% if bloco.cessao_form.data_contrato.errors %}
                                 <div class="text-danger small mt-1">{{ bloco.cessao_form.data_contrato.errors }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             {{ bloco.cessao_form.data_aquisicao.label_tag }}
                             {{ bloco.cessao_form.data_aquisicao }}
                             {% if bloco.cessao_form.data_aquisicao.errors %}
                                 <div class="text-danger small mt-1">{{ bloco.cessao_form.data_aquisicao.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ bloco.cessao_form.taxa_desconto.label_tag }}
+                            {{ bloco.cessao_form.taxa_desconto }}
+                            <div class="form-text">{{ bloco.cessao_form.taxa_desconto.help_text }}</div>
+                            {% if bloco.cessao_form.taxa_desconto.errors %}
+                                <div class="text-danger small mt-1">{{ bloco.cessao_form.taxa_desconto.errors }}</div>
                             {% endif %}
                         </div>
                     </div>
@@ -200,12 +215,15 @@
                                             {{ form.valor_nominal }}
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label" for="{{ form.valor_aquisicao.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Valor Aquisição</label>
+                                            <label class="form-label" for="{{ form.valor_aquisicao.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Valor Presente</label>
                                             {{ form.valor_aquisicao }}
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label" for="{{ form.data_vencimento.id_for_label }}" style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.2rem;">Vencimento</label>
                                             {{ form.data_vencimento }}
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <small style="color:var(--text-secondary); font-size:0.72rem;">= nominal &minus; taxa de desconto</small>
                                         </div>
                                     </div>
                                 </div>
@@ -235,6 +253,45 @@
 </div>
 
 <script>
+// === Valor Presente (calculado no cliente, só como conveniência de UI —
+// o servidor sempre recalcula em processar_cessao a partir da taxa da
+// operação, então esse cálculo aqui nunca é a fonte de verdade) ===
+function calcularValorPresenteJS(valorNominal, taxaPct) {
+    const vn = parseFloat(valorNominal);
+    // taxaPct pode vir com vírgula (campo de texto, formato brasileiro).
+    const taxa = parseFloat(String(taxaPct).replace(',', '.'));
+    if (isNaN(vn) || isNaN(taxa)) return '';
+    return (Math.round(vn * (1 - taxa / 100) * 100) / 100).toFixed(2);
+}
+
+function recalcularValoresPresentes(blocoIndex) {
+    const taxaInput = document.getElementById('id_op' + blocoIndex + '-taxa_desconto');
+    const container = document.getElementById('titulos-container-' + blocoIndex);
+    if (!taxaInput || !container) return;
+    const taxa = taxaInput.value;
+    container.querySelectorAll('.titulo-form').forEach(function (card) {
+        const nominalInput = card.querySelector('input[name$="-valor_nominal"]');
+        const presenteInput = card.querySelector('input[name$="-valor_aquisicao"]');
+        if (!nominalInput || !presenteInput) return;
+        const calculado = calcularValorPresenteJS(nominalInput.value, taxa);
+        if (calculado !== '') presenteInput.value = calculado;
+    });
+}
+
+document.querySelectorAll('input[id$="-taxa_desconto"]').forEach(function (taxaInput) {
+    const blocoIndex = taxaInput.id.replace('id_op', '').replace('-taxa_desconto', '');
+    taxaInput.addEventListener('input', function () { recalcularValoresPresentes(blocoIndex); });
+});
+
+document.querySelectorAll('.titulos-container').forEach(function (container) {
+    const blocoIndex = container.id.replace('titulos-container-', '');
+    container.addEventListener('input', function (e) {
+        if (e.target.name && e.target.name.endsWith('-valor_nominal')) {
+            recalcularValoresPresentes(blocoIndex);
+        }
+    });
+});
+
 // === Remover Título (delegado por bloco) ===
 document.querySelectorAll('.titulos-container').forEach(function (container) {
     container.addEventListener('click', function (e) {
@@ -296,6 +353,9 @@ document.querySelectorAll('.add-titulo-btn').forEach(function (btn) {
 
         container.appendChild(newForm);
         totalFormsInput.value = formNum + 1;
+        // O clone nasce com o Valor Presente vazio (input limpo); recalcula
+        // já com a taxa da operação, caso o valor nominal seja preenchido.
+        recalcularValoresPresentes(blocoIndex);
     });
 });
 </script>
