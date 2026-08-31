@@ -1,6 +1,9 @@
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
 
 from core.services.cessao_xml import parse_nfe_xml
+from usuarios.models import Empresa, EmpresaRole, UserEmpresa
 
 
 def _nfe_xml(
@@ -120,3 +123,69 @@ class ParseNfeXmlCamposComplementaresTest(TestCase):
         xml = _nfe_xml(dh_emi="2026-05-11T10:23:00-03:00")
         result = parse_nfe_xml(xml)
         self.assertEqual(result.titulos[0].data_emissao_iso, "2026-05-11")
+
+
+class TrocarEmpresaViewTest(TestCase):
+    """
+    Regressão para o bug em core/views.py::trocar_empresa: `empresa_id` só
+    era atribuída dentro do `if request.method == "POST":`, mas usada fora
+    do bloco — qualquer GET explodia com UnboundLocalError (500), expondo
+    o traceback completo do Django (settings.py, credenciais MySQL/Azure)
+    porque DEBUG=True em produção. Também cobre 2 problemas achados no
+    mesmo bloco: ausência de validação de que a empresa existe (o ramo
+    superuser gravava qualquer empresa_id cru na sessão — um valor não
+    numérico faz `Empresa.objects.get(id=...)` no middleware levantar
+    ValueError, não capturado, quebrando a PRÓXIMA requisição também) e
+    redirect aberto via HTTP_REFERER sem validação.
+    """
+
+    def setUp(self):
+        self.empresa1 = Empresa.objects.create(nome="Empresa 1", cnpj="00000000000100")
+        self.empresa2 = Empresa.objects.create(nome="Empresa 2", cnpj="00000000000200")
+        role = EmpresaRole.objects.create(empresa=self.empresa1, nome="Padrão")
+        User = get_user_model()
+        self.user = User.objects.create_user(username="tester", password="senha123")
+        UserEmpresa.objects.create(user=self.user, empresa=self.empresa1, role=role)
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_get_nao_quebra_mais(self):
+        response = self.client.get(reverse("trocar_empresa"))
+        self.assertEqual(response.status_code, 405)  # antes: 500 (UnboundLocalError)
+
+    def test_troca_para_empresa_vinculada(self):
+        self.client.post(reverse("trocar_empresa"), {"empresa_id": str(self.empresa1.id)})
+        self.assertEqual(self.client.session["empresa_ativa"], self.empresa1.id)
+
+    def test_recusa_empresa_nao_vinculada(self):
+        self.client.post(reverse("trocar_empresa"), {"empresa_id": str(self.empresa2.id)})
+        self.assertNotEqual(self.client.session.get("empresa_ativa"), self.empresa2.id)
+
+    def test_empresa_id_nao_numerico_nao_quebra(self):
+        response = self.client.post(reverse("trocar_empresa"), {"empresa_id": "abc"})
+        self.assertEqual(response.status_code, 302)
+
+    def test_empresa_id_inexistente_nao_quebra(self):
+        response = self.client.post(reverse("trocar_empresa"), {"empresa_id": "999999"})
+        self.assertEqual(response.status_code, 302)
+
+    def test_superuser_pode_trocar_para_qualquer_empresa(self):
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.post(reverse("trocar_empresa"), {"empresa_id": str(self.empresa2.id)})
+        self.assertEqual(self.client.session["empresa_ativa"], self.empresa2.id)
+
+    def test_superuser_com_empresa_inexistente_nao_grava_na_sessao(self):
+        self.user.is_superuser = True
+        self.user.save()
+        response = self.client.post(reverse("trocar_empresa"), {"empresa_id": "999999"})
+        self.assertEqual(response.status_code, 302)
+        self.assertNotEqual(self.client.session.get("empresa_ativa"), 999999)
+
+    def test_redirect_externo_e_ignorado(self):
+        response = self.client.post(
+            reverse("trocar_empresa"),
+            {"empresa_id": str(self.empresa1.id)},
+            HTTP_REFERER="https://evil.example.com/phish",
+        )
+        self.assertNotIn("evil.example.com", response.url)

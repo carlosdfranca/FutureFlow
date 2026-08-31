@@ -216,3 +216,6 @@ media/
 
 *.bak
 celerybeat-schedule*
+
+# Material recebido de cliente (propostas, specs) - não é código do projeto
+/Espelho_lamina_acompanhamento_Future_Flow/
