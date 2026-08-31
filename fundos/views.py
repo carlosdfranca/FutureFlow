@@ -404,6 +404,33 @@ def detalhe_informe(request, fundo_id, informe_id):
 
 
 @login_required
+def lamina_informe_pdf(request, fundo_id, informe_id):
+    """Gera a Lâmina de Acompanhamento (PDF A4, 1 página) de um Fundo para
+    a competência de um InformeMensal específico. Ver fundos/services/lamina.py."""
+    empresa = request.empresa_ativa
+    fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)
+
+    if not _check_pode_ver_informes(request):
+        messages.error(request, 'Você não tem permissão para visualizar informes mensais.')
+        return redirect('fundos:listar_fundos')
+
+    informe = get_object_or_404(InformeMensal, id=informe_id, fundo=fundo)
+
+    from .services.lamina import montar_dados_lamina
+    from weasyprint import HTML
+    from django.template.loader import render_to_string
+    from django.http import HttpResponse
+
+    html_string = render_to_string('fundos/lamina_pdf.html', montar_dados_lamina(fundo, informe))
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    nome_arquivo = f"lamina_{fundo.cnpj}_{informe.competencia_display.replace('/', '-')}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nome_arquivo}"'
+    return response
+
+
+@login_required
 def excluir_informe(request, fundo_id, informe_id):
     empresa = request.empresa_ativa
     fundo = get_object_or_404(Fundo, id=fundo_id, empresa=empresa)

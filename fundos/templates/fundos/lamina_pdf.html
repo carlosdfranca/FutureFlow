@@ -1,0 +1,259 @@
+{% load fundos_filters %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Lâmina de Acompanhamento — {{ fundo.razao_social }}</title>
+<style>
+    @page {
+        size: A4 portrait;
+        margin: 14mm 12mm;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: system-ui, "Segoe UI", Arial, sans-serif;
+        font-size: 9pt;
+        color: #1c1c1e;
+        margin: 0;
+    }
+
+    .lamina-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2pt solid #6B1A2A;
+        padding-bottom: 6pt;
+        margin-bottom: 10pt;
+    }
+    .lamina-header__titulo h1 {
+        font-size: 15pt;
+        margin: 0 0 2pt 0;
+        color: #6B1A2A;
+        text-transform: uppercase;
+        letter-spacing: 0.3pt;
+    }
+    .lamina-header__titulo p {
+        margin: 0;
+        font-size: 8.5pt;
+        color: #4a4a4a;
+    }
+    .lamina-header__logo img { height: 26pt; }
+
+    h2.bloco-titulo {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.6pt;
+        color: #ffffff;
+        background: #6B1A2A;
+        padding: 3pt 6pt;
+        margin: 10pt 0 6pt 0;
+    }
+
+    table.tabela-rentab { width: 100%; border-collapse: collapse; font-size: 8pt; }
+    table.tabela-rentab th, table.tabela-rentab td {
+        border: 0.5pt solid #d8d0cc;
+        padding: 3pt 4pt;
+        text-align: center;
+    }
+    table.tabela-rentab th { background: #f4efe9; font-weight: 600; }
+    table.tabela-rentab td.ano { font-weight: 600; text-align: left; background: #f9f6f3; }
+    td.negativo { color: #b3261e; }
+    td.positivo { color: #1e7a3a; }
+
+    .estat-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6pt;
+    }
+    .estat-grid__item {
+        flex: 1 1 30%;
+        border: 0.5pt solid #d8d0cc;
+        padding: 5pt 6pt;
+    }
+    .estat-grid__label { font-size: 7pt; color: #6c6c70; text-transform: uppercase; }
+    .estat-grid__valor { font-size: 10.5pt; font-weight: 700; }
+    .estat-cobertura { font-size: 7.5pt; color: #8a5a00; margin-top: 3pt; }
+
+    table.tabela-ativos { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+    table.tabela-ativos th, table.tabela-ativos td {
+        border: 0.5pt solid #d8d0cc;
+        padding: 4pt 6pt;
+    }
+    table.tabela-ativos th { background: #f4efe9; text-align: left; }
+    table.tabela-ativos td.pct { text-align: right; width: 60pt; }
+
+    .status-enq {
+        display: inline-block;
+        padding: 4pt 10pt;
+        font-weight: 700;
+        font-size: 9pt;
+        border-radius: 3pt;
+    }
+    .status-enq--enquadrado { background: #e3f3e8; color: #1e7a3a; }
+    .status-enq--desenquadrado { background: #fbe4e2; color: #b3261e; }
+    .status-enq--nao-avaliado { background: #eee8e2; color: #6c6c70; }
+    .status-enq__nota { font-size: 7pt; color: #6c6c70; margin-top: 3pt; }
+
+    .duas-colunas { display: flex; gap: 14pt; }
+    .duas-colunas > div { flex: 1; }
+
+    table.tabela-info { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+    table.tabela-info td { padding: 2.5pt 0; }
+    table.tabela-info td.rotulo { color: #6c6c70; width: 55%; }
+    table.tabela-info td.valor { font-weight: 600; text-align: right; }
+
+    .dados-fundo p { margin: 0 0 5pt 0; font-size: 8.5pt; }
+    .dados-fundo .rotulo { color: #6c6c70; }
+
+    .disclaimer {
+        margin-top: 10pt;
+        font-size: 6.5pt;
+        line-height: 1.35;
+        color: #6c6c70;
+        border-top: 0.5pt solid #d8d0cc;
+        padding-top: 5pt;
+    }
+
+    .rodape {
+        margin-top: 6pt;
+        display: flex;
+        justify-content: space-between;
+        font-size: 6.5pt;
+        color: #a8a2a0;
+    }
+</style>
+</head>
+<body>
+
+<div class="lamina-header">
+    <div class="lamina-header__titulo">
+        <h1>Lâmina de Acompanhamento</h1>
+        <p>{{ fundo.razao_social }}</p>
+        <p>CNPJ/MF nº {{ fundo.cnpj|cpf_cnpj }} &nbsp;&nbsp; Data-base: {{ competencia_display }}</p>
+    </div>
+    {% if logo_cinnamon %}
+    <div class="lamina-header__logo">
+        <img src="{{ logo_cinnamon }}" alt="Cinnamon">
+    </div>
+    {% endif %}
+</div>
+
+<h2 class="bloco-titulo">Tabela de Rentabilidade — {{ rotulo_classe }}</h2>
+<table class="tabela-rentab">
+    <thead>
+        <tr>
+            <th>Ano</th>
+            <th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th>
+            <th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="ano">{{ ano_ant }}</td>
+            {% for v in grade_ant %}
+            <td class="{% if v < 0 %}negativo{% elif v > 0 %}positivo{% endif %}">{% if v is not None %}{{ v|floatformat:2 }}%{% else %}-{% endif %}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td class="ano">{{ ano_atual }}</td>
+            {% for v in grade_atual %}
+            <td class="{% if v < 0 %}negativo{% elif v > 0 %}positivo{% endif %}">{% if v is not None %}{{ v|floatformat:2 }}%{% else %}-{% endif %}</td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+
+<h2 class="bloco-titulo">Estatísticas do Fundo</h2>
+<div class="estat-grid">
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Meses positivos</div>
+        <div class="estat-grid__valor">{{ estatisticas.meses_pos }}</div>
+    </div>
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Meses negativos</div>
+        <div class="estat-grid__valor">{{ estatisticas.meses_neg }}</div>
+    </div>
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Maior retorno mensal</div>
+        <div class="estat-grid__valor">{% if estatisticas.maior_ret is not None %}{{ estatisticas.maior_ret|floatformat:2 }}%{% else %}-{% endif %}</div>
+    </div>
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Menor retorno mensal</div>
+        <div class="estat-grid__valor">{% if estatisticas.menor_ret is not None %}{{ estatisticas.menor_ret|floatformat:2 }}%{% else %}-{% endif %}</div>
+    </div>
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Retorno acumulado 12m</div>
+        <div class="estat-grid__valor">{% if estatisticas.ret_12m is not None %}{{ estatisticas.ret_12m|floatformat:2 }}%{% else %}-{% endif %}</div>
+    </div>
+    <div class="estat-grid__item">
+        <div class="estat-grid__label">Retorno desde o início</div>
+        <div class="estat-grid__valor">{% if estatisticas.ret_ini is not None %}{{ estatisticas.ret_ini|floatformat:2 }}%{% else %}-{% endif %}</div>
+    </div>
+</div>
+{% if not estatisticas.cobertura_completa %}
+<p class="estat-cobertura">⚠ Baseado em {{ estatisticas.meses_disponiveis }} de {{ estatisticas.meses_esperados }} meses esperados desde a constituição do fundo — há competências sem informe importado.</p>
+{% endif %}
+
+<h2 class="bloco-titulo">Carteira de Ativos</h2>
+<table class="tabela-ativos">
+    <thead><tr><th>Ativo</th><th class="pct">% Carteira</th></tr></thead>
+    <tbody>
+        {% for a in ativos %}
+        <tr>
+            <td>{{ a.descricao }}</td>
+            <td class="pct">{% if a.percentual is not None %}{{ a.percentual|floatformat:2 }}%{% else %}-{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">Sem composição de carteira informada nesta competência.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p style="margin-top:8pt;">
+    <span class="status-enq status-enq--{% if status_enquadramento == 'Enquadrado' %}enquadrado{% elif status_enquadramento == 'Desenquadrado' %}desenquadrado{% else %}nao-avaliado{% endif %}">
+        Status: {{ status_enquadramento|upper }}
+    </span>
+</p>
+<p class="status-enq__nota">Reflete a composição atual da carteira, podendo não corresponder exatamente à data-base do informe acima.</p>
+
+<div class="duas-colunas">
+    <div>
+        <h2 class="bloco-titulo">Informações Gerais</h2>
+        <table class="tabela-info">
+            <tr><td class="rotulo">Disponibilidade de Caixa</td><td class="valor">R$ {{ informe.vl_disponib|brl }}</td></tr>
+            <tr><td class="rotulo">Número de Ativos</td><td class="valor">{{ num_ativos }}</td></tr>
+            <tr><td class="rotulo">Patrimônio Líquido Atual</td><td class="valor">R$ {{ informe.vl_patrimonio_liquido|brl }}</td></tr>
+            <tr><td class="rotulo">Patrimônio Líquido Médio</td><td class="valor">R$ {{ informe.vl_patrimonio_liquido_medio|brl }}</td></tr>
+            <tr><td class="rotulo">Total de Cotistas</td><td class="valor">{{ informe.qt_total_cotistas|default:"-" }}</td></tr>
+        </table>
+    </div>
+    <div class="dados-fundo">
+        <h2 class="bloco-titulo">Dados do Fundo</h2>
+        <p><span class="rotulo">Tese de Investimento:</span><br>{{ tese_investimento|default:"Não informado" }}</p>
+        <p><span class="rotulo">Público Alvo:</span> {{ publico_alvo }}</p>
+        <p><span class="rotulo">Gestora:</span> {{ fundo.gestor|default:"-" }}</p>
+        <p><span class="rotulo">Administrador:</span> {{ fundo.administrador|default:"-" }}</p>
+    </div>
+</div>
+
+<div class="disclaimer">
+    As informações contidas neste material são de caráter exclusivamente informativo. A rentabilidade passada não
+    representa garantia de rentabilidade futura. Fundos de investimento não contam com a garantia do administrador,
+    do gestor da carteira, de qualquer mecanismo de seguro ou, ainda, do Fundo Garantidor de Créditos - FGC. Os
+    fundos de crédito privado estão sujeitos a risco de perda substancial de seu patrimônio líquido em caso de
+    eventos que acarretem o não pagamento dos ativos integrantes de sua carteira, inclusive por força de
+    intervenção, liquidação, regime de administração temporária, falência, recuperação judicial ou extrajudicial dos
+    emissores responsáveis pelos ativos do fundo. Não há garantia de que este fundo terá o tratamento tributário
+    para fundos de longo prazo. A rentabilidade divulgada não é líquida de impostos e taxa.
+</div>
+
+<div class="rodape">
+    <span>Documento destinado apenas aos cotistas</span>
+    <span>Powered by Cinnamon FutureFlow</span>
+    <span>Documento privado e confidencial</span>
+</div>
+
+</body>
+</html>
