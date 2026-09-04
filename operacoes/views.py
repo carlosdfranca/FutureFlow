@@ -10,7 +10,7 @@ from decimal import Decimal
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
-from .services.cessao import processar_cessao, criar_evento_titulo
+from .services.cessao import processar_cessao, criar_evento_titulo, calcular_valor_presente
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
 from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
@@ -36,7 +36,10 @@ def _novo_bloco(index, cessao_form=None, titulos_formset=None, nome_arquivo=""):
     }
 
 
-def _titulos_iniciais_from_parsed(parsed):
+def _titulos_iniciais_from_parsed(parsed, taxa_desconto):
+    """`valor_aquisicao` (valor presente) já nasce calculado com a taxa de
+    desconto informada antes do import — o campo é somente leitura na tela,
+    mas o servidor recalcula de qualquer forma na confirmação."""
     return [
         {
             "numero_titulo": t.numero_titulo,
@@ -45,7 +48,7 @@ def _titulos_iniciais_from_parsed(parsed):
             "sacado_endereco": t.sacado_endereco,
             "sacado_cep": t.sacado_cep,
             "valor_nominal": t.valor,
-            "valor_aquisicao": t.valor,  # Mesmo valor por padrão
+            "valor_aquisicao": calcular_valor_presente(t.valor, taxa_desconto),
             "data_vencimento": t.vencimento_iso,
             "chave_nfe": t.chave_nfe,
             "data_emissao": t.data_emissao_iso,
@@ -58,9 +61,12 @@ def _titulos_iniciais_from_parsed(parsed):
 def workflow_cessao(request):
     """
     Workflow completo de cessão:
-    1. Upload de um ou mais XML (opcional) → parse automático, um bloco de
-       revisão por NF-e (cada bloco vira sua própria OperacaoCessao — sem
-       agrupar títulos de NF-e diferentes)
+    1. Upload de um ou mais XML (opcional) → parse automático, títulos
+       agrupados por CNPJ do cedente: XMLs do mesmo cedente viram um único
+       bloco de revisão (uma futura OperacaoCessao) com múltiplos títulos;
+       cedentes diferentes no mesmo lote geram blocos separados, nunca
+       misturados na mesma operação (o modelo só guarda um cedente por
+       OperacaoCessao)
     2. Preencher/editar títulos manualmente em cada bloco
     3. Confirmar → salvar todas as operações + títulos + eventos
     4. Gerar documentos (termo cessão, confirmação)
@@ -85,6 +91,26 @@ def workflow_cessao(request):
                 messages.error(request, "Selecione ao menos um arquivo XML.")
                 return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
 
+            # A taxa de desconto é obrigatória antes de importar: é ela que
+            # determina o valor presente (valor_aquisicao) de cada título
+            # já na prévia. `formnovalidate` no botão de importar deixa a
+            # validação (obrigatoriedade e faixa 0-100) só por conta do
+            # servidor — o campo é um <input type="text"> livre (vírgula ou
+            # ponto como decimal), sem min/max nativos do HTML.
+            taxa_desconto_raw = request.POST.get('taxa_desconto_import') or request.POST.get('op0-taxa_desconto')
+            taxa_desconto = None
+            if taxa_desconto_raw:
+                try:
+                    taxa_desconto = Decimal(str(taxa_desconto_raw).strip().replace(',', '.'))
+                except Exception:
+                    taxa_desconto = None
+                if taxa_desconto is not None and not (0 <= taxa_desconto <= 100):
+                    taxa_desconto = None
+
+            if taxa_desconto is None:
+                messages.error(request, "Informe uma taxa de desconto válida (entre 0 e 100) antes de importar o XML.")
+                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+
             # Preserva fundo/datas já escolhidos na tela (bloco 0), se houver —
             # esses campos não vêm do XML (fundo nunca vem; datas só têm default
             # de hoje), então reimportar não deveria forçar o usuário a escolher
@@ -93,8 +119,15 @@ def workflow_cessao(request):
             data_contrato_preservada = request.POST.get('op0-data_contrato') or date.today()
             data_aquisicao_preservada = request.POST.get('op0-data_aquisicao') or date.today()
 
-            blocos_processados = []
-            total_titulos = 0
+            # Agrupa os títulos parseados por CNPJ do cedente: um lote de N
+            # XMLs do mesmo cedente vira 1 único bloco (1 futura
+            # OperacaoCessao) com N títulos — replica o comportamento real
+            # da planilha legada (GERADOR_OPERAÇÕES_ESTOQUE.xlsm), onde um
+            # lote de importação de um cedente gera uma única cessão com
+            # várias duplicatas, não uma cessão por nota fiscal. Cedentes
+            # diferentes no mesmo upload geram grupos (blocos) separados,
+            # já que OperacaoCessao só tem um cedente_cnpj/nome/endereco.
+            grupos = {}  # cedente_doc -> {"partes": PartesCessao, "titulos": [...], "arquivos": [...]}
             erros = 0
             for xml_file in xml_files:
                 try:
@@ -104,31 +137,53 @@ def workflow_cessao(request):
                     messages.error(request, f"Erro ao processar '{xml_file.name}': {str(e)}")
                     continue
 
-                titulos_iniciais = _titulos_iniciais_from_parsed(parsed)
+                grupo = grupos.setdefault(parsed.partes.cedente_doc, {
+                    "partes": parsed.partes, "titulos": [], "arquivos": [],
+                })
+                grupo["titulos"].extend(_titulos_iniciais_from_parsed(parsed, taxa_desconto))
+                grupo["arquivos"].append(xml_file.name)
+
+            blocos_processados = []
+            total_titulos = 0
+            for grupo in grupos.values():
+                # Sugestão de numero_contrato: só faz sentido usar "NF-{nNF}"
+                # quando o grupo tem exatamente 1 título (1 XML = 1 operação,
+                # caso comum); com vários XMLs agrupados numa só operação, não
+                # há uma única nota fiscal para nomear o contrato — deixa em
+                # branco para o usuário digitar o número real.
+                numero_contrato_sugerido = (
+                    f"NF-{grupo['partes'].numero_nota}"
+                    if len(grupo["titulos"]) == 1 and grupo["partes"].numero_nota
+                    else ""
+                )
                 inicial_operacao = {
                     'fundo': fundo_preservado,
-                    'cedente_cnpj': parsed.partes.cedente_doc,
-                    'cedente_nome': parsed.partes.cedente_nome,
-                    'cedente_endereco': getattr(parsed.partes, 'cedente_endereco', ''),
-                    'numero_contrato': f"NF-{parsed.partes.numero_nota}" if parsed.partes.numero_nota else "",
+                    'cedente_cnpj': grupo["partes"].cedente_doc,
+                    'cedente_nome': grupo["partes"].cedente_nome,
+                    'cedente_endereco': getattr(grupo["partes"], 'cedente_endereco', ''),
+                    'numero_contrato': numero_contrato_sugerido,
                     'data_contrato': data_contrato_preservada,
                     'data_aquisicao': data_aquisicao_preservada,
+                    'taxa_desconto': taxa_desconto,
                 }
 
                 idx = len(blocos_processados)
+                arquivos = grupo["arquivos"]
+                nome_arquivo = ", ".join(arquivos) if len(arquivos) <= 3 else f"{len(arquivos)} arquivos"
                 blocos_processados.append(_novo_bloco(
                     idx,
                     cessao_form=CessaoOperacaoForm(initial=inicial_operacao, prefix=f"op{idx}"),
-                    titulos_formset=TituloFormSet(initial=titulos_iniciais, prefix=f"tit{idx}"),
-                    nome_arquivo=xml_file.name,
+                    titulos_formset=TituloFormSet(initial=grupo["titulos"], prefix=f"tit{idx}"),
+                    nome_arquivo=nome_arquivo,
                 ))
-                total_titulos += len(titulos_iniciais)
+                total_titulos += len(grupo["titulos"])
 
             if blocos_processados:
                 blocos = blocos_processados
                 messages.success(
                     request,
-                    f"{len(blocos_processados)} arquivo(s) XML processado(s) com sucesso "
+                    f"{len(xml_files) - erros} arquivo(s) XML processado(s), agrupados em "
+                    f"{len(blocos_processados)} operação(ões) por cedente "
                     f"({total_titulos} título(s) no total)."
                 )
             # Se todos os arquivos falharam, mantém o bloco vazio inicial para cadastro manual.
@@ -136,7 +191,11 @@ def workflow_cessao(request):
             if erros:
                 messages.warning(request, f"{erros} arquivo(s) não puderam ser processados (veja mensagens acima).")
 
-            return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+            # Preserva a taxa digitada no campo da Etapa 1, para o caso de o
+            # usuário reimportar mais XML na mesma sessão de tela.
+            return render(request, "operacoes/workflow_cessao.html", {
+                "blocos": blocos, "fundo_id": fundo_id, "taxa_desconto_import": taxa_desconto,
+            })
 
         # ============================================
         # AÇÃO: CONFIRMAR E SALVAR (todos os blocos)
@@ -200,6 +259,7 @@ def workflow_cessao(request):
                             'numero_contrato': cessao_form.cleaned_data['numero_contrato'],
                             'data_contrato': cessao_form.cleaned_data['data_contrato'],
                             'data_aquisicao': cessao_form.cleaned_data['data_aquisicao'],
+                            'taxa_desconto': cessao_form.cleaned_data['taxa_desconto'],
                             'observacoes': cessao_form.cleaned_data.get('observacoes', ''),
                         },
                         usuario=request.user
@@ -312,16 +372,14 @@ def detalhe_cessao(request, pk):
     operacao = get_object_or_404(OperacaoCessao.objects.select_related('fundo'), pk=pk)
     titulos = operacao.titulos.all().order_by('data_vencimento')
 
-    desagio_pct = Decimal('0')
-    if operacao.valor_total_nominal and operacao.valor_total_nominal > 0:
-        desagio_pct = round(
-            (1 - operacao.valor_total_aquisicao / operacao.valor_total_nominal) * 100, 2
-        )
-
     return render(request, "operacoes/detalhe_cessao.html", {
         "operacao": operacao,
         "titulos": titulos,
-        "desagio_pct": desagio_pct,
+        # A taxa de desconto vem direto de operacao.taxa_desconto — não é
+        # mais derivada de valor_total_aquisicao/valor_total_nominal (a
+        # derivação podia divergir na 2ª casa por causa do arredondamento
+        # por título).
+        "desagio_pct": operacao.taxa_desconto,
     })
 
 
@@ -600,10 +658,8 @@ def download_cnab_cessao(request, pk):
         cpf_cnpj_limpo = rp(titulo.sacado_cpf_cnpj)
         identificacao_sacado = "1" if len(cpf_cnpj_limpo) <= 11 else "2"
 
-        # VL_PAGO e VALOR_PAGO_TITULO representam a mesma coisa (valor já
-        # liquidado do título) e devem sair iguais no CNAB — confirmado com
-        # a origem das macros, que sempre preenche as duas colunas (BASE
-        # col 9 e col 18) com o mesmo valor.
+        # VALOR_PAGO_TITULO (BASE col 18, pos. 83-92): soma de eventos de
+        # liquidação, 0 se o título ainda não foi liquidado.
         valor_pago_str = str(valor_liquidado).replace('.', ',')
 
         base_data.append({
@@ -612,10 +668,18 @@ def download_cnab_cessao(request, pk):
             "SEU_NUMERO": titulo.numero_titulo,
             "NU_DOCUMENTO": titulo.numero_titulo,
             "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
+            # BASE col 6 / CNAB pos. 127-139: valor cheio da duplicata, sem
+            # desconto (confere com o cabeçalho "VL_NOMINAL" e o valor bruto
+            # de VDup na planilha real GERADOR_OPERAÇÕES_ESTOQUE.xlsm).
             "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
             "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
             "NM_SACADO": remover_caracteres_especiais(titulo.sacado_nome),
-            "VL_PAGO": valor_pago_str,
+            # BASE col 9 / CNAB pos. 193-205: valor presente (nominal
+            # descontado pela taxa_desconto da operação) — confirmado pelo
+            # cabeçalho "VL_PRESENTE" e pela fórmula real da planilha
+            # (=ROUND((F-(F*taxa));2)). NÃO é valor pago/liquidado — isso é
+            # VALOR_PAGO_TITULO (col 18), que é uma coisa diferente.
+            "VL_PRESENTE": str(titulo.valor_aquisicao).replace('.', ','),
             "IDENTIFICACAO_CPF_CNPJ_SACADO": identificacao_sacado,
             "ENDERECO": titulo.sacado_endereco,
             "CEP": titulo.sacado_cep,
@@ -657,13 +721,18 @@ def _titulo_dados_from_form(t):
     repassados; `data_emissao` só é incluída quando informada, para que
     `processar_cessao` continue caindo no fallback (data de aquisição) nos
     títulos cadastrados manualmente sem XML.
+
+    `valor_aquisicao` (valor presente) é repassado só por completude — o
+    campo é somente-leitura na tela e `processar_cessao` sempre recalcula o
+    valor presente a partir de `valor_nominal` e da `taxa_desconto` da
+    operação, então este valor é ignorado pelo serviço.
     """
     dados = {
         'numero_titulo': t['numero_titulo'],
         'sacado_nome': t['sacado_nome'],
         'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
         'valor_nominal': t['valor_nominal'],
-        'valor_aquisicao': t['valor_aquisicao'],
+        'valor_aquisicao': t.get('valor_aquisicao') or t['valor_nominal'],
         'data_vencimento': t['data_vencimento'],
         'chave_nfe': t.get('chave_nfe') or '',
         'sacado_endereco': t.get('sacado_endereco') or '',

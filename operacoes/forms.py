@@ -4,6 +4,27 @@ from fundos.models import Fundo
 from .models import Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 
 
+class PercentualDecimalField(forms.DecimalField):
+    """DecimalField que aceita vírgula OU ponto como separador decimal
+    (ex.: "2,88" e "2.88" são equivalentes). Usa TextInput em vez de
+    NumberInput: o <input type="number"> do HTML5 só aceita ponto como
+    separador decimal em boa parte dos navegadores, o que trava a digitação
+    de vírgula para quem usa o formato brasileiro.
+
+    Não usamos `localize=True` do Django aqui de propósito: com locale
+    pt-br, `localize=True` trataria o "." como separador de milhar (não
+    decimal) e transformaria "2.88" em 288 — perigoso para uma taxa. Aqui
+    só convertemos vírgula em ponto, sem tocar em pontos existentes.
+    """
+
+    widget = forms.TextInput
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            value = value.strip().replace(',', '.')
+        return super().to_python(value)
+
+
 # ============================================
 # FORMS: CESSÃO
 # ============================================
@@ -42,7 +63,22 @@ class CessaoOperacaoForm(forms.Form):
             "class": "form-control"
         })
     )
-    
+
+    taxa_desconto = PercentualDecimalField(
+        max_digits=7,
+        decimal_places=4,
+        min_value=0,
+        max_value=100,
+        required=True,
+        label="Taxa de Desconto (%)",
+        help_text="Aplicada sobre o valor nominal de cada título para obter o valor presente. Ex.: 2,88",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "inputmode": "decimal",
+            "placeholder": "2,88"
+        })
+    )
+
     cedente_cnpj = forms.CharField(
         max_length=18,
         label="CNPJ do Cedente",
@@ -136,10 +172,13 @@ class TituloForm(forms.Form):
     valor_aquisicao = forms.DecimalField(
         max_digits=16,
         decimal_places=2,
-        label="Valor de Aquisição",
+        required=False,
+        label="Valor Presente",
+        help_text="Calculado automaticamente: valor nominal − taxa de desconto da operação",
         widget=forms.NumberInput(attrs={
             "class": "form-control",
-            "step": "0.01"
+            "step": "0.01",
+            "readonly": True,
         })
     )
     

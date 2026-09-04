@@ -18,6 +18,10 @@
                 <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj }}</p>
             </div>
         </div>
+        <a href="{% url 'fundos:lamina_informe_pdf' fundo_id=fundo.id informe_id=informe.id %}"
+           target="_blank" class="btn btn-primary-ds">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Gerar Lâmina
+        </a>
     </div>
 </div>
 

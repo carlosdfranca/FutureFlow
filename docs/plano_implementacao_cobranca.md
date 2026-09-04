@@ -8,16 +8,16 @@
 
 | # | Tema | Decisão |
 |---|---|---|
-| 1 | Deságio de 0,6% (`× 0,994`) no valor do título | **Não aplicar.** Manter `valor_nominal` cheio no CNAB. Confirmado no `Módulo3.bas:23` (`CalcularDesconto = Round(valor * 0.994, 2)`) que a macro aplica esse desconto, mas o usuário decidiu **não replicar** essa regra. |
+| 1 | Deságio de 0,6% (`× 0,994`) no valor do título | **REVERTIDO em 2026-08-31** (ver `docs/plano_valor_presente_cessao.md`). O deságio **passou a ser aplicado**, com a taxa **parametrizável por operação** (`OperacaoCessao.taxa_desconto`, informada pelo usuário antes do import do XML) em vez de fixa em 0,6% como na macro. Fórmula: `VL_PRESENTE = ARRED(VL_NOMINAL - VL_NOMINAL*TAXA_DESCONTO; 2)` — `operacoes/services/cessao.py:calcular_valor_presente`. O valor presente é gravado em `Titulo.valor_aquisicao` e passa a ser o que sai no CNAB (pos. 127-139), substituindo o `valor_nominal` cheio que era usado antes. Decisão original (não aplicar) mantida apenas como registro histórico abaixo. |
 | 2 | Persistir `chave_nfe`, `sacado_endereco`, `sacado_cep` | **Sim, corrigir** — bug claro na view, sem regra de negócio em disputa. |
 | 3 | Comprimento da linha CNAB (444 vs 400) | **444 está correto.** Documentação que diz "400" deve ser corrigida. |
 | 4 | Colunas BASE 19/20 (`TIPO DE JUROS`/`TAXA DE JUROS`) | Identificadas na planilha real (`GERADOR_OPERAÇÕES_ESTOQUE.xlsm`, aba BASE, cabeçalhos S1/T1). Confirmado em **315/315 linhas de produção** que nunca são preenchidas. **Replicar exatamente o comportamento da macro**, inclusive no caso vazio (ver §3.3 — a macro gera zeros na posição 11-20, não espaços). |
 | 5 | Data de emissão por título | **Usar `dhEmi` da NF-e** (nível da nota) para todos os títulos daquela NF-e, corrigindo o fallback atual para `data_aquisicao`. |
-| 6 | Import em lote | **Sim, implementar.** Múltiplos XML por upload; cada NF-e continua virando **uma `OperacaoCessao` separada** (não agrupar em um lote único). |
+| 6 | Import em lote | **REVERTIDO em 2026-08-31** (ver `docs/plano_agrupamento_cessao_e_cnab.md`). A decisão original ("cada NF-e vira uma `OperacaoCessao` separada, não agrupar") foi tomada sem uma amostra real de uso do lote — a planilha `GERADOR_OPERAÇÕES_ESTOQUE.xlsm` mostra que um lote de N XMLs do mesmo cedente é sempre **uma única cessão com N títulos**, não N cessões. Agora os títulos são **agrupados por CNPJ do cedente** dentro do mesmo upload; cedentes diferentes continuam gerando operações separadas (o modelo só guarda 1 cedente por `OperacaoCessao`). |
 | 7 | Duplicidade de `chave_nfe` | **Apenas avisar, não bloquear.** Checagem contra **todo o banco de dados** (todos os fundos/operações). Sem `unique`, sem migration. |
 | 8 | Fluxo legado (`core/views_cessao.py` → `fundos.Recebiveis`) | **Fora de escopo.** Não mexer. |
 | 9 | `CDO`/`OCORRENCIA` do CNAB | Tirar do formulário manual. **Campos no modelo `Fundo`** (requer migration). `DTL` (data de liquidação) continua vindo do formulário a cada geração, pois muda por remessa. |
-| 10 | `VL_PAGO` vs `VALOR_PAGO_TITULO` | Na planilha real, as colunas 9 e 18 **sempre têm o mesmo valor** (confirmado pelo usuário com quem enviou o arquivo). **Unificar**: calcular o valor liquidado uma vez e usar para os dois campos do CNAB, em vez de somar eventos para um (`VL_PAGO`) e usar `valor_aquisicao` estático para o outro (`VALOR_PAGO_TITULO`). |
+| 10 | `VL_PAGO` vs `VALOR_PAGO_TITULO` | **REVERTIDO em 2026-08-31** (ver `docs/plano_agrupamento_cessao_e_cnab.md`). A afirmação "colunas 9 e 18 sempre têm o mesmo valor" **não se confirmou** numa amostra real de produção: coluna 9 é `VL_PRESENTE` (nominal descontado, calculado) e coluna 18 é `VALOR_PAGO_TITULO` (soma de liquidações, 0 se não liquidado) — são conceitos diferentes e não devem ser unificados. O CNAB volta a ter os dois campos separados. |
 | 11 | Ajustes de baixo risco aprovados | Sanitizar nomes (acentos/especiais), corrigir contagem do trailer, corrigir bug `{{*}}` no parser, atualizar documentação 400→444. |
 
 ## 2. Achado adicional da investigação da planilha
@@ -140,10 +140,10 @@ posicional real, não apenas uma lacuna de dado — ver item 3.3.
 
 ## 4. Itens explicitamente fora de escopo desta rodada
 
-- Deságio de 0,6% — decisão #1: não implementar.
+- ~~Deságio de 0,6% — decisão #1: não implementar.~~ **Revertido em 2026-08-31**: deságio implementado com taxa parametrizável por operação. Ver `docs/plano_valor_presente_cessao.md`.
 - Bloqueio de duplicata de `chave_nfe` (`unique=True`) — decisão #7: só aviso, sem migration de unicidade.
 - Fluxo legado `core/views_cessao.py`/`fundos.Recebiveis` — decisão #8: não mexer.
-- Agrupamento de múltiplos XML em uma única `OperacaoCessao` — decisão #6: mantém 1 NF-e = 1 operação.
+- ~~Agrupamento de múltiplos XML em uma única `OperacaoCessao` — decisão #6: mantém 1 NF-e = 1 operação.~~ **Revertido em 2026-08-31**: títulos de XMLs do mesmo cedente, importados juntos, agora viram 1 única `OperacaoCessao` com N títulos. Ver `docs/plano_agrupamento_cessao_e_cnab.md`.
 
 ## 5. Ordem sugerida de execução
 

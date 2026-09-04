@@ -58,9 +58,9 @@
         </div>
         <div class="kpi-card kpi-card--amber">
             <div class="kpi-card__value" style="font-size:1.1rem;">R$ {{ operacao.valor_total_aquisicao|floatformat:2 }}</div>
-            <div class="kpi-card__label">Valor de Aquisição Total</div>
+            <div class="kpi-card__label">Valor Presente Total</div>
             {% if desagio_pct %}
-                <div class="kpi-card__sub">Deságio: {{ desagio_pct }}%</div>
+                <div class="kpi-card__sub">Taxa de Desconto: {{ desagio_pct }}%</div>
             {% endif %}
             <i class="bi bi-receipt kpi-card__ghost-icon"></i>
         </div>
