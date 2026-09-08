@@ -43,13 +43,17 @@ def _novo_bloco(index, cessao_form=None, titulos_formset=None, nome_arquivo=""):
 
 
 def _render_workflow(request, blocos, fundo_id, **extra):
-    """Render da tela de cessão. Existe para que o `taxa_iof_padrao` (usado
-    como valor inicial do campo de IOF na Etapa 1) não precise ser repetido
-    nos sete pontos de saída da view."""
+    """Render da tela de cessão. Existe para que o prefill das taxas da Etapa 1
+    não precise ser repetido nos sete pontos de saída da view."""
     contexto = {
         "blocos": blocos,
         "fundo_id": fundo_id,
-        "taxa_iof_padrao": TAXA_IOF_PADRAO,
+        # Prefill dos campos de taxa da Etapa 1: o que o usuário já digitou
+        # (preservado também nos caminhos de erro), senão o padrão. Vem do
+        # POST cru como string — `default_if_none` no template não resolvia,
+        # porque variável ausente vira '' e não None.
+        "taxa_iof_import": request.POST.get("taxa_iof_import") or TAXA_IOF_PADRAO,
+        "taxa_desconto_import": request.POST.get("taxa_desconto_import", ""),
     }
     contexto.update(extra)
     return render(request, "operacoes/workflow_cessao.html", contexto)

@@ -71,9 +71,9 @@ class CessaoOperacaoForm(forms.Form):
         min_value=0,
         max_value=100,
         required=True,
-        initial=TAXA_IOF_PADRAO,
+        initial=str(TAXA_IOF_PADRAO).replace('.', ','),
         label="IOF (%)",
-        help_text="Descontado do valor bruto da duplicata para obter o valor nominal. Ex.: 0,6",
+        help_text="Duplicata − IOF = valor nominal. Ex.: 0,6",
         widget=forms.TextInput(attrs={
             "class": "form-control",
             "inputmode": "decimal",
@@ -88,7 +88,7 @@ class CessaoOperacaoForm(forms.Form):
         max_value=100,
         required=True,
         label="Taxa de Desconto (%)",
-        help_text="Aplicada sobre o valor nominal (já líquido de IOF) para obter o valor presente. Ex.: 2,98",
+        help_text="Nominal − desconto = valor presente. Ex.: 2,98",
         widget=forms.TextInput(attrs={
             "class": "form-control",
             "inputmode": "decimal",
