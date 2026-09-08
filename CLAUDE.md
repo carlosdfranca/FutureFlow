@@ -63,12 +63,57 @@ OperacaoCessao (contrato/lote)
 
 XML batch import (`workflow_cessao` view, action `parse_xml`) groups títulos **by cedente CNPJ** extracted from the XML: N XMLs from the same cedente in one upload become 1 `OperacaoCessao` with N `Titulo` rows (not N separate operações) — `OperacaoCessao` only stores one cedente, so different cedentes in the same upload still produce separate blocos. See `docs/plano_agrupamento_cessao_e_cnab.md`.
 
-Business logic goes through the service layer (`operacoes/services/cessao.py`):
-- `processar_cessao()` — creates `OperacaoCessao` + `Titulo` list + initial `EventoTitulo(AQUISICAO)` in one `@transaction.atomic`. Always recalculates `Titulo.valor_aquisicao` (valor presente) server-side from `valor_nominal` and `OperacaoCessao.taxa_desconto` — never trusts the value posted from the form.
-- `calcular_valor_presente(valor_nominal, taxa_desconto_pct)` — `ARRED(nominal - nominal*taxa; 2)` with `ROUND_HALF_UP`; taxa is % (e.g. `0.60` = 0,6%). See `docs/plano_valor_presente_cessao.md`.
-- `criar_evento_titulo()` — creates the event and mutates `Titulo.saldo_devedor` / `Titulo.ativo` as a side effect.
+#### The two-step value cascade
 
-CNAB detail line (`download_cnab_cessao` → `cnab_generator.gerar_linha_detalhe`) has `VL_NOMINAL` (pos. 127-139, `Titulo.valor_nominal`, full value) and `VL_PRESENTE` (pos. 193-205, `Titulo.valor_aquisicao`, discounted) as **separate** fields — do not conflate them. `VALOR_PAGO_TITULO` (pos. 83-92) is the sum of liquidation events, unrelated to either. See `docs/plano_agrupamento_cessao_e_cnab.md`.
+Título values come from a **two-step cascade** mirroring the legacy spreadsheet. Getting this
+wrong is what made the generated CNAB diverge from the legacy file by R$ 6.835,53 on a
+30-título batch:
+
+```
+valor_face          cobr/dup/vDup from the XML (gross). NOT stored.
+  ↓ ARRED(× (1 − taxa_iof); 2)          IOF, 0,6% by default
+Titulo.valor_nominal    → CNAB VL_NOMINAL  (pos. 127-139), and saldo_devedor
+  ↓ ARRED(× (1 − taxa_desconto); 2)     deságio, 2,98% in practice
+Titulo.valor_aquisicao  → CNAB VL_PRESENTE (pos. 193-205)
+```
+
+- **`Titulo.valor_nominal` is net of IOF**, not the gross duplicata value. The gross value
+  is not persisted (recoverable from the XML via `chave_nfe`); the sacado pays the net value,
+  so `saldo_devedor`, carteira, lâmina and dashboards all follow it.
+- **Round at every step.** Collapsing the two rates into one expression is off by cents:
+  4.567,20 → 4.539,80 → 4.409,05, but 4.567,20 × 0,994 × 0,9712 rounds to 4.409,04.
+- Both rates live on `OperacaoCessao` (`taxa_iof`, `taxa_desconto`), are percentages
+  (`0.60` = 0,6%), default to `0` in the model (so pre-cascade operações keep their old
+  behaviour), and are **required in the form** — `TAXA_IOF_PADRAO` supplies the initial value.
+
+Business logic goes through the service layer (`operacoes/services/cessao.py`):
+- `processar_cessao()` — creates `OperacaoCessao` + `Titulo` list + initial
+  `EventoTitulo(AQUISICAO)` in one `@transaction.atomic`. Always derives `valor_nominal` and
+  `valor_aquisicao` server-side from `titulos_dados[i]['valor_face']` and the two rates —
+  never trusts the values posted from the form. Both rates are read with **hard key access**
+  so a caller that forgets one raises `KeyError` instead of silently defaulting to 0.
+- `calcular_valor_nominal(valor_face, taxa_iof_pct)` — step 1. Mirrors `CalcularDesconto`
+  (`docs/legado_vba/Módulo3.bas:5-26`). Uses `ROUND_HALF_UP` where the VBA `Round()` is
+  half-even — a deliberate R$ 0,01 divergence for gross values ending in X2,50 (~1 in 1.000).
+- `calcular_valor_presente(valor_nominal, taxa_desconto_pct)` — step 2. Mirrors the formula
+  in column I of the BASE sheet. See `docs/plano_valor_presente_cessao.md`.
+- `criar_evento_titulo()` — creates the event and mutates `Titulo.saldo_devedor` /
+  `Titulo.ativo` as a side effect.
+
+CNAB detail line (`download_cnab_cessao` → `cnab_generator.gerar_linha_detalhe`) has
+`VL_NOMINAL` (pos. 127-139, `Titulo.valor_nominal`, net of IOF) and `VL_PRESENTE`
+(pos. 193-205, `Titulo.valor_aquisicao`, further discounted) as **separate** fields — do not
+conflate them. `VALOR_PAGO_TITULO` (pos. 83-92) is the sum of liquidation events, unrelated to
+either. `COOBRIGACAO` (pos. 21-22) resolves as
+`titulo.coobrigacao or fundo.coobrigacao_cnab_padrao or '02'` **in the view**, before building
+`base_data` — an empty string reaching the generator would silently become `'00'`. Detail
+lines are ordered by `numero_titulo`, matching the legacy file and making the output
+deterministic (the model's `Meta.ordering` by `data_vencimento` leaves ties unordered, and
+ties are the norm in a cessão batch). See `docs/plano_agrupamento_cessao_e_cnab.md`.
+
+`operacoes/tests.py::CnabGoldenAtrivionTest` compares the generated CNAB byte for byte
+against the file the legacy macro produced for a real 30-título batch. Fixtures and the
+evidence trail are in `operacoes/fixtures/cnab_atrivion_20260909/PROVENIENCIA.md`.
 
 ### `core` app
 - Shell/stub views for sections not yet implemented (limites, risco, conformidade, etc.).

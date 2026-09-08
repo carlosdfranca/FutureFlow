@@ -10,6 +10,19 @@
 > (ver `docs/plano_agrupamento_cessao_e_cnab.md`), ficou confirmado que `VL_NOMINAL` e
 > `VL_PRESENTE` são **dois campos separados** no CNAB (posições 127-139 e 193-205). O texto
 > abaixo foi atualizado para refletir a posição correta.
+>
+> **Correção em 2026-09-08**: este plano tratou o `CalcularDesconto` do legado
+> (`Módulo3.bas:23`, `Round(valor * 0.994, 2)`) como sendo o **deságio** da operação, e o
+> substituiu por uma taxa parametrizável. Isso confundiu duas coisas diferentes: aquele
+> `0,994` é **IOF de 0,6%**, que o legado aplica ao valor bruto da duplicata *antes* do
+> deságio — que por sua vez é a fórmula da coluna I da BASE (2,88%/2,98% nos lotes reais).
+> São **dois passos em cascata**, e o sistema só implementava um, o que fez o `VL_NOMINAL`
+> sair R$ 6.835,53 acima do legado num lote de 30 títulos. A cascata foi implementada com
+> `OperacaoCessao.taxa_iof` + `calcular_valor_nominal()`; ver o resumo em `CLAUDE.md` e as
+> evidências em `operacoes/fixtures/cnab_atrivion_20260909/PROVENIENCIA.md`.
+>
+> Consequência para as decisões abaixo: onde a #1 diz que `VL_NOMINAL` "continua com o
+> nominal cheio", leia-se **líquido de IOF** — o valor bruto (`vDup`) não é persistido.
 
 ## Contexto
 

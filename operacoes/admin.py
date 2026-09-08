@@ -23,6 +23,7 @@ class OperacaoCessaoAdmin(admin.ModelAdmin):
         'fundo',
         'data_aquisicao',
         'valor_total_nominal',
+        'taxa_iof',
         'taxa_desconto',
         'status'
     ]
@@ -38,7 +39,7 @@ class OperacaoCessaoAdmin(admin.ModelAdmin):
             'fields': ('cedente_cnpj', 'cedente_nome', 'cedente_endereco')
         }),
         ('Valores', {
-            'fields': ('taxa_desconto', 'valor_total_nominal', 'valor_total_aquisicao')
+            'fields': ('taxa_iof', 'taxa_desconto', 'valor_total_nominal', 'valor_total_aquisicao')
         }),
         ('Observações', {
             'fields': ('observacoes',),

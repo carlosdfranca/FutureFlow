@@ -22,8 +22,14 @@ vDup (cobr/dup/vDup)                      ex. 14.979,22
 "Valor de Aquisição"                      ex. 14.445,64  → CNAB pos. 193-205
 ```
 
-Confirmado nos 30 títulos, 444 colunas. Totais: 1.139.249,52 (bruto) →
-**1.132.413,99** (`VL_NOMINAL`) → **1.098.668,05** (`VL_PRESENTE`, a 2,88%).
+Confirmado nos 30 títulos, 444 colunas. Totais deste golden: 1.139.249,52 (bruto) →
+**1.132.413,99** (`VL_NOMINAL`) → **1.099.800,48** (`VL_PRESENTE`, a 2,88%).
+
+> A operação real da Atrivion foi fechada a **2,98%** (é a taxa das 9 cessões de mai–jul/2026
+> na aba `DESPESA FINANCEIRA`), o que dá `VL_PRESENTE` total de 1.098.668,05. O golden usa
+> 2,88% porque é a taxa com que o arquivo do legado foi de fato gerado — trocar isso exigiria
+> recomputar 30 linhas em vez de 1, e o objetivo do golden é ficar o mais perto possível do
+> arquivo original.
 
 Três evidências independentes de que o `VL_NOMINAL` do legado é o valor **já líquido de
 IOF**, e não o valor cheio da nota:

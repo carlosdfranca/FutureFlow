@@ -11,7 +11,12 @@ from fundos.models import Fundo, TipoFundo
 from usuarios.models import Empresa
 from .models import Aplicacao, EventoTitulo, OperacaoCessao, Titulo, TipoAplicacao, TipoEventoTitulo
 from .services.carteira_historica import aplicacoes_ativas_em, fim_do_mes, titulos_ativos_em
-from .services.cessao import processar_cessao, calcular_valor_presente
+from .services.cessao import (
+    TAXA_IOF_PADRAO,
+    calcular_valor_nominal,
+    calcular_valor_presente,
+    processar_cessao,
+)
 
 
 XML_PATH = Path(
@@ -50,11 +55,15 @@ def _nfe_xml_upload(cnpj_cedente, numero_nota, chave, valor="1000.00", venciment
     return SimpleUploadedFile(f"nfe_{numero_nota}.xml", xml_bytes, content_type="text/xml")
 
 
-def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="2026-05-11", taxa_desconto="0"):
+def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="2026-05-11",
+                     taxa_iof="0", taxa_desconto="0"):
     """Monta o dict de POST (prefixado por bloco, como o template gera) para
-    confirmar uma operação a partir de um único título. `taxa_desconto`
-    default '0' mantém o valor presente igual ao nominal, preservando o
-    comportamento dos testes que já existiam antes dessa feature."""
+    confirmar uma operação a partir de um único título.
+
+    As duas taxas vêm com default '0' para que os valores derivados fiquem
+    iguais ao valor da duplicata, preservando o comportamento dos testes que
+    já existiam antes da cascata. Quem quer exercitar a cascata passa as
+    taxas explicitamente."""
     op = f"op{idx}"
     tit = f"tit{idx}"
     return {
@@ -62,6 +71,7 @@ def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="20
         f"{op}-numero_contrato": numero_contrato,
         f"{op}-data_contrato": "2026-07-21",
         f"{op}-data_aquisicao": "2026-07-21",
+        f"{op}-taxa_iof": taxa_iof,
         f"{op}-taxa_desconto": taxa_desconto,
         f"{op}-cedente_cnpj": "02455462000129",
         f"{op}-cedente_nome": "PROTURBO USINAGEM DE PRECISAO LTDA.",
@@ -76,8 +86,12 @@ def _bloco_post_data(idx, numero_contrato, fundo_pk, chave_nfe, data_emissao="20
         f"{tit}-0-sacado_cpf_cnpj": "57010662001212",
         f"{tit}-0-sacado_endereco": "ROD SANTOS DUMONT KM 64",
         f"{tit}-0-sacado_cep": "13012100",
-        f"{tit}-0-valor_nominal": "80911.50",
-        f"{tit}-0-valor_aquisicao": "80911.50",
+        f"{tit}-0-valor_face": "80911.50",
+        # Derivados: o template manda (input readonly é enviado), o
+        # servidor ignora e recalcula. Valores propositalmente errados
+        # aqui para que qualquer teste que passe a confiar neles falhe.
+        f"{tit}-0-valor_nominal": "1.00",
+        f"{tit}-0-valor_aquisicao": "1.00",
         f"{tit}-0-data_vencimento": "2026-07-10",
         f"{tit}-0-chave_nfe": chave_nfe,
         f"{tit}-0-data_emissao": data_emissao,
@@ -110,14 +124,20 @@ class WorkflowCessaoXmlTest(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
-    def _parse_xml(self, n_arquivos=1, xml_path=None, taxa_desconto_import="0"):
+    def _parse_xml(self, n_arquivos=1, xml_path=None, taxa_iof_import="0",
+                   taxa_desconto_import="0"):
         from contextlib import ExitStack
         xml_path = xml_path or XML_PATH
         with ExitStack() as stack:
             arquivos = [stack.enter_context(open(xml_path, "rb")) for _ in range(n_arquivos)]
             response = self.client.post(
                 reverse("operacoes:workflow_cessao"),
-                {"acao": "parse_xml", "xml_file": arquivos, "taxa_desconto_import": taxa_desconto_import},
+                {
+                    "acao": "parse_xml",
+                    "xml_file": arquivos,
+                    "taxa_iof_import": taxa_iof_import,
+                    "taxa_desconto_import": taxa_desconto_import,
+                },
             )
         self.assertEqual(response.status_code, 200)
         return response
@@ -154,6 +174,7 @@ class WorkflowCessaoXmlTest(TestCase):
                 {
                     "acao": "parse_xml",
                     "xml_file": f,
+                    "taxa_iof_import": "0",
                     "taxa_desconto_import": "0",
                     "op0-fundo": str(self.fundo.pk),
                     "op0-data_contrato": "2026-01-15",
@@ -213,10 +234,12 @@ class WorkflowCessaoXmlTest(TestCase):
         """VL_NOMINAL (pos. 127-139) e VL_PRESENTE (pos. 193-205) são dois
         campos monetários DISTINTOS no CNAB — confirmado pelo cabeçalho e
         pela fórmula reais da planilha GERADOR_OPERAÇÕES_ESTOQUE.xlsm
-        (colunas F e I da aba BASE). VL_NOMINAL é o valor cheio da
-        duplicata; VL_PRESENTE é o nominal descontado pela taxa_desconto —
-        eles não podem sair iguais quando a taxa é != 0, e nenhum dos dois
-        é o valor pago/liquidado (VALOR_PAGO_TITULO, pos. 83-92)."""
+        (colunas F e I da aba BASE). VL_NOMINAL é o valor da duplicata
+        líquido de IOF; VL_PRESENTE é esse nominal descontado pela
+        taxa_desconto — eles não podem sair iguais quando a taxa é != 0, e
+        nenhum dos dois é o valor pago/liquidado (VALOR_PAGO_TITULO,
+        pos. 83-92). Aqui o IOF é zero (a cascata completa está no teste
+        `test_cascata_iof_e_desconto_chega_ao_cnab`)."""
         post_data = {"acao": "confirmar", "total_blocos": "1"}
         post_data.update(_bloco_post_data(
             0, "NF-CNAB-VLPRESENTE", self.fundo.pk,
@@ -245,6 +268,59 @@ class WorkflowCessaoXmlTest(TestCase):
         # zerado: título recém-criado, sem liquidação.
         self.assertEqual(detalhe[82:92], "0000000000")
 
+    def test_cascata_iof_e_desconto_chega_ao_cnab(self):
+        """A cascata de dois passos, ponta a ponta até o arquivo.
+
+        80.911,50 -(0,6% IOF)-> 80.426,03 -(2,88%)-> 78.109,76
+
+        Prova também que o servidor IGNORA os derivados postados: o
+        `_bloco_post_data` manda valor_nominal e valor_aquisicao como 1,00 de
+        propósito, e o que fica gravado é o resultado da cascata.
+        """
+        post_data = {"acao": "confirmar", "total_blocos": "1"}
+        post_data.update(_bloco_post_data(
+            0, "NF-CASCATA", self.fundo.pk,
+            "35260502455462000129550010009999997700956966",
+            taxa_iof="0.6", taxa_desconto="2.88",
+        ))
+        response = self.client.post(reverse("operacoes:workflow_cessao"), post_data)
+        self.assertEqual(response.status_code, 302, response.content.decode("utf-8")[:2000])
+
+        operacao = OperacaoCessao.objects.get(numero_contrato="NF-CASCATA")
+        titulo = operacao.titulos.get()
+        self.assertEqual(operacao.taxa_iof, Decimal("0.6000"))
+        self.assertEqual(operacao.taxa_desconto, Decimal("2.8800"))
+        self.assertEqual(titulo.valor_nominal, Decimal("80426.03"))
+        self.assertEqual(titulo.valor_aquisicao, Decimal("78109.76"))
+        # saldo devedor acompanha o nominal (o sacado paga o valor registrado)
+        self.assertEqual(titulo.saldo_devedor, Decimal("80426.03"))
+        # e os totais da operação fecham com a soma das próprias linhas
+        self.assertEqual(operacao.valor_total_nominal, Decimal("80426.03"))
+        self.assertEqual(operacao.valor_total_aquisicao, Decimal("78109.76"))
+
+        response = self.client.post(
+            reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
+            {"dtl": "2026-07-21"},
+        )
+        detalhe = response.content.decode("utf-8").splitlines()[1]
+        self.assertEqual(detalhe[126:139], "0000008042603")  # VL_NOMINAL
+        self.assertEqual(detalhe[192:205], "0000007810976")  # VL_PRESENTE
+
+    def test_coobrigacao_do_cnab_cai_no_padrao_do_fundo(self):
+        """`Titulo.coobrigacao` vazio (não informado) tem que virar o
+        `coobrigacao_cnab_padrao` do fundo na pos. 21-22 — e nunca '00', que
+        é o que sairia se a string vazia chegasse crua ao gerador."""
+        operacao = self.test_confirmar_persiste_chave_nfe_endereco_cep_e_data_emissao()
+        operacao.titulos.update(coobrigacao="")
+
+        response = self.client.post(
+            reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
+            {"dtl": "2026-07-21"},
+        )
+        detalhe = response.content.decode("utf-8").splitlines()[1]
+        self.assertEqual(self.fundo.coobrigacao_cnab_padrao, "02")
+        self.assertEqual(detalhe[20:22], "02")
+
     def test_cnab_bloqueado_se_fundo_sem_cdo(self):
         """Sem CDO cadastrado no fundo, a geração deve ser bloqueada com uma
         mensagem de erro em vez de gerar um CNAB com CDO vazio."""
@@ -271,8 +347,7 @@ class WorkflowCessaoXmlTest(TestCase):
                 "numero_titulo": "999",
                 "sacado_nome": "OUTRO SACADO",
                 "sacado_cpf_cnpj": "57010662001212",
-                "valor_nominal": Decimal("100.00"),
-                "valor_aquisicao": Decimal("100.00"),
+                "valor_face": Decimal("100.00"),
                 "data_vencimento": date(2026, 1, 1),
                 "chave_nfe": chave_repetida,
             }],
@@ -280,6 +355,8 @@ class WorkflowCessaoXmlTest(TestCase):
                 "numero_contrato": "NF-JA-EXISTENTE",
                 "data_contrato": date(2026, 1, 1),
                 "data_aquisicao": date(2026, 1, 1),
+                "taxa_iof": Decimal("0"),
+                "taxa_desconto": Decimal("0"),
             },
             usuario=self.user,
         )
@@ -321,7 +398,10 @@ class WorkflowCessaoXmlTest(TestCase):
         with open(XML_PATH, "rb") as f1, open(XML_REAL_PATH, "rb") as f2:
             response = self.client.post(
                 reverse("operacoes:workflow_cessao"),
-                {"acao": "parse_xml", "xml_file": [f1, f2], "taxa_desconto_import": "0"},
+                {
+                    "acao": "parse_xml", "xml_file": [f1, f2],
+                    "taxa_iof_import": "0", "taxa_desconto_import": "0",
+                },
             )
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
@@ -349,7 +429,10 @@ class WorkflowCessaoXmlTest(TestCase):
         arquivo_b = _nfe_xml_upload("22222222000172", "9002", "2" * 44)
         response = self.client.post(
             reverse("operacoes:workflow_cessao"),
-            {"acao": "parse_xml", "xml_file": [arquivo_a, arquivo_b], "taxa_desconto_import": "0"},
+            {
+                "acao": "parse_xml", "xml_file": [arquivo_a, arquivo_b],
+                "taxa_iof_import": "0", "taxa_desconto_import": "0",
+            },
         )
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
@@ -418,6 +501,7 @@ class WorkflowCessaoXmlTest(TestCase):
             "op0-numero_contrato": "NF-155771",
             "op0-data_contrato": "2026-07-21",
             "op0-data_aquisicao": "2026-07-21",
+            "op0-taxa_iof": "0",
             "op0-taxa_desconto": "0",
             "op0-cedente_cnpj": "02455462000129",
             "op0-cedente_nome": "PROTURBO USINAGEM DE PRECISAO LTDA.",
@@ -432,7 +516,7 @@ class WorkflowCessaoXmlTest(TestCase):
             "tit0-0-sacado_cpf_cnpj": "43201151000110",
             "tit0-0-sacado_endereco": "R JATI 310",
             "tit0-0-sacado_cep": "07180900",
-            "tit0-0-valor_nominal": "21448.80",
+            "tit0-0-valor_face": "21448.80",
             "tit0-0-valor_aquisicao": "21448.80",
             "tit0-0-data_vencimento": "2026-08-14",
             "tit0-0-chave_nfe": "35260602455462000129550010001557711769163725",
@@ -578,6 +662,60 @@ class CalcularValorPresenteTest(TestCase):
 
     def test_entrada_none_e_tratada_como_zero(self):
         self.assertEqual(calcular_valor_presente(None, None), Decimal("0.00"))
+
+
+class CalcularValorNominalTest(TestCase):
+    """Primeiro passo da cascata: IOF sobre o valor bruto da duplicata
+    (`cobr/dup/vDup`), produzindo o que vai para `Titulo.valor_nominal` e para
+    o CNAB pos. 127-139. Espelha `CalcularDesconto` do legado
+    (`docs/legado_vba/Módulo3.bas:5-26`, `Round(valor * 0.994, 2)`)."""
+
+    def test_taxa_padrao_e_seis_decimos_por_cento(self):
+        self.assertEqual(TAXA_IOF_PADRAO, Decimal("0.6"))
+
+    def test_valores_reais_do_lote_atrivion(self):
+        # Conferidos contra operacoes/fixtures/cnab_atrivion_20260909/golden.txt
+        for face, esperado in [
+            ("14979.22", "14889.34"),
+            ("4567.20", "4539.80"),
+            ("155814.80", "154879.91"),
+            ("21139.44", "21012.60"),
+        ]:
+            with self.subTest(face=face):
+                self.assertEqual(
+                    calcular_valor_nominal(face, TAXA_IOF_PADRAO), Decimal(esperado)
+                )
+
+    def test_taxa_zero_mantem_valor_bruto(self):
+        self.assertEqual(calcular_valor_nominal("14979.22", "0"), Decimal("14979.22"))
+
+    def test_entrada_none_e_tratada_como_zero(self):
+        self.assertEqual(calcular_valor_nominal(None, None), Decimal("0.00"))
+
+    def test_arredondamento_e_half_up_divergindo_do_vba_de_proposito(self):
+        # 12002.50 - 12002.50 * 0.006 = 11930.485 -> meio centavo exato com o
+        # centavo anterior par, o único caso em que half-up e half-even
+        # divergem. Aqui (half-up) dá 11930.49; o `Round()` do VBA, sendo
+        # half-even, desceria para 11930.48. Divergência deliberada: mantemos
+        # um único modo de arredondamento no sistema (ver a docstring de
+        # `calcular_valor_nominal`). Este teste existe para que ninguém
+        # "conserte" o half-up sem ler o motivo.
+        self.assertEqual(
+            calcular_valor_nominal("12002.50", TAXA_IOF_PADRAO), Decimal("11930.49")
+        )
+        # Contraste: terminando em X7,50 os dois modos concordam.
+        self.assertEqual(
+            calcular_valor_nominal("12007.50", TAXA_IOF_PADRAO), Decimal("11935.46")
+        )
+
+    def test_cascata_exige_arredondamento_intermediario(self):
+        # 4567.20 -> 4539.80 -> 4409.05 (valores do legado). Aplicar as duas
+        # taxas numa expressão só, sem o ARRED do meio, daria 4409.04.
+        nominal = calcular_valor_nominal("4567.20", TAXA_IOF_PADRAO)
+        self.assertEqual(nominal, Decimal("4539.80"))
+        self.assertEqual(
+            calcular_valor_presente(nominal, "2.88"), Decimal("4409.05")
+        )
 
 
 def _criar_titulo_com_aquisicao(fundo, operacao, numero_titulo, sacado_nome, valor_nominal, valor_aquisicao, data_aquisicao):
@@ -760,3 +898,223 @@ class CarteiraHistoricaTest(TestCase):
             valor=Decimal('1000.00'), data_aplicacao=date(2026, 2, 1),
         )
         self.assertEqual(list(aplicacoes_ativas_em(self.fundo, date(2030, 1, 1))), [aplicacao])
+
+
+# ============================================================
+# TESTE GOLDEN: CNAB byte a byte contra o arquivo da macro legada
+# ============================================================
+
+FIXTURE_ATRIVION = (
+    Path(__file__).resolve().parent / "fixtures" / "cnab_atrivion_20260909"
+)
+
+# Campos do layout de detalhe, em slices Python (0-based). Usados só para
+# rotular as divergências no relatório de erro — o teste compara o arquivo
+# inteiro, não campo a campo.
+CAMPOS_DETALHE_CNAB = [
+    ("COOBRIGACAO", 20, 22),
+    ("SEU_NUMERO", 37, 62),
+    ("VALOR_PAGO_TITULO", 82, 92),
+    ("DTL", 94, 100),
+    ("OCORRENCIA", 108, 110),
+    ("NU_DOCUMENTO", 110, 120),
+    ("DT_VENCIMENTO", 120, 126),
+    ("VL_NOMINAL", 126, 139),
+    ("TP_TITULO", 147, 149),
+    ("DT_EMISSAO", 150, 156),
+    ("IDENT_CEDENTE", 158, 161),
+    ("VL_PRESENTE", 192, 205),
+    ("IDENT_SACADO", 218, 220),
+    ("CPF_CNPJ_SACADO", 220, 234),
+    ("NM_SACADO", 234, 274),
+    ("ENDERECO", 274, 314),
+    ("CEP", 326, 334),
+    ("NOME_CEDENTE", 334, 380),
+    ("CNPJ_CEDENTE", 380, 394),
+    ("NFE", 394, 438),
+    ("NSR", 438, 444),
+]
+
+
+def _diff_cnab(gerado, esperado):
+    """Relatório legível de divergências entre dois arquivos CNAB.
+
+    `assertEqual` cru em linhas de 444 colunas é ilegível — o diff do
+    unittest vira uma parede de zeros. Aqui cada divergência sai apontando o
+    slice e, quando ele cai em cima de um campo conhecido, o nome dele.
+    """
+    ger, esp = gerado.splitlines(), esperado.splitlines()
+    problemas = []
+
+    if len(ger) != len(esp):
+        problemas.append(f"quantidade de linhas: gerado {len(ger)}, esperado {len(esp)}")
+
+    for i, (lg, le) in enumerate(zip(ger, esp), start=1):
+        if lg == le:
+            continue
+        if len(lg) != len(le):
+            problemas.append(f"linha {i}: tamanho {len(lg)} != {len(le)}")
+            continue
+        # Agrupa colunas divergentes em intervalos contíguos.
+        divergentes = [c for c in range(len(lg)) if lg[c] != le[c]]
+        inicio = anterior = divergentes[0]
+        for c in divergentes[1:] + [None]:
+            if c is not None and c == anterior + 1:
+                anterior = c
+                continue
+            fim = anterior + 1
+            nomes = [
+                nome for nome, a, b in CAMPOS_DETALHE_CNAB
+                if a < fim and inicio < b
+            ]
+            rotulo = f" ({'/'.join(nomes)})" if nomes else ""
+            problemas.append(
+                f"linha {i} [{inicio}:{fim}]{rotulo}: "
+                f"gerado={lg[inicio:fim]!r} esperado={le[inicio:fim]!r}"
+            )
+            if c is None:
+                break
+            inicio = anterior = c
+
+    return "\n".join(problemas)
+
+
+class CnabGoldenAtrivionTest(TestCase):
+    """Compara o CNAB gerado pelo fluxo web, a partir dos 30 XMLs reais do
+    lote Atrivion 09-09, com o arquivo que a macro legada produziu para o
+    mesmo lote.
+
+    O golden é o arquivo do legado com duas edições conscientes (deságio
+    uniforme de 2,88% e CEP com o zero à esquerda preservado). A proveniência,
+    as evidências da cascata e as pré-condições estão em
+    `operacoes/fixtures/cnab_atrivion_20260909/PROVENIENCIA.md`.
+    """
+
+    TAXA_IOF = "0,6"
+    TAXA_DESCONTO = "2,88"
+    DTL = "2026-09-09"
+
+    def setUp(self):
+        self.empresa = Empresa.objects.create(nome="Atrivion", cnpj="00000000000100")
+        self.fundo = Fundo.objects.create(
+            empresa=self.empresa,
+            cnpj="11111111000199",
+            razao_social="Fundo Atrivion FIDC",
+            tipo_fundo=TipoFundo.FIDC,
+            data_constituicao=date(2020, 1, 1),
+            codigo_originador_cnab="15555601",
+            ocorrencia_cnab_padrao="01",
+            coobrigacao_cnab_padrao="02",
+        )
+        User = get_user_model()
+        self.user = User.objects.create_user(username="operador", password="senha123")
+        self.client = Client()
+        self.client.force_login(self.user)
+
+        self.xmls = sorted((FIXTURE_ATRIVION / "xml").glob("*.xml"))
+        self.assertEqual(len(self.xmls), 30, "fixture incompleta")
+
+    def _importar(self):
+        from contextlib import ExitStack
+        with ExitStack() as stack:
+            arquivos = [stack.enter_context(caminho.open("rb")) for caminho in self.xmls]
+            return self.client.post(
+                reverse("operacoes:workflow_cessao"),
+                {
+                    "acao": "parse_xml",
+                    "xml_file": arquivos,
+                    "taxa_iof_import": self.TAXA_IOF,
+                    "taxa_desconto_import": self.TAXA_DESCONTO,
+                },
+            )
+
+    def _post_de_confirmacao(self):
+        """Monta o POST a partir dos próprios XMLs, como o template geraria."""
+        from core.services.cessao_xml import parse_nfe_xml
+
+        dados = {
+            "acao": "confirmar",
+            "total_blocos": "1",
+            "op0-fundo": str(self.fundo.pk),
+            "op0-numero_contrato": "CONT-ATRIVION-0909",
+            "op0-data_contrato": self.DTL,
+            "op0-data_aquisicao": self.DTL,
+            "op0-taxa_iof": self.TAXA_IOF,
+            "op0-taxa_desconto": self.TAXA_DESCONTO,
+            "op0-cedente_cnpj": "02455462000129",
+            "op0-cedente_nome": "PROTURBO USINAGEM DE PRECISAO LTDA.",
+            "op0-cedente_endereco": "",
+            "op0-observacoes": "",
+            "tit0-TOTAL_FORMS": str(len(self.xmls)),
+            "tit0-INITIAL_FORMS": str(len(self.xmls)),
+            "tit0-MIN_NUM_FORMS": "0",
+            "tit0-MAX_NUM_FORMS": "1000",
+        }
+        for i, caminho in enumerate(self.xmls):
+            titulo = parse_nfe_xml(caminho.read_bytes()).titulos[0]
+            dados.update({
+                f"tit0-{i}-numero_titulo": titulo.numero_titulo,
+                f"tit0-{i}-sacado_nome": titulo.sacado_nome,
+                f"tit0-{i}-sacado_cpf_cnpj": titulo.sacado_doc,
+                f"tit0-{i}-sacado_endereco": titulo.sacado_endereco,
+                f"tit0-{i}-sacado_cep": titulo.sacado_cep,
+                f"tit0-{i}-valor_face": str(titulo.valor),
+                f"tit0-{i}-data_vencimento": titulo.vencimento_iso,
+                f"tit0-{i}-chave_nfe": titulo.chave_nfe,
+                f"tit0-{i}-data_emissao": titulo.data_emissao_iso,
+            })
+        return dados
+
+    def test_import_agrupa_os_trinta_xmls_num_bloco_unico(self):
+        """Pré-condição do golden: os 30 XMLs têm o mesmo cedente, então o
+        agrupamento por CNPJ tem que gerar 1 operação com 30 títulos."""
+        html = self._importar().content.decode("utf-8")
+        self.assertIn('name="op0-fundo"', html)
+        self.assertNotIn('name="op1-fundo"', html)
+        self.assertIn('name="tit0-INITIAL_FORMS" value="30"', html)
+
+    def test_cnab_gerado_bate_byte_a_byte_com_o_legado(self):
+        self._importar()
+
+        response = self.client.post(
+            reverse("operacoes:workflow_cessao"), self._post_de_confirmacao()
+        )
+        self.assertEqual(
+            response.status_code, 302, response.content.decode("utf-8")[:3000]
+        )
+
+        operacao = OperacaoCessao.objects.get(numero_contrato="CONT-ATRIVION-0909")
+        self.assertEqual(operacao.titulos.count(), 30)
+        # Totais da cascata, conferidos contra a planilha legada.
+        self.assertEqual(operacao.valor_total_nominal, Decimal("1132413.99"))
+        self.assertEqual(operacao.valor_total_aquisicao, Decimal("1099800.48"))
+
+        response = self.client.post(
+            reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
+            {"dtl": self.DTL},
+        )
+        self.assertEqual(response.status_code, 200)
+        gerado = response.content.decode("utf-8")
+        esperado = (FIXTURE_ATRIVION / "golden.txt").read_text(encoding="latin-1")
+
+        diferencas = _diff_cnab(gerado, esperado)
+        self.assertEqual(diferencas, "", "\nCNAB divergiu do legado:\n" + diferencas)
+
+    def test_ordem_das_linhas_segue_o_numero_do_titulo(self):
+        """A ordem do legado é a alfabética de nome de arquivo (= chave NF-e,
+        = nFat crescente aqui). Sem `order_by` explícito o Meta.ordering por
+        vencimento deixaria a ordem indefinida: neste lote 11 títulos vencem
+        em 30/09 e 10 em 07/10."""
+        self._importar()
+        self.client.post(reverse("operacoes:workflow_cessao"), self._post_de_confirmacao())
+        operacao = OperacaoCessao.objects.get(numero_contrato="CONT-ATRIVION-0909")
+
+        response = self.client.post(
+            reverse("operacoes:download_cnab_cessao", args=[operacao.pk]),
+            {"dtl": self.DTL},
+        )
+        linhas = response.content.decode("utf-8").splitlines()
+        numeros = [linha[37:62].strip() for linha in linhas if linha.startswith("1 ")]
+        self.assertEqual(numeros, sorted(numeros))
+        self.assertEqual(numeros[0], "158477")
+        self.assertEqual(numeros[-1], "159014")

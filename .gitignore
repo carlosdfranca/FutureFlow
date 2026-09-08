@@ -223,3 +223,7 @@ celerybeat-schedule*
 # Notas fiscais de trabalho (PDFs de DANFE, pesados). Os XMLs que o teste usa
 # estao versionados em operacoes/fixtures/cnab_atrivion_20260909/xml/
 docs/legado_vba/Notas Antecipada Atrivion*/
+
+# CNABs baixados do sistema durante testes manuais. A referencia versionada
+# do arquivo legado esta em operacoes/fixtures/cnab_atrivion_20260909/
+/CNAB_*.txt

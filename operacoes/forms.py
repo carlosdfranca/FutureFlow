@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from fundos.models import Fundo
+from .services.cessao import TAXA_IOF_PADRAO
 from .models import Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 
 
@@ -64,6 +65,22 @@ class CessaoOperacaoForm(forms.Form):
         })
     )
 
+    taxa_iof = PercentualDecimalField(
+        max_digits=7,
+        decimal_places=4,
+        min_value=0,
+        max_value=100,
+        required=True,
+        initial=TAXA_IOF_PADRAO,
+        label="IOF (%)",
+        help_text="Descontado do valor bruto da duplicata para obter o valor nominal. Ex.: 0,6",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "inputmode": "decimal",
+            "placeholder": "0,6"
+        })
+    )
+
     taxa_desconto = PercentualDecimalField(
         max_digits=7,
         decimal_places=4,
@@ -71,11 +88,11 @@ class CessaoOperacaoForm(forms.Form):
         max_value=100,
         required=True,
         label="Taxa de Desconto (%)",
-        help_text="Aplicada sobre o valor nominal de cada título para obter o valor presente. Ex.: 2,88",
+        help_text="Aplicada sobre o valor nominal (já líquido de IOF) para obter o valor presente. Ex.: 2,98",
         widget=forms.TextInput(attrs={
             "class": "form-control",
             "inputmode": "decimal",
-            "placeholder": "2,88"
+            "placeholder": "2,98"
         })
     )
 
@@ -159,16 +176,33 @@ class TituloForm(forms.Form):
         })
     )
     
-    valor_nominal = forms.DecimalField(
+    # Os três valores do título, na ordem da cascata. Só o primeiro é
+    # editável; os outros dois são prévia calculada no cliente e recalculados
+    # no servidor por `processar_cessao`. Ver operacoes/services/cessao.py.
+    valor_face = forms.DecimalField(
         max_digits=16,
         decimal_places=2,
-        label="Valor Nominal",
+        label="Valor da Duplicata",
+        help_text="Valor bruto, como vem no XML da NF-e (cobr/dup/vDup)",
         widget=forms.NumberInput(attrs={
             "class": "form-control",
             "step": "0.01"
         })
     )
-    
+
+    valor_nominal = forms.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        required=False,
+        label="Valor Nominal",
+        help_text="Calculado automaticamente: valor da duplicata − IOF da operação",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.01",
+            "readonly": True,
+        })
+    )
+
     valor_aquisicao = forms.DecimalField(
         max_digits=16,
         decimal_places=2,

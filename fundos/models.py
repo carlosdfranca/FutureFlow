@@ -101,6 +101,11 @@ class Fundo(models.Model):
         max_length=2, blank=True, default='01',
         help_text='Código de ocorrência padrão usado nas linhas de detalhe do CNAB (ex: 01 - Remessa)',
     )
+    coobrigacao_cnab_padrao = models.CharField(
+        max_length=2, blank=True, default='02',
+        help_text='Coobrigação padrão das linhas de detalhe do CNAB (01 - Com coobrigação, '
+                  '02 - Sem coobrigação). A macro legada sempre enviou 02.',
+    )
 
     # Status
     ativo = models.BooleanField(default=True)

@@ -10,7 +10,13 @@ from decimal import Decimal
 from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
 from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
-from .services.cessao import processar_cessao, criar_evento_titulo, calcular_valor_presente
+from .services.cessao import (
+    TAXA_IOF_PADRAO,
+    calcular_valor_nominal,
+    calcular_valor_presente,
+    criar_evento_titulo,
+    processar_cessao,
+)
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
 from .utils.cnab_service import gerar_cnab_stream
 from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
@@ -36,25 +42,66 @@ def _novo_bloco(index, cessao_form=None, titulos_formset=None, nome_arquivo=""):
     }
 
 
-def _titulos_iniciais_from_parsed(parsed, taxa_desconto):
-    """`valor_aquisicao` (valor presente) já nasce calculado com a taxa de
-    desconto informada antes do import — o campo é somente leitura na tela,
-    mas o servidor recalcula de qualquer forma na confirmação."""
-    return [
-        {
+def _render_workflow(request, blocos, fundo_id, **extra):
+    """Render da tela de cessão. Existe para que o `taxa_iof_padrao` (usado
+    como valor inicial do campo de IOF na Etapa 1) não precise ser repetido
+    nos sete pontos de saída da view."""
+    contexto = {
+        "blocos": blocos,
+        "fundo_id": fundo_id,
+        "taxa_iof_padrao": TAXA_IOF_PADRAO,
+    }
+    contexto.update(extra)
+    return render(request, "operacoes/workflow_cessao.html", contexto)
+
+
+def _taxa_do_import(request, nome):
+    """Lê e valida uma taxa da Etapa 1 do import (percentual, 0 a 100).
+
+    As taxas são obrigatórias *antes* de importar porque a prévia dos títulos
+    depende das duas. O botão de importar usa `formnovalidate`, então a
+    validação fica toda no servidor — o campo é um <input type="text"> livre
+    (vírgula ou ponto como decimal), sem min/max nativos do HTML.
+
+    Aceita o campo da Etapa 1 (`<nome>_import`) ou, como fallback, o campo
+    equivalente do bloco 0. Devolve None quando ausente ou inválida.
+    """
+    bruto = request.POST.get(f'{nome}_import') or request.POST.get(f'op0-{nome}')
+    if not bruto:
+        return None
+    try:
+        taxa = Decimal(str(bruto).strip().replace(',', '.'))
+    except Exception:
+        return None
+    return taxa if 0 <= taxa <= 100 else None
+
+
+def _titulos_iniciais_from_parsed(parsed, taxa_iof, taxa_desconto):
+    """Monta o initial do formset já com a cascata de dois passos calculada.
+
+    `valor_face` é o valor bruto que veio do XML (`cobr/dup/vDup`) e é o único
+    campo editável dos três; `valor_nominal` (líquido de IOF) e
+    `valor_aquisicao` (valor presente) são derivados e somente-leitura na tela.
+    O servidor recalcula os dois de qualquer forma na confirmação — isto aqui
+    é só para o operador ver a subtração acontecendo antes de confirmar.
+    """
+    titulos = []
+    for t in parsed.titulos:
+        valor_nominal = calcular_valor_nominal(t.valor, taxa_iof)
+        titulos.append({
             "numero_titulo": t.numero_titulo,
             "sacado_nome": t.sacado_nome,
             "sacado_cpf_cnpj": t.sacado_doc,
             "sacado_endereco": t.sacado_endereco,
             "sacado_cep": t.sacado_cep,
-            "valor_nominal": t.valor,
-            "valor_aquisicao": calcular_valor_presente(t.valor, taxa_desconto),
+            "valor_face": t.valor,
+            "valor_nominal": valor_nominal,
+            "valor_aquisicao": calcular_valor_presente(valor_nominal, taxa_desconto),
             "data_vencimento": t.vencimento_iso,
             "chave_nfe": t.chave_nfe,
             "data_emissao": t.data_emissao_iso,
-        }
-        for t in parsed.titulos
-    ]
+        })
+    return titulos
 
 
 @login_required
@@ -89,27 +136,27 @@ def workflow_cessao(request):
 
             if not xml_files:
                 messages.error(request, "Selecione ao menos um arquivo XML.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+                return _render_workflow(request, blocos, fundo_id)
 
-            # A taxa de desconto é obrigatória antes de importar: é ela que
-            # determina o valor presente (valor_aquisicao) de cada título
-            # já na prévia. `formnovalidate` no botão de importar deixa a
-            # validação (obrigatoriedade e faixa 0-100) só por conta do
-            # servidor — o campo é um <input type="text"> livre (vírgula ou
-            # ponto como decimal), sem min/max nativos do HTML.
-            taxa_desconto_raw = request.POST.get('taxa_desconto_import') or request.POST.get('op0-taxa_desconto')
-            taxa_desconto = None
-            if taxa_desconto_raw:
-                try:
-                    taxa_desconto = Decimal(str(taxa_desconto_raw).strip().replace(',', '.'))
-                except Exception:
-                    taxa_desconto = None
-                if taxa_desconto is not None and not (0 <= taxa_desconto <= 100):
-                    taxa_desconto = None
+            # As duas taxas da cascata são obrigatórias antes de importar:
+            # juntas determinam o valor nominal e o valor presente de cada
+            # título já na prévia (ver `_taxa_do_import`).
+            taxa_iof = _taxa_do_import(request, 'taxa_iof')
+            taxa_desconto = _taxa_do_import(request, 'taxa_desconto')
 
-            if taxa_desconto is None:
-                messages.error(request, "Informe uma taxa de desconto válida (entre 0 e 100) antes de importar o XML.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+            # Uma mensagem por taxa faltando, em vez de uma frase combinada:
+            # o operador precisa saber qual campo preencher, e a mensagem
+            # combinada saía com concordância errada ("uma taxa de IOF e uma
+            # taxa de desconto válida").
+            for taxa, rotulo in ((taxa_iof, "IOF"), (taxa_desconto, "desconto")):
+                if taxa is None:
+                    messages.error(
+                        request,
+                        f"Informe uma taxa de {rotulo} válida (entre 0 e 100) "
+                        "antes de importar o XML."
+                    )
+            if taxa_iof is None or taxa_desconto is None:
+                return _render_workflow(request, blocos, fundo_id)
 
             # Preserva fundo/datas já escolhidos na tela (bloco 0), se houver —
             # esses campos não vêm do XML (fundo nunca vem; datas só têm default
@@ -140,7 +187,7 @@ def workflow_cessao(request):
                 grupo = grupos.setdefault(parsed.partes.cedente_doc, {
                     "partes": parsed.partes, "titulos": [], "arquivos": [],
                 })
-                grupo["titulos"].extend(_titulos_iniciais_from_parsed(parsed, taxa_desconto))
+                grupo["titulos"].extend(_titulos_iniciais_from_parsed(parsed, taxa_iof, taxa_desconto))
                 grupo["arquivos"].append(xml_file.name)
 
             blocos_processados = []
@@ -164,6 +211,7 @@ def workflow_cessao(request):
                     'numero_contrato': numero_contrato_sugerido,
                     'data_contrato': data_contrato_preservada,
                     'data_aquisicao': data_aquisicao_preservada,
+                    'taxa_iof': taxa_iof,
                     'taxa_desconto': taxa_desconto,
                 }
 
@@ -191,11 +239,12 @@ def workflow_cessao(request):
             if erros:
                 messages.warning(request, f"{erros} arquivo(s) não puderam ser processados (veja mensagens acima).")
 
-            # Preserva a taxa digitada no campo da Etapa 1, para o caso de o
-            # usuário reimportar mais XML na mesma sessão de tela.
-            return render(request, "operacoes/workflow_cessao.html", {
-                "blocos": blocos, "fundo_id": fundo_id, "taxa_desconto_import": taxa_desconto,
-            })
+            # Preserva as taxas digitadas nos campos da Etapa 1, para o caso
+            # de o usuário reimportar mais XML na mesma sessão de tela.
+            return _render_workflow(
+                request, blocos, fundo_id,
+                taxa_iof_import=taxa_iof, taxa_desconto_import=taxa_desconto,
+            )
 
         # ============================================
         # AÇÃO: CONFIRMAR E SALVAR (todos os blocos)
@@ -217,7 +266,7 @@ def workflow_cessao(request):
 
             if algum_invalido:
                 messages.error(request, "Corrija os erros indicados antes de confirmar.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
+                return _render_workflow(request, blocos_post, fundo_id)
 
             # Cada bloco vira, no máximo, uma titulos_validos list; blocos sem
             # nenhum título (ex.: bloco extra deixado em branco) são ignorados.
@@ -232,7 +281,7 @@ def workflow_cessao(request):
 
             if not blocos_com_titulos:
                 messages.error(request, "Adicione pelo menos um título.")
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
+                return _render_workflow(request, blocos_post, fundo_id)
 
             operacoes_criadas = []
             erros_criacao = []
@@ -259,6 +308,7 @@ def workflow_cessao(request):
                             'numero_contrato': cessao_form.cleaned_data['numero_contrato'],
                             'data_contrato': cessao_form.cleaned_data['data_contrato'],
                             'data_aquisicao': cessao_form.cleaned_data['data_aquisicao'],
+                            'taxa_iof': cessao_form.cleaned_data['taxa_iof'],
                             'taxa_desconto': cessao_form.cleaned_data['taxa_desconto'],
                             'observacoes': cessao_form.cleaned_data.get('observacoes', ''),
                         },
@@ -284,14 +334,14 @@ def workflow_cessao(request):
 
             if not operacoes_criadas:
                 # Nenhuma operação foi criada: volta pra tela de revisão.
-                return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos_post, "fundo_id": fundo_id})
+                return _render_workflow(request, blocos_post, fundo_id)
 
             if len(operacoes_criadas) == 1:
                 return redirect('operacoes:detalhe_cessao', pk=operacoes_criadas[0][0].pk)
             destino_fundo = fundo_id or str(operacoes_criadas[0][0].fundo_id)
             return redirect(f"{reverse('operacoes:listar_cessoes')}?fundo={destino_fundo}")
 
-    return render(request, "operacoes/workflow_cessao.html", {"blocos": blocos, "fundo_id": fundo_id})
+    return _render_workflow(request, blocos, fundo_id)
 
 
 @login_required
@@ -375,11 +425,11 @@ def detalhe_cessao(request, pk):
     return render(request, "operacoes/detalhe_cessao.html", {
         "operacao": operacao,
         "titulos": titulos,
-        # A taxa de desconto vem direto de operacao.taxa_desconto — não é
-        # mais derivada de valor_total_aquisicao/valor_total_nominal (a
-        # derivação podia divergir na 2ª casa por causa do arredondamento
-        # por título).
+        # As taxas vêm direto da operação — não são mais derivadas de
+        # valor_total_aquisicao/valor_total_nominal (a derivação podia
+        # divergir na 2ª casa por causa do arredondamento por título).
         "desagio_pct": operacao.taxa_desconto,
+        "iof_pct": operacao.taxa_iof,
     })
 
 
@@ -644,7 +694,18 @@ def download_cnab_cessao(request, pk):
             'operacao': operacao,
         })
 
-    titulos = operacao.titulos.filter(ativo=True).prefetch_related('eventos')
+    # Ordem por número do título: é a ordem do arquivo legado (o diálogo de
+    # arquivos do Excel devolvia os XMLs em ordem alfabética de nome, que é a
+    # chave NF-e e portanto o nFat crescente) e, mais importante, é
+    # determinística — o Meta.ordering por data_vencimento deixa a ordem
+    # indefinida no MySQL quando vários títulos vencem no mesmo dia, o que é
+    # a regra e não a exceção num lote de cessão. O 'id' desempata títulos
+    # de notas com múltiplas parcelas (numero_titulo não é único).
+    titulos = (
+        operacao.titulos.filter(ativo=True)
+        .order_by('numero_titulo', 'id')
+        .prefetch_related('eventos')
+    )
 
     base_data = []
     for titulo in titulos:
@@ -662,15 +723,25 @@ def download_cnab_cessao(request, pk):
         # liquidação, 0 se o título ainda não foi liquidado.
         valor_pago_str = str(valor_liquidado).replace('.', ',')
 
+        # Coobrigação (pos. 21-22): resolvida aqui, e não no gerador, porque
+        # `gerar_linha_detalhe` faz `base_record["COOBRIGACAO"][-2:]` e uma
+        # string vazia sairia como '00' — um valor inválido, silenciosamente.
+        # Mesmo padrão de fallback que a OCORRENCIA já usa no menu_data.
+        coobrigacao = (
+            titulo.coobrigacao or operacao.fundo.coobrigacao_cnab_padrao or '02'
+        )
+
         base_data.append({
             "CNPJ_CEDENTE": operacao.cedente_cnpj,
             "NOME_CEDENTE": remover_pontos(operacao.cedente_nome),
             "SEU_NUMERO": titulo.numero_titulo,
             "NU_DOCUMENTO": titulo.numero_titulo,
             "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
-            # BASE col 6 / CNAB pos. 127-139: valor cheio da duplicata, sem
-            # desconto (confere com o cabeçalho "VL_NOMINAL" e o valor bruto
-            # de VDup na planilha real GERADOR_OPERAÇÕES_ESTOQUE.xlsm).
+            # BASE col 6 / CNAB pos. 127-139: valor da duplicata líquido de
+            # IOF — o primeiro passo da cascata, não o valor bruto do vDup.
+            # É o que a planilha legada chama de "Valor Duplicata" (aba MENU,
+            # coluna J) e o que ela grava na coluna 6 da BASE, sobrescrevendo
+            # o bruto (Módulo3.bas:283-288).
             "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
             "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
             "NM_SACADO": remover_caracteres_especiais(titulo.sacado_nome),
@@ -685,7 +756,7 @@ def download_cnab_cessao(request, pk):
             "CEP": titulo.sacado_cep,
             "TP_TITULO": titulo.tipo_titulo,
             "DT_EMISSAO_TITULO": titulo.data_emissao.strftime('%d/%m/%Y'),
-            "COOBRIGACAO": titulo.coobrigacao,
+            "COOBRIGACAO": coobrigacao,
             "IDENTIFICACAO_CPF_CNPJ_CEDENTE": "02",
             "NFE": titulo.chave_nfe,
             "VALOR_PAGO_TITULO": valor_pago_str,
@@ -722,17 +793,18 @@ def _titulo_dados_from_form(t):
     `processar_cessao` continue caindo no fallback (data de aquisição) nos
     títulos cadastrados manualmente sem XML.
 
-    `valor_aquisicao` (valor presente) é repassado só por completude — o
-    campo é somente-leitura na tela e `processar_cessao` sempre recalcula o
-    valor presente a partir de `valor_nominal` e da `taxa_desconto` da
-    operação, então este valor é ignorado pelo serviço.
+    O único valor que o serviço consome é o `valor_face` (bruto da duplicata,
+    o campo editável na tela). `valor_nominal` (líquido de IOF) e
+    `valor_aquisicao` (valor presente) são derivados por `processar_cessao` a
+    partir dele e das taxas da operação, então nem são repassados — o
+    servidor é a fonte de verdade, e mandar valores que ele ignora só
+    convidaria alguém a confiar neles.
     """
     dados = {
         'numero_titulo': t['numero_titulo'],
         'sacado_nome': t['sacado_nome'],
         'sacado_cpf_cnpj': _limpar_cnpj(t['sacado_cpf_cnpj']),
-        'valor_nominal': t['valor_nominal'],
-        'valor_aquisicao': t.get('valor_aquisicao') or t['valor_nominal'],
+        'valor_face': t['valor_face'],
         'data_vencimento': t['data_vencimento'],
         'chave_nfe': t.get('chave_nfe') or '',
         'sacado_endereco': t.get('sacado_endereco') or '',

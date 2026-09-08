@@ -63,9 +63,21 @@ class OperacaoCessao(models.Model):
     data_contrato = models.DateField()
     data_aquisicao = models.DateField(help_text='Data de aquisição dos títulos pelo fundo')
 
-    # Taxa de desconto aplicada sobre o valor nominal para obter o valor
-    # presente de cada título da operação. Percentual (0.60 = 0,6%).
-    # VL_PRESENTE = ARRED(VL_NOMINAL - VL_NOMINAL * TAXA_DESCONTO; 2)
+    # Os valores dos títulos saem de uma cascata de dois passos, espelhando a
+    # planilha legada (ver operacoes/services/cessao.py):
+    #
+    #   vDup (bruto do XML)
+    #     -> ARRED(x (1 - taxa_iof); 2)      = Titulo.valor_nominal   (CNAB 127-139)
+    #     -> ARRED(x (1 - taxa_desconto); 2) = Titulo.valor_aquisicao (CNAB 193-205)
+    #
+    # Ambas em percentual (0.60 = 0,6%). Default 0 nas duas para que operações
+    # gravadas antes da introdução da cascata mantenham o comportamento antigo.
+    taxa_iof = models.DecimalField(
+        max_digits=7,
+        decimal_places=4,
+        default=Decimal('0'),
+        help_text='IOF em % descontado do valor bruto da duplicata para obter o valor nominal'
+    )
     taxa_desconto = models.DecimalField(
         max_digits=7,
         decimal_places=4,
@@ -226,8 +238,10 @@ class Titulo(models.Model):
     )
     coobrigacao = models.CharField(
         max_length=2,
-        default='01',
-        help_text='Coobrigação para CNAB (01=Com coobrigação, 02=Sem coobrigação)'
+        blank=True,
+        default='',
+        help_text='Coobrigação para CNAB (01=Com coobrigação, 02=Sem coobrigação). '
+                  'Vazio = não informado: o CNAB cai no coobrigacao_cnab_padrao do fundo.'
     )
 
     # Auditoria

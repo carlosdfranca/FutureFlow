@@ -53,9 +53,13 @@ def _replay_titulo(titulo, eventos_ordenados):
     criar_evento_titulo):
     - AQUISICAO: saldo = titulo.valor_nominal. IMPORTANTE: não usar
       evento.valor_evento aqui -- esse campo guarda titulo.valor_aquisicao
-      (valor presente, já descontado pela taxa da operação), que é
-      DIFERENTE do valor_nominal quando a operação tem taxa_desconto > 0.
-      O saldo_devedor real do título nasce do valor_nominal (cessao.py:97).
+      (valor presente, o último passo da cascata), que é DIFERENTE do
+      valor_nominal quando a operação tem taxa_desconto > 0. O saldo_devedor
+      real do título nasce do valor_nominal.
+      Nota: valor_nominal é o valor da duplicata JÁ LÍQUIDO DE IOF (o
+      primeiro passo da cascata), não o valor bruto do vDup da NF-e -- é o
+      que o sacado paga e o que sai no CNAB pos. 127-139. Ver
+      operacoes/services/cessao.py.
     - LIQUIDACAO_PARCIAL: saldo -= evento.valor_evento
     - LIQUIDACAO_TOTAL: saldo = 0; inativo
     - BAIXA: inativo (saldo mantido)
