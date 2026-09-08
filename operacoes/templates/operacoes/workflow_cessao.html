@@ -247,6 +247,29 @@
                         {% endfor %}
                     </div>
 
+                    <!-- Totais da cascata: confira contra a planilha de
+                         antecipação antes de confirmar. Calculados no cliente
+                         (o servidor recalcula), só para conferência visual. -->
+                    <div class="row g-2 totais-cascata" data-bloco-index="{{ bloco.index }}"
+                         style="margin:0.25rem 0 1rem; padding:0.75rem 0 0; border-top:1px solid var(--border-color);">
+                        <div class="col-md-3">
+                            <div style="font-size:0.72rem; color:var(--text-secondary);">Total Duplicatas</div>
+                            <div data-total="face" style="font-weight:600;">&mdash;</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div style="font-size:0.72rem; color:var(--text-secondary);">Total Nominal (&minus; IOF)</div>
+                            <div data-total="nominal" style="font-weight:600;">&mdash;</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div style="font-size:0.72rem; color:var(--text-secondary);">Total Presente (&minus; desconto)</div>
+                            <div data-total="presente" style="font-weight:600;">&mdash;</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div style="font-size:0.72rem; color:var(--text-secondary);">Títulos</div>
+                            <div data-total="qtd" style="font-weight:600;">&mdash;</div>
+                        </div>
+                    </div>
+
                     <button type="button" class="btn btn-ghost-ds add-titulo-btn" data-bloco-index="{{ bloco.index }}">
                         <i class="bi bi-plus-circle me-2"></i>Adicionar Título
                     </button>
@@ -321,6 +344,37 @@ function recalcularCascata(blocoIndex) {
         const presente = aplicarTaxaJS(nominal, descontoInput.value);
         presenteInput.value = presente === null ? '' : presente.toFixed(2);
     });
+
+    atualizarTotais(blocoIndex);
+}
+
+function formatarBRL(valor) {
+    return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function atualizarTotais(blocoIndex) {
+    const rodape = document.querySelector('.totais-cascata[data-bloco-index="' + blocoIndex + '"]');
+    const container = document.getElementById('titulos-container-' + blocoIndex);
+    if (!rodape || !container) return;
+
+    const somas = { face: 0, nominal: 0, presente: 0 };
+    let qtd = 0;
+    container.querySelectorAll('.titulo-form').forEach(function (card) {
+        const excluir = card.querySelector('input[name$="-DELETE"]');
+        if (excluir && excluir.checked) return;
+        const face = parseFloat(card.querySelector('input[name$="-valor_face"]')?.value);
+        if (isNaN(face)) return;
+        qtd += 1;
+        somas.face += face;
+        somas.nominal += parseFloat(card.querySelector('input[name$="-valor_nominal"]')?.value) || 0;
+        somas.presente += parseFloat(card.querySelector('input[name$="-valor_aquisicao"]')?.value) || 0;
+    });
+
+    ['face', 'nominal', 'presente'].forEach(function (chave) {
+        rodape.querySelector('[data-total="' + chave + '"]').textContent =
+            qtd ? 'R$ ' + formatarBRL(somas[chave]) : '\u2014';
+    });
+    rodape.querySelector('[data-total="qtd"]').textContent = qtd ? String(qtd) : '\u2014';
 }
 
 document.querySelectorAll('input[id$="-taxa_iof"], input[id$="-taxa_desconto"]').forEach(function (taxaInput) {
@@ -335,6 +389,13 @@ document.querySelectorAll('.titulos-container').forEach(function (container) {
             recalcularCascata(blocoIndex);
         }
     });
+    container.addEventListener('change', function (e) {
+        if (e.target.name && e.target.name.endsWith('-DELETE')) {
+            atualizarTotais(blocoIndex);
+        }
+    });
+    // Primeira pintada: os valores vêm prontos do servidor após o import.
+    atualizarTotais(blocoIndex);
 });
 
 // === Remover Título (delegado por bloco) ===

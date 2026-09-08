@@ -138,11 +138,21 @@
                     <div class="table-responsive">
                         <table class="table table-sm mb-0" style="color:var(--text-primary);">
                             <tr>
-                                <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">Valor Nominal</th>
+                                <th style="color:var(--text-secondary); font-weight:500; width:42%; border-color:var(--border-color);">
+                                    Valor Nominal
+                                    {% if titulo.operacao_cessao.taxa_iof %}
+                                        <span style="display:block; font-weight:400; font-size:0.72rem;">líquido de {{ titulo.operacao_cessao.taxa_iof }}% de IOF</span>
+                                    {% endif %}
+                                </th>
                                 <td style="font-weight:700; font-size:1.05rem; border-color:var(--border-color);">R$ {{ titulo.valor_nominal|floatformat:2 }}</td>
                             </tr>
                             <tr>
-                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">Valor Presente</th>
+                                <th style="color:var(--text-secondary); font-weight:500; border-color:var(--border-color);">
+                                    Valor Presente
+                                    {% if titulo.operacao_cessao.taxa_desconto %}
+                                        <span style="display:block; font-weight:400; font-size:0.72rem;">nominal &minus; {{ titulo.operacao_cessao.taxa_desconto }}% de desconto</span>
+                                    {% endif %}
+                                </th>
                                 <td style="border-color:var(--border-color);">R$ {{ titulo.valor_aquisicao|floatformat:2 }}</td>
                             </tr>
                             <tr>

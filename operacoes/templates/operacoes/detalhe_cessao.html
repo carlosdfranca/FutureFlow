@@ -54,6 +54,9 @@
         <div class="kpi-card kpi-card--green">
             <div class="kpi-card__value" style="font-size:1.1rem;">R$ {{ operacao.valor_total_nominal|floatformat:2 }}</div>
             <div class="kpi-card__label">Valor Nominal Total</div>
+            {% if iof_pct %}
+                <div class="kpi-card__sub">Já líquido de IOF: {{ iof_pct }}%</div>
+            {% endif %}
             <i class="bi bi-cash-stack kpi-card__ghost-icon"></i>
         </div>
         <div class="kpi-card kpi-card--amber">
