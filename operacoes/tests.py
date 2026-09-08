@@ -9,7 +9,8 @@ from django.urls import reverse
 
 from fundos.models import Fundo, TipoFundo
 from usuarios.models import Empresa
-from .models import OperacaoCessao
+from .models import Aplicacao, EventoTitulo, OperacaoCessao, Titulo, TipoAplicacao, TipoEventoTitulo
+from .services.carteira_historica import aplicacoes_ativas_em, fim_do_mes, titulos_ativos_em
 from .services.cessao import processar_cessao, calcular_valor_presente
 
 
@@ -577,3 +578,185 @@ class CalcularValorPresenteTest(TestCase):
 
     def test_entrada_none_e_tratada_como_zero(self):
         self.assertEqual(calcular_valor_presente(None, None), Decimal("0.00"))
+
+
+def _criar_titulo_com_aquisicao(fundo, operacao, numero_titulo, sacado_nome, valor_nominal, valor_aquisicao, data_aquisicao):
+    """Cria um Titulo + seu EventoTitulo(AQUISICAO) inicial, replicando o
+    que processar_cessao faz de verdade (cessao.py:90-108): saldo_devedor
+    nasce do valor_nominal, e o evento de aquisição guarda valor_aquisicao
+    em valor_evento -- os dois só coincidem quando taxa_desconto=0."""
+    titulo = Titulo.objects.create(
+        operacao_cessao=operacao,
+        fundo=fundo,
+        numero_titulo=numero_titulo,
+        sacado_nome=sacado_nome,
+        sacado_cpf_cnpj='11122233344',
+        valor_nominal=valor_nominal,
+        valor_aquisicao=valor_aquisicao,
+        data_emissao=data_aquisicao,
+        data_vencimento=date(2099, 1, 1),
+        saldo_devedor=valor_nominal,
+        ativo=True,
+    )
+    EventoTitulo.objects.create(
+        titulo=titulo,
+        tipo_evento=TipoEventoTitulo.AQUISICAO,
+        data_evento=data_aquisicao,
+        valor_evento=valor_aquisicao,
+    )
+    return titulo
+
+
+def _criar_evento(titulo, tipo, data, valor=None):
+    return EventoTitulo.objects.create(
+        titulo=titulo, tipo_evento=tipo, data_evento=data, valor_evento=valor,
+    )
+
+
+class FimDoMesTest(TestCase):
+    """fim_do_mes() é a data de corte usada na reconstrução -- tem que ser
+    o último dia do mês, não o dia 1º (InformeMensal.competencia é sempre
+    gravado como 1º dia -- ver docstring de carteira_historica.py)."""
+
+    def test_mes_31_dias(self):
+        self.assertEqual(fim_do_mes(date(2026, 3, 15)), date(2026, 3, 31))
+
+    def test_fevereiro_nao_bissexto(self):
+        self.assertEqual(fim_do_mes(date(2026, 2, 1)), date(2026, 2, 28))
+
+    def test_fevereiro_bissexto(self):
+        self.assertEqual(fim_do_mes(date(2028, 2, 1)), date(2028, 2, 29))
+
+
+class CarteiraHistoricaTest(TestCase):
+    """
+    Testa operacoes/services/carteira_historica.py -- reconstrução do
+    estado de Titulo/Aplicacao numa data de referência via replay de
+    EventoTitulo. Motivação: a Lâmina de Acompanhamento (fundos/services/
+    lamina.py) não pode misturar o estado ATUAL da carteira com a
+    competência que está sendo reportada -- antes desta reconstrução,
+    gerar a lâmina de qualquer competência passada dava o mesmo resultado
+    que a mais recente.
+    """
+
+    def setUp(self):
+        self.empresa = Empresa.objects.create(nome='Empresa Teste', cnpj='00000000000100')
+        self.fundo = Fundo.objects.create(
+            empresa=self.empresa, cnpj='11111111000199', razao_social='Fundo Teste',
+            tipo_fundo=TipoFundo.FIDC, data_constituicao=date(2025, 1, 1),
+        )
+        self.operacao = OperacaoCessao.objects.create(
+            fundo=self.fundo, cedente_cnpj='99999999000100', cedente_nome='Cedente',
+            numero_contrato='CONTRATO-HIST-1', data_contrato=date(2026, 1, 1),
+            data_aquisicao=date(2026, 1, 1), valor_total_nominal=Decimal('0'),
+            valor_total_aquisicao=Decimal('0'),
+        )
+
+    def test_corte_antes_da_aquisicao_titulo_nao_aparece(self):
+        _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 2, 1),
+        )
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 1, 31)), [])
+
+    def test_corte_apos_aquisicao_titulo_ativo_com_valor_nominal(self):
+        titulo = _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 1, 15),
+        )
+        ativos = titulos_ativos_em(self.fundo, date(2026, 1, 31))
+        self.assertEqual(len(ativos), 1)
+        self.assertEqual(ativos[0]['titulo'], titulo)
+        self.assertEqual(ativos[0]['saldo_devedor'], Decimal('1000.00'))
+
+    def test_corte_apos_liquidacao_total_titulo_nao_aparece(self):
+        # Caso real encontrado no Canoa FIDC: título adquirido em jan/2026,
+        # liquidado em 30/03/2026 -- tem que sumir só a partir do corte de
+        # março (fim do mês), continuar aparecendo em jan/fev.
+        titulo = _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 1, 1),
+        )
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 3, 30), Decimal('1000.00'))
+
+        self.assertEqual(len(titulos_ativos_em(self.fundo, date(2026, 2, 28))), 1)  # ainda ativo em fev
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 3, 31)), [])  # liquidado até o corte de março
+
+    def test_liquidacao_parcial_reduz_saldo_progressivamente(self):
+        titulo = _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 1, 1),
+        )
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 10), Decimal('300.00'))
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 3, 10), Decimal('200.00'))
+
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 1, 31))[0]['saldo_devedor'], Decimal('1000.00'))
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 2, 28))[0]['saldo_devedor'], Decimal('700.00'))
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 3, 31))[0]['saldo_devedor'], Decimal('500.00'))
+
+    def test_ajuste_de_valor_sobrescreve_nao_soma(self):
+        titulo = _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 1, 1),
+        )
+        _criar_evento(titulo, TipoEventoTitulo.AJUSTE_VALOR, date(2026, 2, 1), Decimal('750.00'))
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 2, 28))[0]['saldo_devedor'], Decimal('750.00'))
+
+    def test_baixa_reativacao_baixa_segue_a_sequencia_completa(self):
+        titulo = _criar_titulo_com_aquisicao(
+            self.fundo, self.operacao, 'T1', 'Sacado', Decimal('1000.00'), Decimal('1000.00'), date(2026, 1, 1),
+        )
+        _criar_evento(titulo, TipoEventoTitulo.BAIXA, date(2026, 2, 1))
+        _criar_evento(titulo, TipoEventoTitulo.REATIVACAO, date(2026, 3, 1))
+        _criar_evento(titulo, TipoEventoTitulo.BAIXA, date(2026, 4, 1))
+
+        self.assertEqual(len(titulos_ativos_em(self.fundo, date(2026, 1, 31))), 1)  # antes da 1ª baixa
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 2, 28)), [])  # baixado
+        self.assertEqual(len(titulos_ativos_em(self.fundo, date(2026, 3, 31))), 1)  # reativado
+        self.assertEqual(titulos_ativos_em(self.fundo, date(2026, 4, 30)), [])  # baixado de novo
+
+    def test_saldo_reconstruido_usa_valor_nominal_nao_valor_aquisicao(self):
+        # Pegadinha real encontrada no Canoa: com taxa_desconto > 0, o
+        # evento de AQUISICAO guarda valor_evento=valor_aquisicao (valor
+        # presente, descontado), mas o saldo_devedor real nasce do
+        # valor_nominal (cheio) -- o replay tem que usar valor_nominal.
+        operacao_com_desconto = OperacaoCessao.objects.create(
+            fundo=self.fundo, cedente_cnpj='99999999000100', cedente_nome='Cedente',
+            numero_contrato='CONTRATO-HIST-DESCONTO', data_contrato=date(2026, 1, 1),
+            data_aquisicao=date(2026, 1, 1), taxa_desconto=Decimal('2.88'),
+            valor_total_nominal=Decimal('1000.00'), valor_total_aquisicao=Decimal('971.20'),
+        )
+        _criar_titulo_com_aquisicao(
+            self.fundo, operacao_com_desconto, 'T-DESC', 'Sacado',
+            Decimal('1000.00'), Decimal('971.20'), date(2026, 1, 1),
+        )
+        ativos = titulos_ativos_em(self.fundo, date(2026, 1, 31))
+        self.assertEqual(ativos[0]['saldo_devedor'], Decimal('1000.00'))  # valor_nominal, não 971.20
+
+    def test_titulo_sem_nenhum_evento_cai_no_estado_atual(self):
+        # Rede de segurança: título sem EventoTitulo não deveria acontecer
+        # no fluxo normal (processar_cessao e migrar_recebiveis.py sempre
+        # criam o evento junto), mas se acontecer não pode simplesmente
+        # sumir de toda reconstrução histórica.
+        Titulo.objects.create(
+            operacao_cessao=self.operacao, fundo=self.fundo, numero_titulo='SEM-EVENTO',
+            sacado_nome='Sacado', sacado_cpf_cnpj='11122233344',
+            valor_nominal=Decimal('500.00'), valor_aquisicao=Decimal('500.00'),
+            data_emissao=date(2026, 1, 1), data_vencimento=date(2099, 1, 1),
+            saldo_devedor=Decimal('500.00'), ativo=True,
+        )
+        ativos = titulos_ativos_em(self.fundo, date(2020, 1, 1))  # data bem anterior a tudo
+        self.assertEqual(len(ativos), 1)
+        self.assertEqual(ativos[0]['saldo_devedor'], Decimal('500.00'))
+
+    def test_aplicacao_ativa_apenas_dentro_do_intervalo(self):
+        aplicacao = Aplicacao.objects.create(
+            fundo=self.fundo, tipo_aplicacao=TipoAplicacao.TESOURO, descricao='CDB',
+            valor=Decimal('1000.00'), data_aplicacao=date(2026, 2, 1),
+            status='LIQUIDADA', data_liquidacao=date(2026, 4, 1), valor_resgate=Decimal('1010.00'),
+        )
+        self.assertEqual(list(aplicacoes_ativas_em(self.fundo, date(2026, 1, 31))), [])  # antes de existir
+        self.assertEqual(list(aplicacoes_ativas_em(self.fundo, date(2026, 3, 1))), [aplicacao])  # dentro
+        self.assertEqual(list(aplicacoes_ativas_em(self.fundo, date(2026, 5, 1))), [])  # depois de liquidada
+
+    def test_aplicacao_nunca_liquidada_fica_ativa_indefinidamente(self):
+        aplicacao = Aplicacao.objects.create(
+            fundo=self.fundo, tipo_aplicacao=TipoAplicacao.TESOURO, descricao='CDB',
+            valor=Decimal('1000.00'), data_aplicacao=date(2026, 2, 1),
+        )
+        self.assertEqual(list(aplicacoes_ativas_em(self.fundo, date(2030, 1, 1))), [aplicacao])

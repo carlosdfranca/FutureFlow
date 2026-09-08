@@ -206,17 +206,18 @@
             <td class="pct">{% if a.percentual is not None %}{{ a.percentual|floatformat:2 }}%{% else %}-{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="2">Sem composição de carteira informada nesta competência.</td></tr>
+        <tr><td colspan="2">Fundo sem títulos ou aplicações ativos registrados na plataforma nesta competência.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+<p class="status-enq__nota">Carteira reconstruída a partir do histórico de eventos registrado na plataforma, na data-base da competência acima — pode não corresponder à composição reportada no informe CVM.</p>
 
 <p style="margin-top:8pt;">
     <span class="status-enq status-enq--{% if status_enquadramento == 'Enquadrado' %}enquadrado{% elif status_enquadramento == 'Desenquadrado' %}desenquadrado{% else %}nao-avaliado{% endif %}">
         Status: {{ status_enquadramento|upper }}
     </span>
 </p>
-<p class="status-enq__nota">Reflete a composição atual da carteira, podendo não corresponder exatamente à data-base do informe acima.</p>
+<p class="status-enq__nota">Calculado sobre a carteira reconstruída na data-base do informe acima, a partir do histórico de eventos registrado na plataforma.</p>
 
 <div class="duas-colunas">
     <div>
