@@ -219,3 +219,7 @@ celerybeat-schedule*
 
 # Material recebido de cliente (propostas, specs) - não é código do projeto
 /Espelho_lamina_acompanhamento_Future_Flow/
+
+# Notas fiscais de trabalho (PDFs de DANFE, pesados). Os XMLs que o teste usa
+# estao versionados em operacoes/fixtures/cnab_atrivion_20260909/xml/
+docs/legado_vba/Notas Antecipada Atrivion*/
