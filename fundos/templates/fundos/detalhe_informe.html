@@ -12,7 +12,7 @@
             {% back_button %}
             <div>
                 <p class="page-hero__label">
-                    <i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}
+                    {{ fundo.razao_social }}
                 </p>
                 <h1 class="page-hero__title">Informe {{ informe.competencia_display }}</h1>
                 <p class="page-hero__subtitle">CNPJ {{ fundo.cnpj }}</p>
@@ -20,7 +20,7 @@
         </div>
         <a href="{% url 'fundos:lamina_informe_pdf' fundo_id=fundo.id informe_id=informe.id %}"
            target="_blank" class="btn btn-primary-ds">
-            <i class="bi bi-file-earmark-pdf me-1"></i>Gerar Lâmina
+            Gerar Lâmina
         </a>
     </div>
 </div>
@@ -29,7 +29,7 @@
 
     <!-- ── KPIs Principais ─────────────────────────────────── -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--blue">
                 <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Patrimônio Líquido</div>
@@ -41,7 +41,7 @@
                 <div class="kpi-card__sub">{{ informe.competencia_display }}</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--gray">
                 <i class="bi bi-briefcase kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Carteira Total</div>
@@ -53,7 +53,7 @@
                 <div class="kpi-card__sub">Direitos Creditórios</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--amber">
                 <i class="bi bi-people-fill kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Cotistas (Total)</div>
@@ -66,7 +66,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--green">
                 <i class="bi bi-percent kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Rentab. Sênior</div>
@@ -91,7 +91,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-layers text-primary"></i>Cotas por Subclasse
+                        Cotas por Subclasse
                     </span>
                 </div>
                 <div class="card-body p-0">
@@ -127,7 +127,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-pie-chart text-primary"></i>Carteira por tipo de ativo
+                        Carteira por tipo de ativo
                     </span>
                 </div>
                 <div class="card-body p-0">
@@ -169,7 +169,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-people text-primary"></i>Cedentes
+                        Cedentes
                     </span>
                 </div>
                 <div class="card-body p-0">
@@ -207,7 +207,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-balance-scale text-primary"></i>Balanço Patrimonial
+                        Balanço Patrimonial
                     </span>
                 </div>
                 <div class="card-body">
@@ -253,7 +253,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-exclamation-triangle text-warning"></i>Inadimplência
+                        Inadimplência
                     </span>
                 </div>
                 <div class="card-body">
@@ -274,7 +274,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-shield-check text-primary"></i>Rating SCR
+                        Rating SCR
                     </span>
                 </div>
                 <div class="card-body">
@@ -293,7 +293,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-arrow-left-right text-primary"></i>Captação e Resgate no Mês
+                        Captação e Resgate no Mês
                     </span>
                 </div>
                 <div class="card-body">
@@ -322,7 +322,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-hourglass-split text-primary"></i>Perfil de Liquidez
+                        Perfil de Liquidez
                     </span>
                 </div>
                 <div class="card-body">
@@ -341,7 +341,7 @@
             <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-calendar-range text-primary"></i>Perfil de Vencimentos
+                        Perfil de Vencimentos
                     </span>
                 </div>
                 <div class="card-body">
@@ -360,7 +360,7 @@
 
     <!-- Metadados do arquivo -->
     <div class="text-muted small mt-2 mb-4">
-        <i class="bi bi-info-circle me-1"></i>
+
         Arquivo: <code>{{ informe.arquivo_xml_nome|default:"—" }}</code>
         &nbsp;|&nbsp;
         Importado em {{ informe.criado_em|date:"d/m/Y H:i" }}

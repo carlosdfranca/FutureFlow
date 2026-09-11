@@ -26,7 +26,7 @@
                     <span class="badge-ds badge-ds--blue">{{ titulo.classificacao_risco }}</span>
                     <a href="{% url 'operacoes:detalhe_cessao' titulo.operacao_cessao.pk %}"
                        style="font-size:0.82rem; color:var(--text-secondary); text-decoration:none;">
-                        <i class="bi bi-arrow-up-right-square me-1"></i>{{ titulo.operacao_cessao.numero_contrato }}
+                        {{ titulo.operacao_cessao.numero_contrato }}
                     </a>
                 </div>
             </div>
@@ -34,11 +34,11 @@
         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
             {% if titulo.ativo %}
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-evento-titulo">
-                    <i class="bi bi-cash-coin me-2"></i>Liquidar / Baixar
+                    Liquidar / Baixar
                 </button>
             {% else %}
                 <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modal-evento-titulo">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reativar
+                    Reativar
                 </button>
             {% endif %}
         </div>
@@ -53,7 +53,7 @@
         <div class="col-md-6">
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; margin-bottom:1.25rem;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-file-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Informações do Título</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -101,7 +101,7 @@
 
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-person" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Sacado</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -131,7 +131,7 @@
         <div class="col-md-6">
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; margin-bottom:1.25rem;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-currency-dollar" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Valores</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -156,7 +156,7 @@
 
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-shield-check" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Risco e PDD</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -195,7 +195,7 @@
     <div class="card" style="padding:0; overflow:hidden;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-clock-history me-1"></i>Histórico de Eventos
+                Histórico de Eventos
             </span>
             {% if eventos %}
                 <span class="badge-ds badge-ds--blue">{{ eventos|length }} eventos</span>
@@ -272,7 +272,7 @@
             <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
                 <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
                     <h5 class="modal-title" id="modal-evento-titulo-label">
-                        <i class="bi bi-cash-coin me-2"></i>Registrar evento do título
+                        Registrar evento do título
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -301,10 +301,10 @@
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x me-1"></i>Cancelar
+                        Cancelar
                     </button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-check2 me-1"></i>Confirmar
+                        Confirmar
                     </button>
                 </div>
             </div>

@@ -58,35 +58,35 @@
         {% endif %}
 
         <ul class="fundo-card__meta">
-            <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
+            <li><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
             {% if fundo.codigo_anbima %}
-            <li><i class="bi bi-tag"></i><strong>ANBIMA</strong>&nbsp;{{ fundo.codigo_anbima }}</li>
+            <li><strong>ANBIMA</strong>&nbsp;{{ fundo.codigo_anbima }}</li>
             {% endif %}
-            <li><i class="bi bi-calendar3"></i><strong>Constituição</strong>&nbsp;{{ fundo.data_constituicao|date:"d/m/Y" }}</li>
+            <li><strong>Constituição</strong>&nbsp;{{ fundo.data_constituicao|date:"d/m/Y" }}</li>
             {% if fundo.taxa_administracao %}
-            <li><i class="bi bi-percent"></i><strong>Taxa Adm.</strong>&nbsp;{{ fundo.taxa_administracao }}</li>
+            <li><strong>Taxa Adm.</strong>&nbsp;{{ fundo.taxa_administracao }}</li>
             {% endif %}
             {% if fundo.taxa_gestao %}
-            <li><i class="bi bi-graph-up"></i><strong>Taxa Gestão</strong>&nbsp;{{ fundo.taxa_gestao }}</li>
+            <li><strong>Taxa Gestão</strong>&nbsp;{{ fundo.taxa_gestao }}</li>
             {% endif %}
         </ul>
     </div>
 
     <div class="fundo-card__footer">
         <a href="{% url 'fundos:editar_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-            <i class="bi bi-pencil me-1"></i>Editar
+            Editar
         </a>
         <button type="button" class="btn btn-ghost-ds btn-regulamento" data-bs-toggle="modal" data-bs-target="#modal-regulamento">
-            <i class="bi bi-journal-text me-1"></i>Regulamento
+            Regulamento
         </button>
         <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-            <i class="bi bi-graph-up-arrow me-1"></i>Informes
+            Informes
         </a>
         <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-            <i class="bi bi-pie-chart me-1"></i>Carteira
+            Carteira
         </a>
         <a href="{% url 'fundos:dashboard_fundo' fundo_id=fundo.id %}" class="btn btn-primary-ds btn-dashboard">
-            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+            Dashboard
         </a>
     </div>
 </div>

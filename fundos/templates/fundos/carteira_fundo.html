@@ -55,7 +55,7 @@
 
     <!-- ── KPIs Principais ─────────────────────────────────── -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--blue{% if enquadramento.dc_excede %} kpi-card--danger{% endif %}">
                 <i class="bi bi-file-earmark-text kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Direito Creditório</div>
@@ -66,7 +66,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--green{% if enquadramento.liquidez_excede %} kpi-card--danger{% endif %}">
                 <i class="bi bi-droplet-half kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Liquidez</div>
@@ -77,7 +77,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--gray">
                 <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Total da Carteira</div>
@@ -85,7 +85,7 @@
                 <div class="kpi-card__sub">Direito Creditório + Liquidez</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-3">
             <div class="kpi-card kpi-card--amber">
                 <i class="bi bi-collection kpi-card__ghost-icon"></i>
                 <div class="kpi-card__label">Ativos na Carteira</div>
@@ -100,7 +100,7 @@
     <div class="card shadow-sm mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color);">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-pie-chart text-primary"></i>Composição da Carteira
+                Composição da Carteira
             </span>
         </div>
         <div id="chart-composicao" style="min-height:220px;" class="px-3 pb-3 pt-2"></div>
@@ -114,7 +114,7 @@
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-file-earmark-text me-1"></i>Direito Creditório (Cessões)
+                        Direito Creditório (Cessões)
                     </span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -142,7 +142,7 @@
                     </div>
                     {% endif %}
                     <a href="{% url 'operacoes:listar_titulos' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds w-100">
-                        <i class="bi bi-list-ul me-1"></i>Ver todos os títulos
+                        Ver todos os títulos
                     </a>
                 </div>
             </div>
@@ -153,7 +153,7 @@
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-droplet-half me-1"></i>Liquidez (Aplicações)
+                        Liquidez (Aplicações)
                     </span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -195,7 +195,7 @@
                     </div>
                     {% endif %}
                     <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds w-100">
-                        <i class="bi bi-list-ul me-1"></i>Ver todas as aplicações
+                        Ver todas as aplicações
                     </a>
                 </div>
             </div>

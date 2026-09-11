@@ -47,12 +47,12 @@
                     <table class="table table-hover align-middle modern-table">
                         <thead class="table-header-modern">
                             <tr>
-                                <th class="col-numero"><i class="bi bi-hash me-1"></i>№</th>
-                                <th class="col-sacado"><i class="bi bi-person me-1"></i>Sacado</th>
-                                <th class="col-documento"><i class="bi bi-file-earmark-text me-1"></i>Doc</th>
-                                <th class="col-valor"><i class="bi bi-currency-dollar me-1"></i>Valor</th>
-                                <th class="col-vencimento"><i class="bi bi-calendar me-1"></i>Vencimento</th>
-                                <th class="col-tipo"><i class="bi bi-tag me-1"></i>Tipo</th>
+                                <th class="col-numero">№</th>
+                                <th class="col-sacado">Sacado</th>
+                                <th class="col-documento">Doc</th>
+                                <th class="col-valor">Valor</th>
+                                <th class="col-vencimento">Vencimento</th>
+                                <th class="col-tipo">Tipo</th>
                                 <th class="col-acoes"><i class="bi bi-gear me-1"></i></th>
                             </tr>
                         </thead>
@@ -369,7 +369,7 @@
                         </div>
                     </button>
                 </div>
-                
+
                 <div class="col-md-4 col-lg-3">
                     <button name="acao" value="gerar_confirmacao"
                             class="btn modern-btn modern-btn-secondary w-100">
@@ -617,21 +617,21 @@
         padding: 0.75rem 0.5rem;
         font-size: 0.8rem;
     }
-    
+
     .modern-table tbody td {
         padding: 0.75rem 0.5rem;
         font-size: 0.9rem;
     }
-    
+
     .modern-btn {
         min-height: 80px;
         padding: 1rem;
     }
-    
+
     .btn-icon {
         font-size: 1.5rem;
     }
-    
+
     .btn-title {
         font-size: 1rem;
     }
@@ -649,7 +649,7 @@ function excluirLinha(indice) {
     const linha = document.getElementById(`linha-${indice}`);
     if (linha) {
         linha.classList.add('removing');
-        
+
         // Remove após a animação
         setTimeout(() => {
             linha.remove();
@@ -662,38 +662,38 @@ function excluirLinha(indice) {
 // =====================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     // Função para aplicar máscara de CPF
     function aplicarMascaraCPF(campo) {
         campo.addEventListener('input', function(e) {
             let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
-            
+
             // Limita a 11 dígitos
             if (valor.length > 11) {
                 valor = valor.substring(0, 11);
             }
-            
+
             // Aplica máscara
             if (valor.length <= 11) {
                 valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
                 valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
                 valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
             }
-            
+
             e.target.value = valor;
         });
     }
-    
+
     // Função para aplicar máscara de CNPJ
     function aplicarMascaraCNPJ(campo) {
         campo.addEventListener('input', function(e) {
             let valor = e.target.value.replace(/\D/g, ''); // Remove não dígitos
-            
+
             // Limita a 14 dígitos
             if (valor.length > 14) {
                 valor = valor.substring(0, 14);
             }
-            
+
             // Aplica máscara
             if (valor.length <= 14) {
                 valor = valor.replace(/(\d{2})(\d)/, '$1.$2');
@@ -701,11 +701,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 valor = valor.replace(/(\d{3})(\d)/, '$1/$2');
                 valor = valor.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
             }
-            
+
             e.target.value = valor;
         });
     }
-    
+
     // Aplicar máscaras nos campos de CPF
     const camposCPF = [
         'id_emitente_cpf',
@@ -714,28 +714,28 @@ document.addEventListener('DOMContentLoaded', function() {
         'id_testemunha2_cpf',
         'id_sacado_cpf'
     ];
-    
+
     camposCPF.forEach(function(id) {
         const campo = document.getElementById(id);
         if (campo) {
             aplicarMascaraCPF(campo);
         }
     });
-    
+
     // Aplicar máscaras nos campos de CNPJ
     const camposCNPJ = [
         'id_emitente_cnpj',
         'id_cessionario_cnpj',
         'id_sacado_cnpj'
     ];
-    
+
     camposCNPJ.forEach(function(id) {
         const campo = document.getElementById(id);
         if (campo) {
             aplicarMascaraCNPJ(campo);
         }
     });
-    
+
 });
 </script>
 

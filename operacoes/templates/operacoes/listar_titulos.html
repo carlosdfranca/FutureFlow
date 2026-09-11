@@ -51,11 +51,11 @@
                 <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Baixados</option>
             </select>
             <button type="submit" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                <i class="bi bi-search me-1"></i>Filtrar
+                Filtrar
             </button>
             {% if request.GET.ativo %}
                 <a href="{% url 'operacoes:listar_titulos' %}" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                    <i class="bi bi-x me-1"></i>Limpar
+                    Limpar
                 </a>
             {% endif %}
         </form>
@@ -65,7 +65,7 @@
     <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-list-check me-1"></i>Recebíveis
+                Recebíveis
             </span>
             {% if titulos %}
                 <span class="badge-ds badge-ds--blue">{{ titulos|length }} registros</span>

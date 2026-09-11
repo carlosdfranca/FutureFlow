@@ -1,0 +1,10 @@
+{% comment %}
+Avatar do usuário na navbar — foto quando existe, iniciais como fallback.
+Usado no dropdown do desktop e no rodapé do drawer mobile.
+O tamanho vem do CSS (.site-nav__avatar / .site-nav__avatar-fallback).
+{% endcomment %}
+{% if user.profile_image %}
+    <img src="{{ user.profile_image.url }}" alt="" aria-hidden="true" class="site-nav__avatar">
+{% else %}
+    <span class="site-nav__avatar-fallback">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+{% endif %}

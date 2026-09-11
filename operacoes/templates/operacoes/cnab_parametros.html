@@ -73,7 +73,7 @@
 
                         <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
                             <button type="submit" class="btn btn-primary" {% if not operacao.fundo.codigo_originador_cnab %}disabled{% endif %}>
-                                <i class="bi bi-download me-2"></i>Baixar CNAB
+                                Baixar CNAB
                             </button>
                             <a href="{% url 'operacoes:detalhe_cessao' operacao.pk %}" class="btn btn-ghost-ds">
                                 Cancelar

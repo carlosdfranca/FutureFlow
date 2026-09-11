@@ -9,7 +9,7 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <i class="bi bi-bank me-1"></i>Gestão de Fundos
+                Gestão de Fundos
             </p>
             <h1 class="page-hero__title">Fundos de Investimento</h1>
             <p class="page-hero__subtitle">
@@ -18,7 +18,7 @@
         </div>
         <div>
             <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem; font-size:0.9rem;">
-                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                Novo Fundo
             </a>
         </div>
     </div>
@@ -38,7 +38,7 @@
                 <li class="enq-alert__fundo-row">
                     <span>Fundo <strong>{{ f.razao_social }}</strong> está desenquadrado.</span>
                     <a href="{% url 'fundos:carteira_fundo' fundo_id=f.id %}" class="btn btn-sm btn-ghost-ds">
-                        <i class="bi bi-pie-chart me-1"></i>Ver Carteira
+                        Ver Carteira
                     </a>
                 </li>
                 {% endfor %}
@@ -53,20 +53,20 @@
         <div class="kpi-grid kpi-grid--fundos">
             <div class="kpi-card kpi-card--blue">
                 <div class="kpi-card__value">{{ total_fundos }}</div>
-                <div class="kpi-card__label"><i class="bi bi-bank me-1"></i>Total de Fundos</div>
+                <div class="kpi-card__label">Total de Fundos</div>
             </div>
             <div class="kpi-card kpi-card--green">
                 <div class="kpi-card__value">{{ total_ativos }}</div>
-                <div class="kpi-card__label"><i class="bi bi-check-circle me-1"></i>Ativos</div>
+                <div class="kpi-card__label">Ativos</div>
             </div>
             <div class="kpi-card kpi-card--gray">
                 <div class="kpi-card__value">{{ total_inativos }}</div>
-                <div class="kpi-card__label"><i class="bi bi-pause-circle me-1"></i>Inativos</div>
+                <div class="kpi-card__label">Inativos</div>
             </div>
             {% if total_desenquadrados %}
             <div class="kpi-card kpi-card--danger">
                 <div class="kpi-card__value">{{ total_desenquadrados }}</div>
-                <div class="kpi-card__label"><i class="bi bi-exclamation-triangle me-1"></i>Desenquadrados</div>
+                <div class="kpi-card__label">Desenquadrados</div>
             </div>
             {% endif %}
         </div>
@@ -77,7 +77,7 @@
                 <button class="nav-link funds-tab--todos active" id="tab-todos-btn"
                     data-bs-toggle="tab" data-bs-target="#tab-todos" type="button"
                     role="tab" aria-controls="tab-todos" aria-selected="true">
-                    <i class="bi bi-grid-3x3-gap"></i>
+
                     Todos
                     <span class="tab-badge tab-badge--todos">{{ total_fundos }}</span>
                 </button>
@@ -86,7 +86,7 @@
                 <button class="nav-link funds-tab--fidc" id="tab-fidc-btn"
                     data-bs-toggle="tab" data-bs-target="#tab-fidc" type="button"
                     role="tab" aria-controls="tab-fidc" aria-selected="false">
-                    <i class="bi bi-credit-card-2-front"></i>
+
                     FIDC
                     <span class="tab-badge tab-badge--fidc">{{ total_fidc }}</span>
                 </button>
@@ -95,7 +95,7 @@
                 <button class="nav-link funds-tab--fii" id="tab-fii-btn"
                     data-bs-toggle="tab" data-bs-target="#tab-fii" type="button"
                     role="tab" aria-controls="tab-fii" aria-selected="false">
-                    <i class="bi bi-building"></i>
+
                     FII
                     <span class="tab-badge tab-badge--fii">{{ total_fii }}</span>
                 </button>
@@ -104,7 +104,7 @@
                 <button class="nav-link funds-tab--fip" id="tab-fip-btn"
                     data-bs-toggle="tab" data-bs-target="#tab-fip" type="button"
                     role="tab" aria-controls="tab-fip" aria-selected="false">
-                    <i class="bi bi-briefcase"></i>
+
                     FIP
                     <span class="tab-badge tab-badge--fip">{{ total_fip }}</span>
                 </button>
@@ -157,7 +157,7 @@
                     <p class="empty-state-modern__title">Nenhum FIDC cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento em Direitos Creditórios para esta empresa.</p>
                     <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                        Novo Fundo
                     </a>
                 </div>
                 {% endif %}
@@ -188,7 +188,7 @@
                     <p class="empty-state-modern__title">Nenhum FII cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento Imobiliário para esta empresa.</p>
                     <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                        Novo Fundo
                     </a>
                 </div>
                 {% endif %}
@@ -219,7 +219,7 @@
                     <p class="empty-state-modern__title">Nenhum FIP cadastrado</p>
                     <p class="empty-state-modern__text">Adicione um Fundo de Investimento em Participações para esta empresa.</p>
                     <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                        <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                        Novo Fundo
                     </a>
                 </div>
                 {% endif %}
@@ -235,14 +235,14 @@
             <p class="empty-state-modern__title">Nenhum fundo cadastrado</p>
             <p class="empty-state-modern__text">Adicione o primeiro fundo de investimento para esta empresa.</p>
             <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                Novo Fundo
             </a>
         </div>
     {% endif %}
 
     {% if release_notes %}
     <div class="card mt-4">
-        <h6><i class="bi bi-journal-text me-1"></i>Release Notes</h6>
+        <h6>Release Notes</h6>
         <div class="markdown-content">
             {{ release_notes|safe }}
         </div>
@@ -259,7 +259,7 @@
             <div class="reg-modal__accent-bar" style="background: linear-gradient(90deg, #dc2626, #f87171);"></div>
             <div class="reg-modal__header">
                 <div>
-                    <p class="reg-modal__eyebrow"><i class="bi bi-exclamation-triangle-fill me-1"></i>Alerta de Enquadramento</p>
+                    <p class="reg-modal__eyebrow">Alerta de Enquadramento</p>
                     <h5 class="reg-modal__title" id="modal-desenq-label">Fundos Desenquadrados</h5>
                 </div>
                 <button type="button" class="btn-close reg-modal__close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -273,7 +273,7 @@
                             <p class="mb-0" style="color:var(--text-primary); font-weight:600;">{{ f.razao_social }}</p>
                         </div>
                         <a href="{% url 'fundos:carteira_fundo' fundo_id=f.id %}" class="btn btn-sm btn-ghost-ds text-nowrap">
-                            <i class="bi bi-pie-chart me-1"></i>Ver Carteira
+                            Ver Carteira
                         </a>
                     </div>
                 </div>
@@ -296,7 +296,7 @@
             <div class="reg-modal__accent-bar"></div>
             <div class="reg-modal__header">
                 <div>
-                    <p class="reg-modal__eyebrow"><i class="bi bi-journal-text me-1"></i>Regulamento do Fundo</p>
+                    <p class="reg-modal__eyebrow">Regulamento do Fundo</p>
                     <h5 class="reg-modal__title" id="modal-reg-label"></h5>
                 </div>
                 <button type="button" class="btn-close reg-modal__close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -306,7 +306,7 @@
 
                 <!-- Gestão -->
                 <div class="reg-section">
-                    <p class="reg-section__heading"><i class="bi bi-people-fill"></i>Gestão</p>
+                    <p class="reg-section__heading">Gestão</p>
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Administrador</span><span class="reg-item__value" id="reg-administrador"></span></div>
                         <div class="reg-item"><span class="reg-item__label">Gestor</span><span class="reg-item__value" id="reg-gestor"></span></div>
@@ -315,7 +315,7 @@
 
                 <!-- Condições Operacionais -->
                 <div class="reg-section">
-                    <p class="reg-section__heading reg-section__heading--blue"><i class="bi bi-gear-fill"></i>Condições Operacionais</p>
+                    <p class="reg-section__heading reg-section__heading--blue">Condições Operacionais</p>
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Cotização</span><span class="reg-item__value" id="reg-cotizacao"></span></div>
                         <div class="reg-item"><span class="reg-item__label">Prazo de Liquidação</span><span class="reg-item__value" id="reg-liquidacao"></span></div>
@@ -326,7 +326,7 @@
 
                 <!-- Classificação e Estrutura -->
                 <div class="reg-section">
-                    <p class="reg-section__heading"><i class="bi bi-person-badge-fill"></i>Classificação</p>
+                    <p class="reg-section__heading">Classificação</p>
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Classificação do Investidor</span><span class="reg-item__value" id="reg-classificacao"></span></div>
                         <div class="reg-item"><span class="reg-item__label">Estrutura</span><span class="reg-item__value" id="reg-estrutura"></span></div>
@@ -337,7 +337,7 @@
 
                 <!-- Fiscal -->
                 <div class="reg-section">
-                    <p class="reg-section__heading reg-section__heading--green"><i class="bi bi-calendar-check-fill"></i>Fiscal</p>
+                    <p class="reg-section__heading reg-section__heading--green">Fiscal</p>
                     <div class="reg-grid">
                         <div class="reg-item"><span class="reg-item__label">Encerramento do Exercício</span><span class="reg-item__value" id="reg-encerramento"></span></div>
                     </div>
@@ -345,7 +345,7 @@
 
                 <!-- Taxas — mini-cards estilo kpi -->
                 <div class="reg-section">
-                    <p class="reg-section__heading reg-section__heading--amber"><i class="bi bi-percent"></i>Taxas</p>
+                    <p class="reg-section__heading reg-section__heading--amber">Taxas</p>
                     <div class="reg-taxa-grid">
                         <div class="reg-taxa-card reg-taxa-card--red">
                             <span class="reg-taxa-card__label">Administração</span>

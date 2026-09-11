@@ -24,10 +24,10 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'fundos:carteira_fundo' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-                <i class="bi bi-pie-chart me-1"></i>Carteira
+                Carteira
             </a>
             <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-ghost-ds">
-                <i class="bi bi-graph-up-arrow me-1"></i>Informes
+                Informes
             </a>
         </div>
     </div>
@@ -56,7 +56,7 @@
     {% endif %}
 
     <!-- ── Bloco 1 — KPIs Executivos ─────────────────────────────────── -->
-    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+    <div class="kpi-grid kpi-grid--compact">
         <div class="kpi-card kpi-card--blue">
             <i class="bi bi-wallet2 kpi-card__ghost-icon"></i>
             <div class="kpi-card__label">Patrimônio Líquido</div>
@@ -115,7 +115,7 @@
     <div class="card mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-shield-check text-primary"></i>Enquadramento da Carteira
+                Enquadramento da Carteira
             </span>
         </div>
         <div style="padding:1.25rem;">
@@ -157,7 +157,7 @@
     <div class="card mb-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-graph-up text-primary"></i>Evolução do Patrimônio Líquido
+                Evolução do Patrimônio Líquido
             </span>
         </div>
         <div id="chart-pl" style="min-height:260px;" class="px-3 pb-3 pt-2"></div>
@@ -167,7 +167,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-graph-up-arrow me-1"></i>Valor da Cota</span>
+                    <span class="card-header-ds__title">Valor da Cota</span>
                 </div>
                 <div id="chart-cota" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
             </div>
@@ -175,7 +175,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-arrow-left-right me-1"></i>Captação &times; Resgate</span>
+                    <span class="card-header-ds__title">Captação &times; Resgate</span>
                 </div>
                 <div id="chart-captacao-resgate" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
             </div>
@@ -187,7 +187,7 @@
         <p class="empty-state-modern__title">Sem Informes Mensais importados</p>
         <p class="empty-state-modern__text">A evolução histórica (PL, cota, captação e resgate) aparece aqui assim que houver Informes Mensais importados para este fundo.</p>
         <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-            <i class="bi bi-upload me-1"></i>Importar Informe
+            Importar Informe
         </a>
     </div>
     {% endif %}
@@ -198,7 +198,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-hourglass-split me-1"></i>Aging de Vencimentos</span>
+                    <span class="card-header-ds__title">Aging de Vencimentos</span>
                 </div>
                 <div id="chart-aging" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
             </div>
@@ -206,7 +206,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-calendar-range me-1"></i>Fluxo de Recebimentos (próx. 12 meses)</span>
+                    <span class="card-header-ds__title">Fluxo de Recebimentos (próx. 12 meses)</span>
                 </div>
                 {% if fluxo_vencer %}
                 <div id="chart-fluxo" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
@@ -225,7 +225,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-person-lines-fill me-1"></i>Concentração por Sacado</span>
+                    <span class="card-header-ds__title">Concentração por Sacado</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-ds mb-0">
@@ -255,7 +255,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-building me-1"></i>Concentração por Cedente</span>
+                    <span class="card-header-ds__title">Concentração por Cedente</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-ds mb-0">
@@ -291,7 +291,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-shield-exclamation me-1"></i>Distribuição por Rating</span>
+                    <span class="card-header-ds__title">Distribuição por Rating</span>
                 </div>
                 <div id="chart-risco" style="min-height:240px;" class="px-3 pb-3 pt-2"></div>
             </div>
@@ -299,7 +299,7 @@
         <div class="col-lg-6">
             <div class="card h-100" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
                 <div class="card-header-ds">
-                    <span class="card-header-ds__title"><i class="bi bi-exclamation-diamond me-1"></i>Provisão (PDD) por Rating</span>
+                    <span class="card-header-ds__title">Provisão (PDD) por Rating</span>
                 </div>
                 <div style="padding:1.25rem;">
                     <div class="table-responsive">

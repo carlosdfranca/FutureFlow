@@ -26,17 +26,17 @@
                         <span class="badge-ds badge-ds--red">Cancelada</span>
                     {% endif %}
                     <span style="font-size:0.82rem; color:var(--text-secondary);">
-                        <i class="bi bi-calendar3 me-1"></i>{{ operacao.data_aquisicao|date:"d/m/Y" }}
+                        {{ operacao.data_aquisicao|date:"d/m/Y" }}
                     </span>
                 </div>
             </div>
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <a href="{% url 'operacoes:gerar_termo_cessao' operacao.pk %}" class="btn btn-primary">
-                <i class="bi bi-file-word me-2"></i>Gerar Termo
+                Gerar Termo
             </a>
             <a href="{% url 'operacoes:cnab_parametros' operacao.pk %}" class="btn btn-ghost-ds">
-                <i class="bi bi-file-earmark-arrow-down me-2"></i>CNAB
+                CNAB
             </a>
         </div>
     </div>
@@ -71,7 +71,7 @@
         <div class="col-md-6">
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; height:100%;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-file-earmark-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Dados da Operação</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -114,7 +114,7 @@
         <div class="col-md-6">
             <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden; height:100%;">
                 <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-                    <i class="bi bi-building" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
                     <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Cedente</span>
                 </div>
                 <div style="padding:1.25rem;">
@@ -145,7 +145,7 @@
     <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-list-check me-1"></i>Títulos da Cessão
+                Títulos da Cessão
             </span>
             <span class="badge-ds badge-ds--blue">{{ titulos|length }} títulos</span>
         </div>
@@ -207,7 +207,7 @@
     {% if operacao.observacoes %}
     <div class="card" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:0; overflow:hidden;">
         <div style="padding:0.875rem 1.25rem; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:0.5rem;">
-            <i class="bi bi-chat-text" style="color:var(--text-secondary); font-size:0.9rem;"></i>
+
             <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Observações</span>
         </div>
         <div style="padding:1.25rem; color:var(--text-secondary); line-height:1.6;">

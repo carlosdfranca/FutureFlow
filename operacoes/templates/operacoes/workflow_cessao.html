@@ -55,7 +55,7 @@
                     </div>
                     <div class="col-md-3">
                         <button type="submit" name="acao" value="parse_xml" formnovalidate class="btn btn-primary w-100">
-                            <i class="bi bi-arrow-down-circle me-2"></i>Importar XML
+                            Importar XML
                         </button>
                     </div>
                 </div>
@@ -68,7 +68,7 @@
             <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem; padding:0 0.25rem;">
                 <span class="badge-ds badge-ds--blue">Operação {{ forloop.counter }} de {{ blocos|length }}</span>
                 {% if bloco.nome_arquivo %}
-                    <span style="font-size:0.8rem; color:var(--text-secondary);"><i class="bi bi-file-earmark-code me-1"></i>{{ bloco.nome_arquivo }}</span>
+                    <span style="font-size:0.8rem; color:var(--text-secondary);">{{ bloco.nome_arquivo }}</span>
                 {% endif %}
             </div>
             {% endif %}
@@ -232,7 +232,7 @@
                     </div>
 
                     <button type="button" class="btn btn-ghost-ds add-titulo-btn" data-bloco-index="{{ bloco.index }}">
-                        <i class="bi bi-plus-circle me-2"></i>Adicionar Título
+                        Adicionar Título
                     </button>
                 </div>
             </div>
@@ -242,10 +242,10 @@
         <!-- Ações -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:2rem; padding:1.25rem; background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px;">
             <a href="{% if fundo_id %}{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo_id }}{% else %}{% url 'operacoes:painel_fundos' %}{% endif %}" class="btn btn-ghost-ds">
-                <i class="bi bi-x-circle me-2"></i>Cancelar
+                Cancelar
             </a>
             <button type="submit" name="acao" value="confirmar" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-circle me-2"></i>Confirmar e Salvar {% if blocos|length > 1 %}({{ blocos|length }} operações){% endif %}
+                Confirmar e Salvar {% if blocos|length > 1 %}({{ blocos|length }} operações){% endif %}
             </button>
         </div>
     </form>

@@ -9,7 +9,7 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <i class="bi bi-gear me-1"></i>Operações
+                Operações
             </p>
             <h1 class="page-hero__title">Cessões e Aplicações por Fundo</h1>
             <p class="page-hero__subtitle">
@@ -24,7 +24,7 @@
 
     {% if fundos %}
 
-        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 2rem;">
+        <div class="kpi-grid">
             <div class="kpi-card kpi-card--blue">
                 <i class="bi bi-bank kpi-card__ghost-icon"></i>
                 <div class="kpi-card__value">{{ total_fundos }}</div>
@@ -68,17 +68,17 @@
                         <p class="fundo-card__alias">{{ fundo.nome_comercial }}</p>
                     {% endif %}
                     <ul class="fundo-card__meta">
-                        <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
-                        <li><i class="bi bi-file-earmark-text"></i><strong>Direito Creditório</strong>&nbsp;R$ {{ fundo.dc|brl }}</li>
-                        <li><i class="bi bi-droplet-half"></i><strong>Liquidez</strong>&nbsp;R$ {{ fundo.liquidez|brl }}</li>
+                        <li><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
+                        <li><strong>Direito Creditório</strong>&nbsp;R$ {{ fundo.dc|brl }}</li>
+                        <li><strong>Liquidez</strong>&nbsp;R$ {{ fundo.liquidez|brl }}</li>
                     </ul>
                 </div>
                 <div class="fundo-card__footer">
                     <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds">
-                        <i class="bi bi-file-earmark-text me-1"></i>Cessões
+                        Cessões
                     </a>
                     <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn btn-primary-ds">
-                        <i class="bi bi-graph-up-arrow me-1"></i>Aplicações
+                        Aplicações
                     </a>
                 </div>
             </div>
@@ -97,7 +97,7 @@
             <p class="empty-state-modern__title">Nenhum fundo cadastrado</p>
             <p class="empty-state-modern__text">Cadastre um fundo para começar a registrar cessões e aplicações.</p>
             <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                Novo Fundo
             </a>
         </div>
     {% endif %}

@@ -107,21 +107,21 @@
                     <!-- Fundos dropdown -->
                     <li class="site-nav__dropdown-wrap">
                         <button type="button" class="site-nav__link site-nav__link--dropdown {% if request.resolver_match.app_name == 'fundos' %}is-active{% endif %}" data-dropdown="fundosDropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bi bi-bank"></i>Fundos
+                            Fundos
                             <i class="bi bi-chevron-down site-nav__chevron"></i>
                         </button>
                         <ul class="site-nav__dropdown" id="fundosDropdown" role="menu">
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-list-ul"></i>Ver Fundos</a></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}"><i class="bi bi-plus-lg"></i>Novo Fundo</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}">Ver Fundos</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_fundo' %}">Novo Fundo</a></li>
                             <li class="site-nav__dropdown-divider"></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:nova_aplicacao' %}"><i class="bi bi-plus-circle"></i>Nova Aplicação</a></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_resgate' %}"><i class="bi bi-dash-circle"></i>Novo Resgate</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:nova_aplicacao' %}">Nova Aplicação</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:novo_resgate' %}">Novo Resgate</a></li>
                             <li class="site-nav__dropdown-divider"></li>
-                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}"><i class="bi bi-graph-up-arrow"></i>Informes Mensais</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'fundos:listar_fundos' %}">Informes Mensais</a></li>
                         </ul>
                     </li>
-                    <li><a class="site-nav__link {% if request.resolver_match.app_name == 'operacoes' %}is-active{% endif %}" href="{% url 'operacoes:painel_fundos' %}"><i class="bi bi-gear"></i>Operações</a></li>
-                    <li><a class="site-nav__link {% if request.resolver_match.app_name == 'documentos' %}is-active{% endif %}" href="{% url 'documentos:index' %}"><i class="bi bi-folder2-open"></i>Documentos</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.app_name == 'operacoes' %}is-active{% endif %}" href="{% url 'operacoes:painel_fundos' %}">Operações</a></li>
+                    <li><a class="site-nav__link {% if request.resolver_match.app_name == 'documentos' %}is-active{% endif %}" href="{% url 'documentos:index' %}">Documentos</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'limites' %}is-active{% endif %}" href="{% url 'limites' %}">Limites</a></li>
                     <li><a class="site-nav__link {% if request.resolver_match.url_name == 'relatorios' %}is-active{% endif %}" href="{% url 'relatorios' %}">Relatórios</a></li>
                 </ul>
@@ -132,21 +132,21 @@
                 {% if user.is_authenticated %}
                     <div class="site-nav__drawer-footer">
                         <div class="site-nav__drawer-user">
-                            <span class="site-nav__avatar-fallback">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+                            {% include "partials/nav_avatar.html" %}
                             <span class="site-nav__drawer-username">{{ user.first_name|default:user.username }}</span>
                         </div>
                         {% if user.is_staff %}
                             <a class="site-nav__dropdown-item" href="{% url 'admin:index' %}">
-                                <i class="bi bi-database-fill-gear"></i>Painel Admin
+                                Painel Admin
                             </a>
                         {% endif %}
                         <a class="site-nav__dropdown-item" href="{% url 'profile' %}">
-                            <i class="bi bi-person"></i>Editar Perfil
+                            Editar Perfil
                         </a>
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
-                                <i class="bi bi-box-arrow-right"></i>Logout
+                                Logout
                             </button>
                         </form>
                     </div>
@@ -166,21 +166,21 @@
 
                 {% if user.is_authenticated %}
                     <button type="button" class="site-nav__user-btn" data-dropdown="userDropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="site-nav__avatar-fallback">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+                        {% include "partials/nav_avatar.html" %}
                         <span>{{ user.first_name|default:user.username }}</span>
                         <i class="bi bi-chevron-down site-nav__chevron"></i>
                     </button>
                     <ul class="site-nav__dropdown site-nav__dropdown--end" id="userDropdown" role="menu">
                         {% if user.is_staff %}
-                            <li><a class="site-nav__dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-database-fill-gear"></i>Painel Admin</a></li>
+                            <li><a class="site-nav__dropdown-item" href="{% url 'admin:index' %}">Painel Admin</a></li>
                         {% endif %}
-                        <li><a class="site-nav__dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person"></i>Editar Perfil</a></li>
+                        <li><a class="site-nav__dropdown-item" href="{% url 'profile' %}">Editar Perfil</a></li>
                         <li class="site-nav__dropdown-divider"></li>
                         <li>
                             <form method="post" action="{% url 'logout' %}" style="margin:0;">
                                 {% csrf_token %}
                                 <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">
-                                    <i class="bi bi-box-arrow-right"></i>Logout
+                                    Logout
                                 </button>
                             </form>
                         </li>
