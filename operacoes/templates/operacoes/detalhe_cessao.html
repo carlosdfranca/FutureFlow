@@ -145,19 +145,27 @@
     </div>
 
     <!-- Tabela de Títulos -->
-    <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
-        <div class="card-header-ds">
-            <span class="card-header-ds__title">
-                <i class="bi bi-list-check me-1"></i>Títulos da Cessão
-            </span>
-            <span class="badge-ds badge-ds--blue">{{ titulos|length }} títulos</span>
-        </div>
+    <form method="post" action="{% url 'operacoes:cnab_baixa_parametros' %}" id="form-selecao-titulos">
+        {% csrf_token %}
+        <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+            <div class="card-header-ds">
+                <span class="card-header-ds__title">
+                    <i class="bi bi-list-check me-1"></i>Títulos da Cessão
+                </span>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button type="submit" class="btn btn-ghost-ds js-btn-cnab-baixa" style="font-size:0.82rem; padding:0.35rem 0.85rem;" disabled>
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i>Gerar CNAB de Baixa
+                    </button>
+                    <span class="badge-ds badge-ds--blue">{{ titulos|length }} títulos</span>
+                </div>
+            </div>
 
         {% if titulos %}
             <div class="table-responsive">
                 <table class="table table-ds mb-0">
                     <thead>
                         <tr>
+                            <th style="width:2.5rem;"><input type="checkbox" class="form-check-input js-selecionar-todos" data-form="form-selecao-titulos"></th>
                             <th>Número</th>
                             <th>Sacado</th>
                             <th>CPF/CNPJ</th>
@@ -171,6 +179,9 @@
                     <tbody>
                         {% for titulo in titulos %}
                             <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input js-selecionar-titulo" name="titulos" value="{{ titulo.pk }}" data-form="form-selecao-titulos">
+                                </td>
                                 <td style="font-weight:600;">{{ titulo.numero_titulo }}</td>
                                 <td style="color:var(--text-secondary);">{{ titulo.sacado_nome }}</td>
                                 <td style="color:var(--text-secondary); font-family:monospace; font-size:0.82rem;">{{ titulo.sacado_cpf_cnpj }}</td>
@@ -204,7 +215,8 @@
                 <p class="empty-state-modern__text">Esta operação ainda não possui títulos registrados.</p>
             </div>
         {% endif %}
-    </div>
+        </div>
+    </form>
 
     <!-- Observações -->
     {% if operacao.observacoes %}
@@ -220,4 +232,9 @@
     {% endif %}
 
 </div>
+
+{% block extra_js %}
+<script src="{% static 'js/selecao_titulos_cnab.js' %}"></script>
+{% endblock %}
+
 {% endblock %}

@@ -32,6 +32,15 @@
             </div>
         </div>
         <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            {% if tem_evento_baixa %}
+                <form method="post" action="{% url 'operacoes:cnab_baixa_parametros' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="titulos" value="{{ titulo.pk }}">
+                    <button type="submit" class="btn btn-ghost-ds">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>CNAB de Baixa
+                    </button>
+                </form>
+            {% endif %}
             {% if titulo.ativo %}
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-evento-titulo">
                     <i class="bi bi-cash-coin me-2"></i>Liquidar / Baixar

@@ -24,6 +24,12 @@ class TipoEventoTitulo(models.IntegerChoices):
     PROTESTO = 60, 'Protesto'
 
 
+class TipoRemessaCnab(models.TextChoices):
+    """Tipo da remessa CNAB persistida em RemessaCnab."""
+    AQUISICAO = 'AQUISICAO', 'Aquisição'
+    BAIXA = 'BAIXA', 'Baixa'
+
+
 class TipoAplicacao(models.TextChoices):
     """
     Tipos de aplicações em ativos diversos.
@@ -408,3 +414,82 @@ class Aplicacao(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_aplicacao_display()} - {self.descricao} - R$ {self.valor}"
+
+
+# ============================================
+# MODELO: REMESSA CNAB
+# ============================================
+
+class RemessaCnab(models.Model):
+    """
+    Registro persistido de um arquivo CNAB gerado (hoje só o de BAIXA — o de
+    AQUISICAO, `download_cnab_cessao`, continua efêmero, sem histórico).
+
+    Guarda o conteúdo completo do arquivo (não um FileField) para permitir
+    rebaixar o mesmo .txt sem regenerar — um lote de 500 títulos dá uns
+    220 KB, não justifica configurar storage só para isso.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    fundo = models.ForeignKey(
+        'fundos.Fundo',
+        on_delete=models.PROTECT,
+        related_name='remessas_cnab'
+    )
+    tipo = models.CharField(max_length=20, choices=TipoRemessaCnab.choices)
+    data_liquidacao = models.DateField(help_text='DTL usada na geração do arquivo')
+    nome_arquivo = models.CharField(max_length=100)
+    conteudo = models.TextField(help_text='Conteúdo completo do arquivo CNAB gerado')
+    quantidade_titulos = models.PositiveIntegerField(default=0)
+
+    titulos = models.ManyToManyField(
+        Titulo,
+        through='RemessaCnabTitulo',
+        related_name='remessas_cnab'
+    )
+
+    gerado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='remessas_cnab_geradas'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'operacoes_remessa_cnab'
+        verbose_name = 'Remessa CNAB'
+        verbose_name_plural = 'Remessas CNAB'
+        ordering = ['-criado_em']
+        indexes = [
+            models.Index(fields=['fundo', 'tipo']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.nome_arquivo} - {self.criado_em:%d/%m/%Y}"
+
+
+class RemessaCnabTitulo(models.Model):
+    """
+    Linha de detalhe de uma RemessaCnab: qual movimento e qual valor pago
+    saíram para cada título naquela remessa. Existe principalmente para que
+    `valor_pago_pendente()` (operacoes/services/cnab_baixa.py) não reenvie,
+    numa remessa de baixa futura, um valor já reportado ao banco.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    remessa = models.ForeignKey(RemessaCnab, on_delete=models.CASCADE, related_name='linhas')
+    titulo = models.ForeignKey(Titulo, on_delete=models.PROTECT, related_name='linhas_remessa_cnab')
+    codigo_movimento = models.CharField(max_length=2, help_text='Código de ocorrência CNAB (pos. 109-110)')
+    valor_pago = models.DecimalField(max_digits=16, decimal_places=2, default=Decimal('0'))
+
+    class Meta:
+        db_table = 'operacoes_remessa_cnab_titulo'
+        verbose_name = 'Título de Remessa CNAB'
+        verbose_name_plural = 'Títulos de Remessa CNAB'
+        constraints = [
+            models.UniqueConstraint(fields=['remessa', 'titulo'], name='uniq_remessa_titulo'),
+        ]
+
+    def __str__(self):
+        return f"{self.remessa.nome_arquivo} - {self.titulo.numero_titulo} ({self.codigo_movimento})"

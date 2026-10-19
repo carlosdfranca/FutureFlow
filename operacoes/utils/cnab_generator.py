@@ -56,7 +56,11 @@ def gerar_linha_detalhe(base_record: dict, index: int, menu_data: dict) -> str:
         String com a linha de detalhe formatada (444 caracteres)
     """
     dtl = menu_data["DTL"]
-    oco = menu_data["OCORRENCIA"]
+    # Ocorrência por linha: uma remessa de baixa mistura movimentos (título
+    # liquidado total sai '02', parcial sai '14') — se o registro trouxer a
+    # chave, ela vence; senão cai no padrão do menu_data, igual a antes desta
+    # chave existir (remessa de aquisição nunca passa OCORRENCIA).
+    oco = base_record.get("OCORRENCIA") or menu_data["OCORRENCIA"]
 
     # Primeira parte da linha (X no VBA)
     x = (

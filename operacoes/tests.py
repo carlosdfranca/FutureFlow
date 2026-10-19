@@ -9,13 +9,22 @@ from django.urls import reverse
 
 from fundos.models import Fundo, TipoFundo
 from usuarios.models import Empresa
-from .models import Aplicacao, EventoTitulo, OperacaoCessao, Titulo, TipoAplicacao, TipoEventoTitulo
+from .models import (
+    Aplicacao, EventoTitulo, OperacaoCessao, RemessaCnab, RemessaCnabTitulo,
+    Titulo, TipoAplicacao, TipoEventoTitulo, TipoRemessaCnab,
+)
 from .services.carteira_historica import aplicacoes_ativas_em, fim_do_mes, titulos_ativos_em
 from .services.cessao import (
     TAXA_IOF_PADRAO,
     calcular_valor_nominal,
     calcular_valor_presente,
     processar_cessao,
+)
+from .services.cnab_baixa import (
+    gerar_remessa_baixa,
+    movimento_para_titulo,
+    titulos_elegiveis,
+    valor_pago_pendente,
 )
 
 
@@ -1118,3 +1127,203 @@ class CnabGoldenAtrivionTest(TestCase):
         self.assertEqual(numeros, sorted(numeros))
         self.assertEqual(numeros[0], "158477")
         self.assertEqual(numeros[-1], "159014")
+
+
+class CnabBaixaTest(TestCase):
+    """
+    Cobertura para a remessa CNAB de baixa
+    (operacoes/services/cnab_baixa.py) -- tradução TipoEventoTitulo ->
+    código de movimento CNAB (pos. 109-110), elegibilidade (evento de
+    baixa/liquidação, não `Titulo.ativo`), valor pago pendente (não
+    reenviar o mesmo pagamento) e persistência em RemessaCnab.
+    """
+
+    def setUp(self):
+        self.empresa = Empresa.objects.create(nome='Empresa Teste', cnpj='00000000000100')
+        self.fundo = Fundo.objects.create(
+            empresa=self.empresa, cnpj='11111111000199', razao_social='Fundo Teste FIDC',
+            tipo_fundo=TipoFundo.FIDC, data_constituicao=date(2020, 1, 1),
+            codigo_originador_cnab='15555601', ocorrencia_cnab_padrao='01',
+            coobrigacao_cnab_padrao='02',
+        )
+        self.operacao = OperacaoCessao.objects.create(
+            fundo=self.fundo, cedente_cnpj='99999999000100', cedente_nome='Cedente Teste',
+            numero_contrato='CONTRATO-BAIXA-1', data_contrato=date(2026, 1, 1),
+            data_aquisicao=date(2026, 1, 1), valor_total_nominal=Decimal('0'),
+            valor_total_aquisicao=Decimal('0'),
+        )
+        User = get_user_model()
+        self.user = User.objects.create_user(username='tester-baixa', password='senha123')
+
+    def _titulo(self, numero='T1', valor=Decimal('1000.00'), fundo=None, operacao=None):
+        return _criar_titulo_com_aquisicao(
+            fundo or self.fundo, operacao or self.operacao, numero, f'Sacado {numero}',
+            valor, valor, date(2026, 1, 1),
+        )
+
+    def test_movimento_para_titulo_liquidacao_total_e_02(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 2, 1), Decimal('1000.00'))
+        self.assertEqual(movimento_para_titulo(titulo), '02')
+
+    def test_movimento_para_titulo_baixa_simples_e_02(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.BAIXA, date(2026, 2, 1))
+        self.assertEqual(movimento_para_titulo(titulo), '02')
+
+    def test_movimento_para_titulo_liquidacao_parcial_e_14(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('300.00'))
+        self.assertEqual(movimento_para_titulo(titulo), '14')
+
+    def test_titulo_sem_evento_de_baixa_nao_e_elegivel(self):
+        self._titulo()
+        self.assertEqual(list(titulos_elegiveis(Titulo.objects.all())), [])
+
+    def test_titulo_com_liquidacao_parcial_ativo_e_elegivel(self):
+        # Liquidação parcial NÃO inativa o título (só reduz o saldo) -- não
+        # dá pra usar `Titulo.ativo` como proxy de elegibilidade.
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('300.00'))
+        self.assertTrue(titulo.ativo)
+        self.assertEqual(list(titulos_elegiveis(Titulo.objects.all())), [titulo])
+
+    def test_cnab_baixa_usa_movimento_02_para_liquidacao_total(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 2, 1), Decimal('1000.00'))
+
+        _remessa, conteudo = gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+        detalhe = conteudo.splitlines()[1]
+        self.assertEqual(len(detalhe), 444)
+        self.assertEqual(detalhe[108:110], '02')  # OCORRENCIA, pos. 1-based 109-110
+        self.assertEqual(detalhe[82:92], '0000100000')  # VALOR_PAGO_TITULO = 1.000,00
+
+    def test_cnab_baixa_usa_movimento_14_para_liquidacao_parcial(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('300.00'))
+
+        _remessa, conteudo = gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+        detalhe = conteudo.splitlines()[1]
+        self.assertEqual(detalhe[108:110], '14')
+        self.assertEqual(detalhe[82:92], '0000030000')  # 300,00
+
+    def test_cnab_baixa_mistura_movimentos_na_mesma_remessa(self):
+        t1 = self._titulo('T1', Decimal('1000.00'))
+        t2 = self._titulo('T2', Decimal('2000.00'))
+        _criar_evento(t1, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 2, 1), Decimal('1000.00'))
+        _criar_evento(t2, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('500.00'))
+
+        _remessa, conteudo = gerar_remessa_baixa([t1, t2], date(2026, 2, 5), self.user)
+        linhas = conteudo.splitlines()
+        self.assertEqual(len(linhas), 4)  # header + 2 detalhes + trailer
+        for linha in linhas:
+            self.assertEqual(len(linha), 444)
+        movimentos = sorted(linha[108:110] for linha in linhas[1:3])
+        self.assertEqual(movimentos, ['02', '14'])
+        self.assertEqual(linhas[-1][-6:], '000004')
+
+    def test_cnab_baixa_rejeita_titulos_de_fundos_diferentes(self):
+        outro_fundo = Fundo.objects.create(
+            empresa=self.empresa, cnpj='22222222000199', razao_social='Outro Fundo',
+            tipo_fundo=TipoFundo.FIDC, data_constituicao=date(2020, 1, 1),
+            codigo_originador_cnab='99999999',
+        )
+        outra_operacao = OperacaoCessao.objects.create(
+            fundo=outro_fundo, cedente_cnpj='99999999000100', cedente_nome='Cedente',
+            numero_contrato='CONTRATO-OUTRO-FUNDO', data_contrato=date(2026, 1, 1),
+            data_aquisicao=date(2026, 1, 1), valor_total_nominal=Decimal('0'),
+            valor_total_aquisicao=Decimal('0'),
+        )
+        t1 = self._titulo('T1')
+        t2 = self._titulo('T2', fundo=outro_fundo, operacao=outra_operacao)
+        _criar_evento(t1, TipoEventoTitulo.BAIXA, date(2026, 2, 1))
+        _criar_evento(t2, TipoEventoTitulo.BAIXA, date(2026, 2, 1))
+
+        with self.assertRaises(ValueError):
+            gerar_remessa_baixa([t1, t2], date(2026, 2, 5), self.user)
+
+    def test_titulo_sem_evento_de_baixa_bloqueia_geracao(self):
+        titulo = self._titulo()
+        with self.assertRaises(ValueError):
+            gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+
+    def test_valor_pago_desconta_remessa_anterior(self):
+        """Uma liquidação parcial já reportada numa remessa anterior não
+        pode ser subtraída de novo pelo banco -- o valor pendente cai a
+        zero depois do primeiro envio."""
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('300.00'))
+
+        self.assertEqual(valor_pago_pendente(titulo), Decimal('300.00'))
+        gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+        self.assertEqual(valor_pago_pendente(titulo), Decimal('0'))
+
+    def test_remessa_persistida_permite_redownload_identico(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.BAIXA, date(2026, 2, 1))
+
+        remessa, conteudo = gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+        self.assertEqual(RemessaCnab.objects.count(), 1)
+        self.assertEqual(remessa.quantidade_titulos, 1)
+        self.assertEqual(remessa.tipo, TipoRemessaCnab.BAIXA)
+        self.assertEqual(
+            RemessaCnabTitulo.objects.filter(
+                remessa=remessa, titulo=titulo, codigo_movimento='02'
+            ).count(),
+            1,
+        )
+
+        recarregado = RemessaCnab.objects.get(pk=remessa.pk)
+        self.assertEqual(recarregado.conteudo, conteudo)
+
+    def test_view_download_cnab_baixa_gera_arquivo(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 2, 1), Decimal('1000.00'))
+
+        client = Client()
+        client.force_login(self.user)
+        response = client.post(reverse('operacoes:download_cnab_baixa'), {
+            'titulos': [str(titulo.pk)],
+            'dtl': '2026-02-05',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Content-Disposition', response)
+        conteudo = response.content.decode('utf-8')
+        self.assertEqual(conteudo.splitlines()[1][108:110], '02')
+        self.assertEqual(RemessaCnab.objects.count(), 1)
+
+    def test_view_download_cnab_baixa_bloqueia_reenvio_sem_confirmacao(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_PARCIAL, date(2026, 2, 1), Decimal('300.00'))
+        gerar_remessa_baixa([titulo], date(2026, 2, 5), self.user)
+
+        client = Client()
+        client.force_login(self.user)
+
+        response = client.post(reverse('operacoes:download_cnab_baixa'), {
+            'titulos': [str(titulo.pk)],
+            'dtl': '2026-02-10',
+        })
+        self.assertEqual(response.status_code, 302)  # bloqueado, redireciona sem gerar
+        self.assertEqual(RemessaCnab.objects.count(), 1)  # não criou uma segunda remessa
+
+        response = client.post(reverse('operacoes:download_cnab_baixa'), {
+            'titulos': [str(titulo.pk)],
+            'dtl': '2026-02-10',
+            'confirmar_reenvio': '1',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(RemessaCnab.objects.count(), 2)
+
+    def test_view_cnab_baixa_parametros_lista_titulos_selecionados(self):
+        titulo = self._titulo()
+        _criar_evento(titulo, TipoEventoTitulo.LIQUIDACAO_TOTAL, date(2026, 2, 1), Decimal('1000.00'))
+
+        client = Client()
+        client.force_login(self.user)
+        response = client.post(
+            reverse('operacoes:cnab_baixa_parametros'), {'titulos': [str(titulo.pk)]}
+        )
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode('utf-8')
+        self.assertIn(titulo.numero_titulo, html)

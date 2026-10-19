@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+{% load ui %}
+
+{% block title %}Gerar CNAB de Baixa{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">
+                    <a href="{% url 'operacoes:listar_titulos' %}" style="color:inherit; text-decoration:none; opacity:0.75;">Títulos</a>
+                    &rsaquo; Gerar CNAB de Baixa
+                </p>
+                <h1 class="page-hero__title">Gerar CNAB de Baixa</h1>
+                <p class="page-hero__subtitle">Confira o movimento de cada título antes de gerar o arquivo de remessa.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 pb-5">
+
+    {% if fundo_misto %}
+        <div class="alert alert-danger" style="border-radius:10px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Os títulos selecionados pertencem a fundos diferentes. O header do CNAB carrega um
+            único código originador — selecione títulos de apenas um fundo.
+        </div>
+    {% elif fundo and not fundo.codigo_originador_cnab %}
+        <div class="alert alert-danger" style="border-radius:10px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            O fundo {{ fundo.razao_social }} não tem Código Originador (CDO) configurado.
+            Cadastre-o na tela do fundo antes de gerar o CNAB.
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+        <!-- Conferência dos títulos -->
+        <div class="col-md-8">
+            <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+                <div class="card-header-ds">
+                    <span class="card-header-ds__title">
+                        <i class="bi bi-list-check me-1"></i>Títulos Selecionados
+                    </span>
+                    <span class="badge-ds badge-ds--blue">{{ linhas|length }} títulos</span>
+                </div>
+
+                {% if linhas %}
+                    <div class="table-responsive">
+                        <table class="table table-ds mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Sacado</th>
+                                    <th>Evento</th>
+                                    <th>Movimento</th>
+                                    <th>Valor a Reportar</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for linha in linhas %}
+                                    <tr>
+                                        <td style="font-weight:600;">{{ linha.titulo.numero_titulo }}</td>
+                                        <td style="color:var(--text-secondary);">{{ linha.titulo.sacado_nome }}</td>
+                                        <td>
+                                            {% if linha.evento %}
+                                                <span class="badge-ds badge-ds--gray">{{ linha.evento.get_tipo_evento_display }}</span>
+                                            {% else %}
+                                                <span class="badge-ds badge-ds--red">Sem evento de baixa</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if linha.movimento %}
+                                                <span style="font-family:monospace; font-weight:600;">{{ linha.movimento }}</span>
+                                            {% else %}
+                                                <span style="color:var(--text-secondary);">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>R$ {{ linha.valor_pago|floatformat:2 }}</td>
+                                        <td>
+                                            {% if linha.ja_enviado %}
+                                                <span class="badge-ds badge-ds--amber" title="Já foi incluído numa remessa CNAB de baixa anterior">
+                                                    <i class="bi bi-arrow-repeat me-1"></i>Já enviado
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state-modern">
+                        <div class="empty-state-modern__icon-wrap">
+                            <i class="bi bi-inbox"></i>
+                        </div>
+                        <h5 class="empty-state-modern__title">Nenhum título selecionado</h5>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <div class="form-section__icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div>
+                        <div class="form-section__title">Parâmetros de Remessa</div>
+                        <div class="form-section__subtitle">Data de liquidação (DTL) da remessa de baixa</div>
+                    </div>
+                </div>
+                <div class="form-section__body">
+                    <form method="post" action="{% url 'operacoes:download_cnab_baixa' %}">
+                        {% csrf_token %}
+                        {% for titulo_id in titulo_ids %}
+                            <input type="hidden" name="titulos" value="{{ titulo_id }}">
+                        {% endfor %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.dtl.id_for_label }}" class="form-label">{{ form.dtl.label }}</label>
+                            {{ form.dtl }}
+                            {% if form.dtl.errors %}
+                                <div class="text-danger small mt-1">{{ form.dtl.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if tem_reenvio %}
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="confirmar_reenvio" name="confirmar_reenvio" value="1">
+                                <label class="form-check-label" for="confirmar_reenvio" style="font-size:0.85rem;">
+                                    Reenviar mesmo assim os títulos marcados como "Já enviado"
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                            <button type="submit" class="btn btn-primary" {% if not pode_gerar %}disabled{% endif %}>
+                                <i class="bi bi-download me-2"></i>Baixar CNAB de Baixa
+                            </button>
+                            <a href="{% url 'operacoes:listar_titulos' %}" class="btn btn-ghost-ds">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="sticky-sidebar-ds" style="background:var(--surface-2); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; position:sticky; top:1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-file-earmark-text" style="color:#93c5fd;"></i>
+                    </div>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Fundo</span>
+                </div>
+                {% if fundo %}
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <div>
+                            <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">Razão Social</div>
+                            <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">{{ fundo.razao_social }}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:0.2rem;">CDO</div>
+                            <div style="font-size:0.85rem; color:var(--text-primary);">{{ fundo.codigo_originador_cnab|default:"—" }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

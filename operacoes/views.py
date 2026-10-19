@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from decimal import Decimal
 
-from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao
+from .models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo, Aplicacao, RemessaCnab, RemessaCnabTitulo
 from fundos.models import Fundo
 from .forms import CessaoOperacaoForm, TituloFormSet, EventoTituloForm, AplicacaoForm, CnabParametrosForm, LiquidarAplicacaoForm
 from .services.cessao import (
@@ -18,6 +18,13 @@ from .services.cessao import (
     processar_cessao,
 )
 from .services.aplicacao import liquidar_aplicacao as liquidar_aplicacao_service
+from .services.cnab import montar_registro_base
+from .services.cnab_baixa import (
+    evento_de_baixa_mais_recente,
+    movimento_para_titulo,
+    valor_pago_pendente,
+    gerar_remessa_baixa,
+)
 from .utils.cnab_service import gerar_cnab_stream
 from .utils.cnab_utils import rp, remover_pontos, remover_caracteres_especiais
 
@@ -524,6 +531,7 @@ def detalhe_titulo(request, pk):
         "titulo": titulo,
         "eventos": eventos,
         "evento_form": evento_form,
+        "tem_evento_baixa": evento_de_baixa_mais_recente(titulo) is not None,
     })
 
 
@@ -713,6 +721,8 @@ def download_cnab_cessao(request, pk):
 
     base_data = []
     for titulo in titulos:
+        # VALOR_PAGO_TITULO (BASE col 18, pos. 83-92): soma de eventos de
+        # liquidação, 0 se o título ainda não foi liquidado.
         valor_liquidado = titulo.eventos.filter(
             tipo_evento__in=[
                 TipoEventoTitulo.LIQUIDACAO_PARCIAL,
@@ -720,51 +730,7 @@ def download_cnab_cessao(request, pk):
             ]
         ).aggregate(total=Sum('valor_evento'))['total'] or Decimal('0')
 
-        cpf_cnpj_limpo = rp(titulo.sacado_cpf_cnpj)
-        identificacao_sacado = "1" if len(cpf_cnpj_limpo) <= 11 else "2"
-
-        # VALOR_PAGO_TITULO (BASE col 18, pos. 83-92): soma de eventos de
-        # liquidação, 0 se o título ainda não foi liquidado.
-        valor_pago_str = str(valor_liquidado).replace('.', ',')
-
-        # Coobrigação (pos. 21-22): resolvida aqui, e não no gerador, porque
-        # `gerar_linha_detalhe` faz `base_record["COOBRIGACAO"][-2:]` e uma
-        # string vazia sairia como '00' — um valor inválido, silenciosamente.
-        # Mesmo padrão de fallback que a OCORRENCIA já usa no menu_data.
-        coobrigacao = (
-            titulo.coobrigacao or operacao.fundo.coobrigacao_cnab_padrao or '02'
-        )
-
-        base_data.append({
-            "CNPJ_CEDENTE": operacao.cedente_cnpj,
-            "NOME_CEDENTE": remover_pontos(operacao.cedente_nome),
-            "SEU_NUMERO": titulo.numero_titulo,
-            "NU_DOCUMENTO": titulo.numero_titulo,
-            "DT_VENCIMENTO": titulo.data_vencimento.strftime('%d/%m/%Y'),
-            # BASE col 6 / CNAB pos. 127-139: valor da duplicata líquido de
-            # IOF — o primeiro passo da cascata, não o valor bruto do vDup.
-            # É o que a planilha legada chama de "Valor Duplicata" (aba MENU,
-            # coluna J) e o que ela grava na coluna 6 da BASE, sobrescrevendo
-            # o bruto (Módulo3.bas:283-288).
-            "VL_NOMINAL": str(titulo.valor_nominal).replace('.', ','),
-            "NU_CPF_CNPJ_SACADO": titulo.sacado_cpf_cnpj,
-            "NM_SACADO": remover_caracteres_especiais(titulo.sacado_nome),
-            # BASE col 9 / CNAB pos. 193-205: valor presente (nominal
-            # descontado pela taxa_desconto da operação) — confirmado pelo
-            # cabeçalho "VL_PRESENTE" e pela fórmula real da planilha
-            # (=ROUND((F-(F*taxa));2)). NÃO é valor pago/liquidado — isso é
-            # VALOR_PAGO_TITULO (col 18), que é uma coisa diferente.
-            "VL_PRESENTE": str(titulo.valor_aquisicao).replace('.', ','),
-            "IDENTIFICACAO_CPF_CNPJ_SACADO": identificacao_sacado,
-            "ENDERECO": titulo.sacado_endereco,
-            "CEP": titulo.sacado_cep,
-            "TP_TITULO": titulo.tipo_titulo,
-            "DT_EMISSAO_TITULO": titulo.data_emissao.strftime('%d/%m/%Y'),
-            "COOBRIGACAO": coobrigacao,
-            "IDENTIFICACAO_CPF_CNPJ_CEDENTE": "02",
-            "NFE": titulo.chave_nfe,
-            "VALOR_PAGO_TITULO": valor_pago_str,
-        })
+        base_data.append(montar_registro_base(titulo, operacao, valor_pago=valor_liquidado))
 
     menu_data = {
         "DTL": form.cleaned_data['dtl'].strftime('%d/%m/%Y'),
@@ -776,6 +742,138 @@ def download_cnab_cessao(request, pk):
     filename = f"CNAB_{operacao.numero_contrato}.txt"
     response = HttpResponse(buffer.read(), content_type='text/plain; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ============================================
+# VIEWS: CNAB DE BAIXA
+# ============================================
+
+@login_required
+def cnab_baixa_parametros(request):
+    """
+    Tela de conferência antes de gerar uma remessa CNAB de baixa. Recebe os
+    títulos selecionados (POST 'titulos' = lista de pks, vinda do checkbox em
+    detalhe_cessao.html / listar_titulos.html / detalhe_titulo.html), valida
+    elegibilidade e fundo único, e mostra o movimento (02/14) e o valor pago
+    que cada título vai gerar antes de pedir a DTL e confirmar o download.
+    """
+    titulo_ids = request.POST.getlist('titulos')
+    if not titulo_ids:
+        messages.error(request, "Selecione ao menos um título para gerar o CNAB de baixa.")
+        return redirect('operacoes:listar_titulos')
+
+    titulos = list(
+        Titulo.objects.filter(pk__in=titulo_ids)
+        .select_related('fundo', 'operacao_cessao')
+        .prefetch_related('eventos')
+    )
+
+    linhas = []
+    fundo = titulos[0].fundo if titulos else None
+    fundo_misto = any(t.fundo_id != fundo.id for t in titulos)
+
+    for titulo in titulos:
+        evento = evento_de_baixa_mais_recente(titulo)
+        try:
+            movimento = movimento_para_titulo(titulo)
+            elegivel = True
+        except ValueError:
+            movimento = None
+            elegivel = False
+
+        linhas.append({
+            'titulo': titulo,
+            'evento': evento,
+            'movimento': movimento,
+            'elegivel': elegivel,
+            'valor_pago': valor_pago_pendente(titulo) if elegivel else Decimal('0'),
+            'ja_enviado': RemessaCnabTitulo.objects.filter(titulo=titulo).exists(),
+        })
+
+    if fundo_misto:
+        messages.error(request, "Todos os títulos selecionados precisam ser do mesmo fundo.")
+
+    tem_reenvio = any(linha['ja_enviado'] for linha in linhas)
+    pode_gerar = (
+        not fundo_misto
+        and all(linha['elegivel'] for linha in linhas)
+        and bool(fundo and fundo.codigo_originador_cnab)
+    )
+
+    return render(request, 'operacoes/cnab_baixa_parametros.html', {
+        'form': CnabParametrosForm(),
+        'linhas': linhas,
+        'fundo': fundo,
+        'fundo_misto': fundo_misto,
+        'titulo_ids': titulo_ids,
+        'tem_reenvio': tem_reenvio,
+        'pode_gerar': pode_gerar,
+    })
+
+
+@login_required
+def download_cnab_baixa(request):
+    """Gera, persiste (RemessaCnab) e retorna a remessa CNAB de baixa."""
+    titulo_ids = request.POST.getlist('titulos')
+    if not titulo_ids:
+        messages.error(request, "Selecione ao menos um título para gerar o CNAB de baixa.")
+        return redirect('operacoes:listar_titulos')
+
+    form = CnabParametrosForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Informe uma data de liquidação (DTL) válida.")
+        return redirect('operacoes:listar_titulos')
+
+    confirmar_reenvio = request.POST.get('confirmar_reenvio') == '1'
+    if not confirmar_reenvio:
+        ja_enviados = list(
+            RemessaCnabTitulo.objects.filter(titulo_id__in=titulo_ids)
+            .values_list('titulo__numero_titulo', flat=True)
+            .distinct()
+        )
+        if ja_enviados:
+            messages.error(
+                request,
+                "Os títulos " + ", ".join(ja_enviados) + " já foram enviados numa "
+                "remessa de baixa anterior. Marque 'reenviar mesmo assim' para confirmar."
+            )
+            return redirect('operacoes:listar_titulos')
+
+    titulos = Titulo.objects.filter(pk__in=titulo_ids).select_related('fundo', 'operacao_cessao')
+
+    try:
+        remessa, conteudo = gerar_remessa_baixa(titulos, form.cleaned_data['dtl'], request.user)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('operacoes:listar_titulos')
+
+    response = HttpResponse(conteudo, content_type='text/plain; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{remessa.nome_arquivo}"'
+    return response
+
+
+@login_required
+def listar_remessas_cnab(request):
+    """Histórico de remessas CNAB de baixa geradas (aquisição continua
+    efêmera, sem registro — ver download_cnab_cessao)."""
+    remessas = RemessaCnab.objects.select_related('fundo', 'gerado_por')
+
+    fundo_id = request.GET.get('fundo')
+    if fundo_id:
+        remessas = remessas.filter(fundo_id=fundo_id)
+
+    return render(request, 'operacoes/listar_remessas_cnab.html', {
+        'remessas': remessas,
+    })
+
+
+@login_required
+def download_remessa_cnab(request, pk):
+    """Rebaixa o conteúdo persistido de uma remessa CNAB já gerada."""
+    remessa = get_object_or_404(RemessaCnab, pk=pk)
+    response = HttpResponse(remessa.conteudo, content_type='text/plain; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{remessa.nome_arquivo}"'
     return response
 
 

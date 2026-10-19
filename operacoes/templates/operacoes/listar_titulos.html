@@ -17,6 +17,11 @@
                 <p class="page-hero__subtitle">Gerencie os recebíveis cedidos e monitore seus saldos e status.</p>
             </div>
         </div>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <a href="{% url 'operacoes:listar_remessas_cnab' %}" class="btn btn-ghost-ds">
+                <i class="bi bi-clock-history me-2"></i>Remessas CNAB
+            </a>
+        </div>
     </div>
 </div>
 
@@ -62,21 +67,29 @@
     </div>
 
     <!-- Tabela -->
-    <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
-        <div class="card-header-ds">
-            <span class="card-header-ds__title">
-                <i class="bi bi-list-check me-1"></i>Recebíveis
-            </span>
-            {% if titulos %}
-                <span class="badge-ds badge-ds--blue">{{ titulos|length }} registros</span>
-            {% endif %}
-        </div>
+    <form method="post" action="{% url 'operacoes:cnab_baixa_parametros' %}" id="form-selecao-titulos">
+        {% csrf_token %}
+        <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+            <div class="card-header-ds">
+                <span class="card-header-ds__title">
+                    <i class="bi bi-list-check me-1"></i>Recebíveis
+                </span>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button type="submit" class="btn btn-ghost-ds js-btn-cnab-baixa" style="font-size:0.82rem; padding:0.35rem 0.85rem;" disabled>
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i>Gerar CNAB de Baixa
+                    </button>
+                    {% if titulos %}
+                        <span class="badge-ds badge-ds--blue">{{ titulos|length }} registros</span>
+                    {% endif %}
+                </div>
+            </div>
 
         {% if titulos %}
             <div class="table-responsive">
                 <table class="table table-ds mb-0">
                     <thead>
                         <tr>
+                            <th style="width:2.5rem;"><input type="checkbox" class="form-check-input js-selecionar-todos" data-form="form-selecao-titulos"></th>
                             <th>Número</th>
                             <th>Sacado</th>
                             <th>Fundo</th>
@@ -91,6 +104,9 @@
                     <tbody>
                         {% for titulo in titulos %}
                             <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input js-selecionar-titulo" name="titulos" value="{{ titulo.pk }}" data-form="form-selecao-titulos">
+                                </td>
                                 <td style="font-weight:600;">
                                     <a href="{% url 'operacoes:detalhe_titulo' titulo.pk %}"
                                        style="color:var(--text-primary); text-decoration:none;">
@@ -146,7 +162,13 @@
                 </p>
             </div>
         {% endif %}
-    </div>
+        </div>
+    </form>
 
 </div>
+
+{% block extra_js %}
+<script src="{% static 'js/selecao_titulos_cnab.js' %}"></script>
+{% endblock %}
+
 {% endblock %}
