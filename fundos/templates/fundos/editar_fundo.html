@@ -11,7 +11,7 @@
         <div class="page-hero__lead">
             {% back_button %}
             <div>
-                <p class="page-hero__label"><i class="bi bi-pencil-square me-1"></i>Editar Fundo</p>
+                <p class="page-hero__label">Editar Fundo</p>
                 <h1 class="page-hero__title page-hero__title--sm">{{ fundo.razao_social }}</h1>
                 <p class="page-hero__subtitle">{{ empresa.nome }}</p>
             </div>
@@ -288,10 +288,10 @@
         <!-- Actions -->
         <div class="form-actions">
             <a href="{% url 'fundos:listar_fundos' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-x me-1"></i>Cancelar
+                Cancelar
             </a>
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+                Salvar Alterações
             </button>
         </div>
 

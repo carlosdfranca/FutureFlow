@@ -22,7 +22,7 @@
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <a href="{% url 'operacoes:nova_aplicacao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
+                Nova Aplicação
             </a>
         </div>
     </div>
@@ -96,11 +96,11 @@
                 <option value="LIQUIDADA" {% if request.GET.status == 'LIQUIDADA' %}selected{% endif %}>Liquidada</option>
             </select>
             <button type="submit" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                <i class="bi bi-search me-1"></i>Filtrar
+                Filtrar
             </button>
             {% if request.GET.tipo or request.GET.status %}
                 <a href="{% url 'operacoes:listar_aplicacoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                    <i class="bi bi-x me-1"></i>Limpar
+                    Limpar
                 </a>
             {% endif %}
         </form>
@@ -110,7 +110,7 @@
     <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-graph-up-arrow me-1"></i>Aplicações
+                Aplicações
             </span>
             {% if aplicacoes %}
                 <span class="badge-ds badge-ds--blue">{{ aplicacoes|length }} registros</span>
@@ -193,7 +193,7 @@
                     {% endif %}
                 </p>
                 <a href="{% url 'operacoes:nova_aplicacao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Nova Aplicação
+                    Nova Aplicação
                 </a>
             </div>
         {% endif %}
@@ -209,7 +209,7 @@
             <div class="modal-content" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 14px;">
                 <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
                     <h5 class="modal-title" id="modal-liquidar-aplicacao-label">
-                        <i class="bi bi-cash-coin me-2"></i>Liquidar aplicação
+                        Liquidar aplicação
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -228,10 +228,10 @@
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x me-1"></i>Cancelar
+                        Cancelar
                     </button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-check2 me-1"></i>Confirmar
+                        Confirmar
                     </button>
                 </div>
             </div>

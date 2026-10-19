@@ -1,14 +1,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from stdimage.models import StdImageField
 
 class CustomUser(AbstractUser):
-    profile_image = StdImageField(
+    # A imagem é normalizada para um único WEBP quadrado de 512px em
+    # usuarios.services.avatar — o arquivo original nunca chega ao disco.
+    profile_image = models.ImageField(
         upload_to="users/profile/",
-        variations={"thumb": (150, 150, True)},
-        default="users/profile/default.png",
         blank=True,
-        null=True
+        null=True,
     )
 
     def __str__(self):

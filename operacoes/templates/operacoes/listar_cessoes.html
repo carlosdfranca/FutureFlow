@@ -22,7 +22,7 @@
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <a href="{% url 'operacoes:workflow_cessao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Nova Cessão
+                Nova Cessão
             </a>
         </div>
     </div>
@@ -61,11 +61,11 @@
                 <option value="CANCELADA" {% if request.GET.status == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
             </select>
             <button type="submit" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                <i class="bi bi-search me-1"></i>Filtrar
+                Filtrar
             </button>
             {% if request.GET.status %}
                 <a href="{% url 'operacoes:listar_cessoes' %}?fundo={{ fundo.id }}" class="btn btn-ghost-ds" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
-                    <i class="bi bi-x me-1"></i>Limpar
+                    Limpar
                 </a>
             {% endif %}
         </form>
@@ -75,7 +75,7 @@
     <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
         <div class="card-header-ds">
             <span class="card-header-ds__title">
-                <i class="bi bi-list-ul me-1"></i>Operações de Cessão
+                Operações de Cessão
             </span>
             {% if operacoes %}
                 <span class="badge-ds badge-ds--blue">{{ operacoes|length }} registros</span>
@@ -158,7 +158,7 @@
                     {% endif %}
                 </p>
                 <a href="{% url 'operacoes:workflow_cessao' %}?fundo={{ fundo.id }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Nova Cessão
+                    Nova Cessão
                 </a>
             </div>
         {% endif %}

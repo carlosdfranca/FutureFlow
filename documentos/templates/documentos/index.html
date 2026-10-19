@@ -18,7 +18,7 @@
     <div class="page-hero__inner">
         <div>
             <p class="page-hero__label">
-                <i class="bi bi-folder2-open me-1"></i>Documentos
+                Documentos
             </p>
             <h1 class="page-hero__title">Documentos dos Fundos</h1>
             <p class="page-hero__subtitle">
@@ -32,7 +32,7 @@
 
     {% if fundos %}
 
-        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 2rem;">
+        <div class="kpi-grid">
             <div class="kpi-card kpi-card--blue">
                 <i class="bi bi-bank kpi-card__ghost-icon"></i>
                 <div class="kpi-card__value">{{ total_fundos }}</div>
@@ -73,12 +73,12 @@
                         <p class="fundo-card__alias">{{ fundo.nome_comercial }}</p>
                     {% endif %}
                     <ul class="fundo-card__meta">
-                        <li><i class="bi bi-upc-scan"></i><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
+                        <li><strong>CNPJ</strong>&nbsp;{{ fundo.cnpj|cpf_cnpj }}</li>
                     </ul>
                 </div>
                 <div class="fundo-card__footer fundo-card__footer--single">
                     <span class="btn btn-primary-ds" style="pointer-events:none;">
-                        <i class="bi bi-folder2 me-1"></i>{{ fundo.total_documentos }} documento{{ fundo.total_documentos|pluralize }}
+                        {{ fundo.total_documentos }} documento{{ fundo.total_documentos|pluralize }}
                     </span>
                 </div>
             </a>
@@ -97,7 +97,7 @@
             <p class="empty-state-modern__title">Nenhum fundo cadastrado</p>
             <p class="empty-state-modern__text">Cadastre um fundo para começar a organizar seus documentos.</p>
             <a href="{% url 'fundos:novo_fundo' %}" class="btn btn-primary-ds" style="padding:0.6rem 1.5rem;">
-                <i class="bi bi-plus-lg me-1"></i>Novo Fundo
+                Novo Fundo
             </a>
         </div>
     {% endif %}

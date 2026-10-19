@@ -65,7 +65,7 @@
         <div class="page-hero__lead">
             {% back_button %}
             <div>
-                <p class="page-hero__label"><i class="bi bi-bank me-1"></i>{{ fundo.razao_social }}</p>
+                <p class="page-hero__label">{{ fundo.razao_social }}</p>
                 <h1 class="page-hero__title page-hero__title--sm">Importar Informe Mensal</h1>
                 <p class="page-hero__subtitle">XML CVM — DOC_ARQ &mdash; CNPJ {{ fundo.cnpj }}</p>
             </div>
@@ -145,10 +145,10 @@
 
             <div class="form-actions">
                 <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-x me-1"></i>Cancelar
+                    Cancelar
                 </a>
                 <button type="submit" class="btn btn-primary-ds">
-                    <i class="bi bi-upload me-2"></i>Importar Informe
+                    Importar Informe
                 </button>
             </div>
         </form>
@@ -195,10 +195,10 @@
 
             <div class="form-actions">
                 <a href="{% url 'fundos:listar_informes' fundo_id=fundo.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-x me-1"></i>Cancelar
+                    Cancelar
                 </a>
                 <button type="submit" class="btn btn-primary-ds">
-                    <i class="bi bi-cloud-upload me-2"></i>Importar Lote
+                    Importar Lote
                 </button>
             </div>
         </form>
@@ -208,7 +208,7 @@
             <div class="card shadow-sm mt-4" style="background: var(--surface-2); border: 1px solid var(--border-color); border-radius: var(--border-radius);">
                 <div class="card-header-ds">
                     <span class="card-header-ds__title">
-                        <i class="bi bi-list-check text-primary"></i>Resultado da importação
+                        Resultado da importação
                     </span>
                     <span class="badge">{{ resultados_lote|length }} arquivo(s)</span>
                 </div>
@@ -237,7 +237,7 @@
                                 <td class="small text-muted">
                                     {% if r.status == 'ok' %}
                                         <a href="{% url 'fundos:detalhe_informe' fundo_id=fundo.id informe_id=r.informe_id %}">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i>Ver informe
+                                            Ver informe
                                         </a>
                                     {% else %}
                                         {{ r.mensagem }}
