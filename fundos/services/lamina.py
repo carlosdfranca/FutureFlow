@@ -7,11 +7,19 @@ gera o PDF em si -- só o dict de contexto consumido por
 fundos/templates/fundos/lamina_pdf.html, renderizado com WeasyPrint na view
 (fundos/views.py::lamina_informe_pdf).
 
-Decisões de negócio já fechadas (ver plano da Fase 1+2):
+Decisões de negócio já fechadas (ver plano da Fase 1+2 e dos ajustes
+posteriores "Fonte da Carteira de Ativos" e "Reconstrução histórica"):
 - Classe de cota (sênior vs. subordinada) é escolhida automaticamente por
   fundo: usa sênior só se o fundo realmente tiver cotas sênior.
-- "% da carteira" no bloco de ativos usa InformeMensalCarteira.percentual_carteira
-  como já está gravado (denominador = carteira, não PL).
+- A "Carteira de Ativos" e o Enquadramento vêm de operacoes.Titulo +
+  operacoes.Aplicacao (não dos segmentos do informe CVM) -- pode divergir
+  do que o informe reporta (ver _carteira_ativos). % é sobre o total real
+  da carteira na competência, não sobre o vl_carteira do informe.
+- Esses dois blocos são RECONSTRUÍDOS na data de fechamento da competência
+  (fim_do_mes(informe.competencia), via
+  operacoes.services.carteira_historica), não lidos do estado atual do
+  banco -- um título liquidado depois da competência ainda deve aparecer
+  na lâmina daquela competência; um liquidado antes não deve.
 - Status de enquadramento tem 3 estados: Enquadrado / Desenquadrado / Não
   avaliado (quando o fundo não tem os limites cadastrados).
 - Valores voltam como Decimal/None -- a formatação (BRL, %) acontece no
@@ -28,62 +36,17 @@ from django.contrib.staticfiles import finders
 from django.db.models import Sum
 
 from .enquadramento import avaliar_enquadramento
-from ..models import InformeMensal, SegmentoCarteira
+from ..models import InformeMensal
 
 # Quantos ativos individuais aparecem na lâmina antes de agrupar o resto
 # em uma linha "Outros ativos".
 LIMITE_ATIVOS_EXIBIDOS = 8
-
-# Rótulos legíveis para os códigos de subsegmento gravados por
-# fundos/services/informe_xml.py::_CARTEIRA_MAP (32 pares segmento/subsegmento
-# do XML CVM). Um código não mapeado aqui cai no fallback _humanizar_codigo().
-_SUBSEGMENTO_LABELS = {
-    'IMOBILIARIO': 'Imobiliário',
-    'GERAL': 'Geral',
-    'VAREJO': 'Varejo',
-    'ARRENDAMENTO': 'Arrendamento Mercantil',
-    'PUBLICO': 'Público',
-    'EDUCACAO': 'Educação',
-    'ENTRETENIMENTO': 'Entretenimento',
-    'CRED_PESSOA': 'Crédito Pessoal',
-    'CONSIG': 'Consignado',
-    'CORPORATIVO': 'Corporativo',
-    'MONEY_MARKET': 'Money Market',
-    'VEICULOS': 'Veículos',
-    'IMOBIL_EMPRESARIAL': 'Imobiliário Empresarial',
-    'IMOBIL_RESIDENCIAL': 'Imobiliário Residencial',
-    'OUTRO': 'Outro',
-    'PESSOA': 'Pessoa',
-    'PRECAT': 'Precatórios',
-    'CRED_TRIBUT': 'Créditos Tributários',
-    'ROYALTIES': 'Royalties',
-    'DEBENTURES': 'Debêntures',
-    'CRI': 'CRI',
-    'NOTA_COMERCIAL': 'Nota Comercial',
-    'LETRA_FINANCEIRA': 'Letra Financeira',
-    'COTA_FIF': 'Cota de FIF',
-    'OUTRO_DICRED': 'Outro Direito Creditório',
-    'PROPRIEDADE_INTELECTUAL': 'Propriedade Intelectual',
-}
 
 _PUBLICO_ALVO_LABELS = {
     'PROFISSIONAL': 'Investidores profissionais',
     'QUALIFICADO': 'Investidores qualificados',
     'VAREJO': 'Investidores em geral',
 }
-
-
-def _humanizar_codigo(codigo: str) -> str:
-    return codigo.replace('_', ' ').strip().title()
-
-
-def _descricao_segmento(seg) -> str:
-    """'Setor Público — Precatórios' a partir de um SegmentoCarteira do XML CVM."""
-    rotulo_segmento = SegmentoCarteira(seg.segmento).label
-    if not seg.subsegmento:
-        return rotulo_segmento
-    rotulo_sub = _SUBSEGMENTO_LABELS.get(seg.subsegmento, _humanizar_codigo(seg.subsegmento))
-    return f"{rotulo_segmento} — {rotulo_sub}"
 
 
 def _serie_ate(fundo, competencia):
@@ -163,43 +126,83 @@ def _estatisticas(serie, campo, fundo, competencia_lamina) -> Estatisticas:
     )
 
 
-def _carteira_ativos(informe):
-    """Top N segmentos por valor (já vem ordenado por -valor, Meta.ordering
-    de InformeMensalCarteira), resto agrupado em 'Outros ativos'."""
-    segmentos = list(informe.carteira.all())
-    principais = segmentos[:LIMITE_ATIVOS_EXIBIDOS]
-    resto = segmentos[LIMITE_ATIVOS_EXIBIDOS:]
+def _carteira_ativos(fundo, data_referencia, limite=LIMITE_ATIVOS_EXIBIDOS):
+    """Carteira de Ativos = o que estava de fato registrado como operação na
+    plataforma NA COMPETÊNCIA da lâmina (Direito Creditório via Titulo,
+    agrupado por sacado + Liquidez via Aplicacao, agrupado por tipo) --
+    não o que o informe CVM reportou. Decisão revisada após feedback do
+    cliente (ver plano "AJUSTE — Fonte da Carteira de Ativos"): a carteira
+    administrada no sistema pode divergir bastante do que o XML CVM
+    declara: para o Canoa FIDC, por exemplo, o informe reporta R$ 12MM em
+    "Setor Público / Precatórios", mas as operações reais na plataforma
+    somam bem menos, em recebíveis automotivos.
 
-    ativos = [
-        {'descricao': _descricao_segmento(s), 'valor': s.valor, 'percentual': s.percentual_carteira}
-        for s in principais
+    `data_referencia` é reconstruída (não o estado atual) via
+    operacoes.services.carteira_historica -- ver plano "AJUSTE 2" para o
+    porquê: sem isso, um título liquidado depois da competência ainda
+    apareceria na lâmina de hoje, e um título liquidado ANTES da
+    competência sumiria até de lâminas passadas em que ele existia."""
+    from operacoes.services.carteira_historica import aplicacoes_ativas_em, titulos_ativos_em
+
+    por_sacado: dict[str, Decimal] = {}
+    for item in titulos_ativos_em(fundo, data_referencia):
+        nome = item['titulo'].sacado_nome
+        por_sacado[nome] = por_sacado.get(nome, Decimal('0')) + item['saldo_devedor']
+
+    por_tipo_aplicacao: dict[str, Decimal] = {}
+    for aplicacao in aplicacoes_ativas_em(fundo, data_referencia):
+        por_tipo_aplicacao[aplicacao.tipo_aplicacao] = (
+            por_tipo_aplicacao.get(aplicacao.tipo_aplicacao, Decimal('0')) + aplicacao.valor
+        )
+
+    from operacoes.models import TipoAplicacao
+
+    itens = [
+        {'descricao': f"Direito Creditório — {nome}", 'valor': total}
+        for nome, total in por_sacado.items()
+    ] + [
+        {'descricao': f"Liquidez — {TipoAplicacao(tipo).label}", 'valor': total}
+        for tipo, total in por_tipo_aplicacao.items()
     ]
+
+    total_carteira = sum((i['valor'] for i in itens), Decimal('0'))
+    itens.sort(key=lambda i: i['valor'], reverse=True)
+    for i in itens:
+        i['percentual'] = (i['valor'] / total_carteira * 100) if total_carteira else None
+
+    principais, resto = itens[:limite], itens[limite:]
     if resto:
-        ativos.append({
+        valor_resto = sum((i['valor'] for i in resto), Decimal('0'))
+        principais.append({
             'descricao': 'Outros ativos',
-            'valor': sum((s.valor for s in resto), Decimal('0')),
-            'percentual': sum((s.percentual_carteira or Decimal('0') for s in resto), Decimal('0')),
+            'valor': valor_resto,
+            'percentual': (valor_resto / total_carteira * 100) if total_carteira else None,
         })
-    return ativos
+    return principais
 
 
-def _status_enquadramento(fundo):
+def _status_enquadramento(fundo, data_referencia):
     """Reusa fundos/services/enquadramento.py -- mesma função usada em
-    carteira_fundo e no dashboard. Acrescenta o 3º estado (A5.1)."""
-    from operacoes.models import Titulo, Aplicacao
+    carteira_fundo e no dashboard, mas com a carteira reconstruída NA
+    COMPETÊNCIA da lâmina (mesma fonte de _carteira_ativos), não o estado
+    atual. Acrescenta o 3º estado (A5.1)."""
+    from operacoes.services.carteira_historica import aplicacoes_ativas_em, titulos_ativos_em
 
-    titulos_ativos = Titulo.objects.filter(fundo=fundo, ativo=True)
-    aplicacoes_ativas = Aplicacao.objects.filter(fundo=fundo, status='ATIVA')
+    titulos = titulos_ativos_em(fundo, data_referencia)
+    aplicacoes = aplicacoes_ativas_em(fundo, data_referencia)
 
-    saldo_dc = titulos_ativos.aggregate(s=Sum('saldo_devedor'))['s'] or Decimal('0')
-    valor_liquidez = aplicacoes_ativas.aggregate(v=Sum('valor'))['v'] or Decimal('0')
+    saldo_dc = sum((item['saldo_devedor'] for item in titulos), Decimal('0'))
+    valor_liquidez = aplicacoes.aggregate(v=Sum('valor'))['v'] or Decimal('0')
 
-    saldos_por_devedor = [
-        {'doc': row['sacado_cpf_cnpj'], 'nome': row['sacado_nome'], 'saldo': row['s']}
-        for row in titulos_ativos.order_by()
-        .values('sacado_cpf_cnpj', 'sacado_nome')
-        .annotate(s=Sum('saldo_devedor'))
-    ]
+    saldos_por_devedor_map: dict[str, dict] = {}
+    for item in titulos:
+        titulo = item['titulo']
+        chave = titulo.sacado_cpf_cnpj
+        registro = saldos_por_devedor_map.setdefault(
+            chave, {'doc': titulo.sacado_cpf_cnpj, 'nome': titulo.sacado_nome, 'saldo': Decimal('0')}
+        )
+        registro['saldo'] += item['saldo_devedor']
+    saldos_por_devedor = list(saldos_por_devedor_map.values())
 
     resultado = avaliar_enquadramento(fundo, saldo_dc, valor_liquidez, saldos_por_devedor=saldos_por_devedor)
 
@@ -232,13 +235,16 @@ def montar_dados_lamina(fundo, informe) -> dict:
     ano_atual = competencia.year
     ano_ant = ano_atual - 1
 
+    from operacoes.services.carteira_historica import fim_do_mes
+    data_referencia = fim_do_mes(competencia)
+
     serie = _serie_ate(fundo, competencia)
     campo_rent, rotulo_classe = _classe_rentabilidade(informe)
 
     grade_ant, grade_atual = _grade_rentabilidade(serie, campo_rent, ano_ant, ano_atual)
     estatisticas = _estatisticas(serie, campo_rent, fundo, competencia)
-    ativos = _carteira_ativos(informe)
-    enquadramento, status_enq = _status_enquadramento(fundo)
+    ativos = _carteira_ativos(fundo, data_referencia)
+    enquadramento, status_enq = _status_enquadramento(fundo, data_referencia)
 
     num_ativos = informe.carteira.count()
 

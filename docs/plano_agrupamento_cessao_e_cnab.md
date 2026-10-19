@@ -22,8 +22,18 @@ na raiz do projeto; cópia mais antiga em `docs/legado_vba/`), abas MENU e BASE:
 
   | Coluna BASE | Cabeçalho | Fórmula/valor real (linha 2) |
   |---|---|---|
-  | F (col 6) | `VL_NOMINAL - VIRGULA NA CASA DECIMAL` | `109531,60` (valor cheio, sem desconto) |
+  | F (col 6) | `VL_NOMINAL - VIRGULA NA CASA DECIMAL` | `109531,60` |
   | I (col 9) | `VL_PRESENTE - VIRGULA NA CASA DECIMAL` | `=ROUND((F2-(F2*0.0288)),2)` → `106377.09` |
+
+  > **Correção (lote Atrivion 09-09).** A versão original deste parágrafo dizia que a coluna
+  > F era o "valor cheio, sem desconto". **Isso está errado.** Sem os XMLs do lote de 59
+  > notas não era possível conferir a coluna F contra a origem; com os 30 XMLs do lote
+  > Atrivion deu para fechar a conta, e a coluna F é o valor **já líquido de 0,6% de IOF**:
+  > `Módulo3.bas:283-288` sobrescreve a coluna 6 com o resultado de `CalcularDesconto`
+  > (`Módulo3.bas:23`, `Round(valor * 0.994, 2)`), descartando o valor bruto que ela mesma
+  > acabou de escrever em `Módulo3.bas:223`. Ou seja: o legado aplica **dois** descontos em
+  > cascata, e este documento só havia identificado o segundo. Evidências completas em
+  > `operacoes/fixtures/cnab_atrivion_20260909/PROVENIENCIA.md`.
 
   A fórmula da coluna I é literalmente `ARRED(nominal - nominal*taxa; 2)` — a mesma fórmula
   usada em `docs/plano_valor_presente_cessao.md` — com taxa 2,88% nesse lote real.

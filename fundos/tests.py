@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from operacoes.models import Aplicacao, EventoTitulo, OperacaoCessao, Titulo, TipoAplicacao, TipoEventoTitulo
 from usuarios.models import Empresa
-from .models import Fundo, InformeMensal, InformeMensalCarteira, SegmentoCarteira, TipoFundo
+from .models import Fundo, InformeMensal, TipoFundo
 from .services.lamina import (
     _carteira_ativos,
     _classe_rentabilidade,
@@ -33,6 +34,64 @@ def _criar_informe(fundo, competencia, **overrides):
     dados = dict(fundo=fundo, competencia=competencia)
     dados.update(overrides)
     return InformeMensal.objects.create(**dados)
+
+
+def _criar_operacao_cessao(fundo, numero_contrato, **overrides):
+    dados = dict(
+        fundo=fundo,
+        cedente_cnpj='99999999000100',
+        cedente_nome='Cedente Teste',
+        numero_contrato=numero_contrato,
+        data_contrato=date(2025, 1, 1),
+        data_aquisicao=date(2025, 1, 1),
+        valor_total_nominal=Decimal('0'),
+        valor_total_aquisicao=Decimal('0'),
+    )
+    dados.update(overrides)
+    return OperacaoCessao.objects.create(**dados)
+
+
+def _criar_titulo(fundo, operacao, numero_titulo, sacado_nome, saldo_devedor, **overrides):
+    """Cria um Titulo + seu EventoTitulo(AQUISICAO) inicial -- do jeito que
+    processar_cessao faz de verdade (operacoes/services/cessao.py:90-108).
+    Sem o evento, _carteira_ativos/_status_enquadramento (que agora
+    reconstroem o estado via replay -- ver operacoes/services/
+    carteira_historica.py) tratariam o título como se nunca tivesse
+    existido em nenhuma data."""
+    dados = dict(
+        operacao_cessao=operacao,
+        fundo=fundo,
+        numero_titulo=numero_titulo,
+        sacado_nome=sacado_nome,
+        sacado_cpf_cnpj='11122233344',
+        valor_nominal=saldo_devedor,
+        valor_aquisicao=saldo_devedor,
+        data_emissao=date(2025, 1, 1),
+        data_vencimento=date(2025, 6, 1),
+        saldo_devedor=saldo_devedor,
+        ativo=True,
+    )
+    dados.update(overrides)
+    titulo = Titulo.objects.create(**dados)
+    EventoTitulo.objects.create(
+        titulo=titulo,
+        tipo_evento=TipoEventoTitulo.AQUISICAO,
+        data_evento=dados['data_emissao'],
+        valor_evento=titulo.valor_aquisicao,
+    )
+    return titulo
+
+
+def _criar_aplicacao(fundo, tipo_aplicacao, valor, **overrides):
+    dados = dict(
+        fundo=fundo,
+        tipo_aplicacao=tipo_aplicacao,
+        descricao='Aplicação teste',
+        valor=valor,
+        data_aplicacao=date(2025, 1, 1),
+    )
+    dados.update(overrides)
+    return Aplicacao.objects.create(**dados)
 
 
 class LaminaSerieEstatisticasTest(TestCase):
@@ -111,37 +170,76 @@ class LaminaSerieEstatisticasTest(TestCase):
 
 
 class LaminaCarteiraEEnquadramentoTest(TestCase):
-    """Testes de _carteira_ativos (agrupamento 'Outros ativos') e
-    _status_enquadramento (3º estado 'Não avaliado', A5.1)."""
+    """
+    Testes de _carteira_ativos e _status_enquadramento (3º estado 'Não
+    avaliado', A5.1).
+
+    _carteira_ativos passou a ler operacoes.Titulo/Aplicacao (a carteira
+    administrada na plataforma) em vez de InformeMensalCarteira (segmentos
+    do informe CVM) -- decisão revisada pelo cliente depois de ver a lâmina
+    real, ver plano "AJUSTE — Fonte da Carteira de Ativos".
+    """
 
     def setUp(self):
         self.empresa = Empresa.objects.create(nome='Empresa Teste', cnpj='00000000000100')
 
     def test_carteira_agrupa_a_partir_do_9o_ativo(self):
         fundo = _criar_fundo(self.empresa)
-        informe = _criar_informe(fundo, date(2025, 1, 1))
-        # 10 segmentos com valores decrescentes -- os 8 primeiros aparecem
-        # individualmente, os 2 últimos viram 1 linha "Outros ativos".
-        for i in range(10):
-            InformeMensalCarteira.objects.create(
-                informe=informe,
-                segmento=SegmentoCarteira.OUTROS,
-                subsegmento=f'SEG_{i}',
-                valor=Decimal('1000.00') - i,
-                percentual_carteira=Decimal('10.00') - i,
+        operacao = _criar_operacao_cessao(fundo, 'CONTRATO-1')
+        # 9 sacados distintos com valores decrescentes -- os 8 primeiros
+        # aparecem individualmente, o 9º (menor) vira "Outros ativos".
+        for i in range(9):
+            _criar_titulo(
+                fundo, operacao, numero_titulo=f'TIT-{i}', sacado_nome=f'Sacado {i}',
+                saldo_devedor=Decimal('1000.00') - Decimal(i) * 10,
             )
-        ativos = _carteira_ativos(informe)
+        ativos = _carteira_ativos(fundo, date(2025, 12, 31))
 
         self.assertEqual(len(ativos), 9)  # 8 individuais + 1 "Outros ativos"
+        self.assertEqual(ativos[0]['valor'], Decimal('1000.00'))  # maior primeiro
         self.assertEqual(ativos[-1]['descricao'], 'Outros ativos')
-        # Os 2 últimos por valor (SEG_8 valor=992, SEG_9 valor=991) somam 1983.00
-        self.assertEqual(ativos[-1]['valor'], Decimal('1983.00'))
-        self.assertEqual(ativos[-1]['percentual'], Decimal('3.00'))  # (10-8)+(10-9) = 2+1
+        self.assertEqual(ativos[-1]['valor'], Decimal('920.00'))  # só o 9º sobra pro "Outros"
+
+    def test_carteira_combina_direito_creditorio_e_liquidez(self):
+        fundo = _criar_fundo(self.empresa, cnpj='22222222000188')
+        operacao = _criar_operacao_cessao(fundo, 'CONTRATO-2')
+        _criar_titulo(fundo, operacao, 'TIT-A', 'Sacado A', Decimal('600.00'))
+        _criar_titulo(fundo, operacao, 'TIT-B', 'Sacado B', Decimal('300.00'))
+        _criar_aplicacao(fundo, TipoAplicacao.TESOURO, Decimal('100.00'))
+
+        ativos = _carteira_ativos(fundo, date(2025, 12, 31))
+
+        self.assertEqual(len(ativos), 3)  # poucos itens, sem "Outros ativos"
+        self.assertEqual(
+            [a['descricao'] for a in ativos],
+            ['Direito Creditório — Sacado A', 'Direito Creditório — Sacado B', 'Liquidez — Tesouro Direto'],
+        )
+        self.assertEqual([a['percentual'] for a in ativos], [Decimal('60'), Decimal('30'), Decimal('10')])
 
     def test_status_nao_avaliado_quando_fundo_sem_limites(self):
         fundo = _criar_fundo(self.empresa, cnpj='33333333000177')  # limites ficam None (default)
-        _, status = _status_enquadramento(fundo)
+        _, status = _status_enquadramento(fundo, date(2025, 12, 31))
         self.assertEqual(status, 'Não avaliado')
+
+    def test_titulo_liquidado_apos_a_competencia_ainda_aparece_nela(self):
+        # Espelha o caso real encontrado no Canoa FIDC: título adquirido em
+        # jan/2026, liquidado em 30/03/2026. A lâmina de fevereiro (gerada
+        # HOJE, muito depois da liquidação) tem que continuar mostrando o
+        # título -- é exatamente o cenário que motivou a reconstrução
+        # histórica (ver plano "AJUSTE 2").
+        fundo = _criar_fundo(self.empresa, cnpj='55555555000144')
+        operacao = _criar_operacao_cessao(fundo, 'CONTRATO-3', data_aquisicao=date(2026, 1, 1))
+        titulo = _criar_titulo(
+            fundo, operacao, 'TIT-LIQ', 'Sacado Liquidado', Decimal('1000.00'),
+            data_emissao=date(2026, 1, 1),
+        )
+        EventoTitulo.objects.create(
+            titulo=titulo, tipo_evento=TipoEventoTitulo.LIQUIDACAO_TOTAL,
+            data_evento=date(2026, 3, 30), valor_evento=Decimal('1000.00'),
+        )
+
+        self.assertEqual(len(_carteira_ativos(fundo, date(2026, 2, 28))), 1)  # ainda ativo em fev
+        self.assertEqual(_carteira_ativos(fundo, date(2026, 3, 31)), [])  # liquidado até o corte de março
 
 
 class LaminaViewTest(TestCase):

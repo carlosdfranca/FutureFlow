@@ -7,6 +7,7 @@ from django.utils import timezone
 from fundos.models import Recebiveis, Fundo
 from operacoes.models import OperacaoCessao, Titulo, EventoTitulo, TipoEventoTitulo
 from collections import defaultdict
+from decimal import Decimal
 import uuid
 
 
@@ -69,6 +70,12 @@ class Command(BaseCommand):
                         numero_contrato=numero_contrato,
                         data_contrato=timezone.now().date(),  # Data atual como fallback
                         data_aquisicao=timezone.now().date(),
+                        # Taxas zeradas de propósito: os valores vêm prontos do
+                        # modelo Recebiveis (nominal e cessão já gravados), então
+                        # não há cascata a reproduzir aqui. Zero mantém a
+                        # invariante "valor_nominal é líquido de taxa_iof".
+                        taxa_iof=Decimal('0'),
+                        taxa_desconto=Decimal('0'),
                         valor_total_nominal=valor_total_nominal,
                         valor_total_aquisicao=valor_total_aquisicao,
                         status='CONFIRMADA',
@@ -98,7 +105,12 @@ class Command(BaseCommand):
                             ativo=recebivel.status not in ['PAGO', 'BAIXADO'],
                             percentual_pdd=recebivel.pdd_percentual,
                             valor_pdd=recebivel.pdd_valor,
-                            classificacao_risco=self._calcular_classificacao(recebivel.dias_atraso)
+                            classificacao_risco=self._calcular_classificacao(recebivel.dias_atraso),
+                            # Explícito para não herdar o padrão do fundo:
+                            # dados legados nunca tiveram coobrigação registrada,
+                            # e '' é o valor que diz isso (o CNAB cai no padrão
+                            # do fundo na hora de gerar o arquivo).
+                            coobrigacao='',
                         )
                         
                         if not dry_run:

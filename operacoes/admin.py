@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OperacaoCessao, Titulo, EventoTitulo, Aplicacao
+from .models import OperacaoCessao, Titulo, EventoTitulo, Aplicacao, RemessaCnab, RemessaCnabTitulo
 
 
 # ============================================
@@ -23,6 +23,7 @@ class OperacaoCessaoAdmin(admin.ModelAdmin):
         'fundo',
         'data_aquisicao',
         'valor_total_nominal',
+        'taxa_iof',
         'taxa_desconto',
         'status'
     ]
@@ -38,7 +39,7 @@ class OperacaoCessaoAdmin(admin.ModelAdmin):
             'fields': ('cedente_cnpj', 'cedente_nome', 'cedente_endereco')
         }),
         ('Valores', {
-            'fields': ('taxa_desconto', 'valor_total_nominal', 'valor_total_aquisicao')
+            'fields': ('taxa_iof', 'taxa_desconto', 'valor_total_nominal', 'valor_total_aquisicao')
         }),
         ('Observações', {
             'fields': ('observacoes',),
@@ -168,3 +169,47 @@ class AplicacaoAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+# ============================================
+# ADMIN: REMESSA CNAB
+# ============================================
+
+class RemessaCnabTituloInline(admin.TabularInline):
+    model = RemessaCnabTitulo
+    extra = 0
+    fields = ['titulo', 'codigo_movimento', 'valor_pago']
+    readonly_fields = ['titulo', 'codigo_movimento', 'valor_pago']
+    can_delete = False
+    max_num = 0
+
+
+@admin.register(RemessaCnab)
+class RemessaCnabAdmin(admin.ModelAdmin):
+    list_display = [
+        'nome_arquivo',
+        'fundo',
+        'tipo',
+        'data_liquidacao',
+        'quantidade_titulos',
+        'gerado_por',
+        'criado_em',
+    ]
+    list_filter = ['tipo', 'fundo', 'data_liquidacao']
+    search_fields = ['nome_arquivo']
+    readonly_fields = ['conteudo', 'quantidade_titulos', 'gerado_por', 'criado_em']
+
+    fieldsets = (
+        ('Remessa', {
+            'fields': ('fundo', 'tipo', 'data_liquidacao', 'nome_arquivo', 'quantidade_titulos')
+        }),
+        ('Arquivo', {
+            'fields': ('conteudo',),
+            'classes': ('collapse',)
+        }),
+        ('Auditoria', {
+            'fields': ('gerado_por', 'criado_em')
+        }),
+    )
+
+    inlines = [RemessaCnabTituloInline]

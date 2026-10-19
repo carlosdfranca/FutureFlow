@@ -19,6 +19,12 @@ urlpatterns = [
     path('titulos/', views.listar_titulos, name='listar_titulos'),
     path('titulos/<uuid:pk>/', views.detalhe_titulo, name='detalhe_titulo'),
     path('titulos/<uuid:pk>/evento/', views.registrar_evento_titulo, name='registrar_evento_titulo'),
+    path('titulos/cnab-baixa/', views.cnab_baixa_parametros, name='cnab_baixa_parametros'),
+    path('titulos/cnab-baixa/download/', views.download_cnab_baixa, name='download_cnab_baixa'),
+
+    # Remessas CNAB
+    path('remessas/', views.listar_remessas_cnab, name='listar_remessas_cnab'),
+    path('remessas/<uuid:pk>/download/', views.download_remessa_cnab, name='download_remessa_cnab'),
 
     # Aplicações
     path('aplicacoes/', views.listar_aplicacoes, name='listar_aplicacoes'),

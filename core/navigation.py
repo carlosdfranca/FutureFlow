@@ -36,6 +36,8 @@ PARENT_PAGES = {
     "operacoes:cnab_parametros": ("operacoes:detalhe_cessao", ("pk",), "Cessão"),
     "operacoes:listar_titulos": ("operacoes:painel_fundos", (), "Operações"),
     "operacoes:detalhe_titulo": ("operacoes:listar_titulos", (), "Títulos"),
+    "operacoes:cnab_baixa_parametros": ("operacoes:listar_titulos", (), "Títulos"),
+    "operacoes:listar_remessas_cnab": ("operacoes:painel_fundos", (), "Operações"),
     "operacoes:listar_aplicacoes": ("operacoes:painel_fundos", (), "Operações"),
     "operacoes:nova_aplicacao": ("operacoes:listar_aplicacoes", (), "Aplicações"),
     # documentos

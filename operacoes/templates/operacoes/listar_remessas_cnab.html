@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% load ui %}
+
+{% block title %}Remessas CNAB{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero">
+    <div class="page-hero__inner">
+        <div class="page-hero__lead">
+            {% back_button %}
+            <div>
+                <p class="page-hero__label">Operações</p>
+                <h1 class="page-hero__title">Remessas CNAB</h1>
+                <p class="page-hero__subtitle">Histórico de arquivos CNAB de baixa gerados, com opção de rebaixar.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 pb-5">
+
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+        <div class="card-header-ds">
+            <span class="card-header-ds__title">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i>Remessas
+            </span>
+            {% if remessas %}
+                <span class="badge-ds badge-ds--blue">{{ remessas|length }} remessas</span>
+            {% endif %}
+        </div>
+
+        {% if remessas %}
+            <div class="table-responsive">
+                <table class="table table-ds mb-0">
+                    <thead>
+                        <tr>
+                            <th>Arquivo</th>
+                            <th>Fundo</th>
+                            <th>Tipo</th>
+                            <th>DTL</th>
+                            <th>Títulos</th>
+                            <th>Gerado por</th>
+                            <th>Gerado em</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for remessa in remessas %}
+                            <tr>
+                                <td style="font-weight:600; font-family:monospace; font-size:0.82rem;">{{ remessa.nome_arquivo }}</td>
+                                <td style="color:var(--text-secondary);">{{ remessa.fundo.razao_social }}</td>
+                                <td>
+                                    {% if remessa.tipo == 'BAIXA' %}
+                                        <span class="badge-ds badge-ds--gray">Baixa</span>
+                                    {% else %}
+                                        <span class="badge-ds badge-ds--green">Aquisição</span>
+                                    {% endif %}
+                                </td>
+                                <td style="color:var(--text-secondary);">{{ remessa.data_liquidacao|date:"d/m/Y" }}</td>
+                                <td>{{ remessa.quantidade_titulos }}</td>
+                                <td style="color:var(--text-secondary);">{{ remessa.gerado_por|default:"—" }}</td>
+                                <td style="color:var(--text-secondary);">{{ remessa.criado_em|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'operacoes:download_remessa_cnab' remessa.pk %}"
+                                       class="btn-icon-ds btn-icon-ds--blue" title="Baixar novamente">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state-modern">
+                <div class="empty-state-modern__icon-wrap">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h5 class="empty-state-modern__title">Nenhuma remessa gerada</h5>
+                <p class="empty-state-modern__text">As remessas CNAB de baixa geradas aparecerão aqui.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
